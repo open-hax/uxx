@@ -1,0 +1,21 @@
+{:source-paths ["src"]
+
+ :dependencies
+ [[reagent/reagent "1.2.0"]]
+
+ :builds
+ {:ui-reagent
+  {:target :esm
+   :output-dir "dist"
+   :modules {:index {:entries [devel.ui.core]
+                     :exports {:Button devel.ui.primitives.button/button
+                               :Badge devel.ui.primitives.badge/badge
+                               :Spinner devel.ui.primitives.spinner/spinner
+                               :Card devel.ui.primitives.card/card
+                               :Modal devel.ui.primitives.modal/modal
+                               :Tooltip devel.ui.primitives.tooltip/tooltip
+                               :Input devel.ui.primitives.input/input
+                               :Progress devel.ui.primitives.progress/progress
+                               :components devel.ui.primitives.core/components}}}
+   :compiler-options {:output-feature-set :es-next
+                      :source-map true}}}}

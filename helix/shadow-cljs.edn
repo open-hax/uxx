@@ -1,0 +1,21 @@
+{:source-paths ["src"]
+
+ :dependencies
+ [[lilactown/helix "0.2.2"]]
+
+ :builds
+ {:ui-helix
+  {:target :esm
+   :output-dir "dist"
+   :modules {:index {:entries [devel.ui.helix.core]
+                     :exports {:Button devel.ui.helix.core/button
+                               :Badge devel.ui.helix.core/badge
+                               :Spinner devel.ui.helix.core/spinner
+                               :Card devel.ui.helix.core/card
+                               :Modal devel.ui.helix.core/modal
+                               :Tooltip devel.ui.helix.core/tooltip
+                               :Input devel.ui.helix.core/input
+                               :Progress devel.ui.helix.core/progress
+                               :components devel.ui.helix.core/components}}}
+   :compiler-options {:output-feature-set :es-next
+                      :source-map true}}}}

@@ -1,0 +1,63 @@
+{
+  "name": "@open-hax/uxx",
+  "version": "0.1.0",
+  "description": "Open Hax UI component library with React primitives and shared design tokens.",
+  "type": "module",
+  "license": "GPL-3.0-or-later",
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "contracts",
+    "docs"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "import": "./dist/src/index.js"
+    },
+    "./tokens": {
+      "types": "./dist/tokens/src/index.d.ts",
+      "import": "./dist/tokens/src/index.js"
+    },
+    "./primitives": {
+      "types": "./dist/react/src/primitives/index.d.ts",
+      "import": "./dist/react/src/primitives/index.js"
+    },
+    "./css": "./dist/tokens.css",
+    "./cljs": "./dist/tokens.cljs"
+  },
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.json && node scripts/generate-css.mjs && node scripts/generate-cljs.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --config react/vitest.config.ts",
+    "test:watch": "vitest --config react/vitest.config.ts",
+    "test:coverage": "vitest run --config react/vitest.config.ts --coverage"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  },
+  "dependencies": {
+    "prism-react-renderer": "^2.4.1"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/react": "^18.3.28",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.7.0",
+    "@vitest/coverage-v8": "^1.6.0",
+    "jsdom": "^29.0.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "typescript": "^5.9.3",
+    "vite": "^5.0.0",
+    "vitest": "^1.6.0"
+  }
+}
