@@ -1,7 +1,7 @@
 /**
  * @open-hax/uxx
  *
- * React component library implementing the @devel/ui-contracts.
+ * React component library implementing the @open-hax/uxx contracts.
  * Provides consistent UI components across React applications in the devel workspace.
  *
  * @example
