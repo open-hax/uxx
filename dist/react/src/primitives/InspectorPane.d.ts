@@ -9,38 +9,8 @@
  * A panel for inspecting selected entities with context, detail view, and comparison support.
  */
 import { type ReactNode } from 'react';
-export interface Entity {
-    /** Unique identifier */
-    id: string;
-    /** Optional key for pinning/comparison */
-    key?: string;
-    /** Display title */
-    title: string;
-    /** Entity type */
-    type?: string;
-    /** Text content */
-    text?: string;
-    /** Time display string */
-    time?: string;
-    /** Timestamp for sorting */
-    timestamp?: number;
-    /** Additional metadata */
-    metadata?: Record<string, unknown>;
-}
-export interface PinnedEntry {
-    /** Unique key for this pinned entry */
-    key: string;
-    /** The pinned entity */
-    selection: Entity;
-    /** Related context entities */
-    context?: Entity[];
-}
-export interface ErrorState {
-    /** Error message to display */
-    message: string;
-    /** Whether retry is available */
-    retryable?: boolean;
-}
+import { type Entity, type PinnedEntry, type ErrorState } from './InspectorPane.types.js';
+export type { Entity, PinnedEntry, ErrorState } from './InspectorPane.types.js';
 export interface InspectorPaneProps {
     /** Currently selected entity */
     selection?: Entity | null;
@@ -69,23 +39,6 @@ export interface InspectorPaneProps {
 }
 /**
  * Panel for inspecting selected entities.
- *
- * Story 3.1: Core implementation.
- * Story 3.2: Context panel.
- * Story 3.3: Pin & Compare.
- *
- * @example
- * ```tsx
- * <InspectorPane
- *   selection={{ id: '1', title: 'Session 123', type: 'info' }}
- *   context={[{ id: '2', title: 'Related' }]}
- *   pinned={[{ key: '1', selection: { id: '1', title: 'Session 123' }, context: [] }]}
- *   activePinnedKey="1"
- *   onPin={(e) => setPinned([...pinned, { key: e.key, selection: e, context: [] }])}
- *   onUnpin={(k) => setPinned(pinned.filter(p => p.key !== k))}
- *   onSetActive={(k) => setActiveKey(k)}
- * />
- * ```
  */
 export declare function InspectorPane({ selection, context, pinned, activePinnedKey, error, onPin, onUnpin, onSetActive, onRetry, onContextSelect, renderDetail, renderContextItem, }: InspectorPaneProps): import("react/jsx-runtime").JSX.Element;
 export default InspectorPane;

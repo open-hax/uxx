@@ -17,6 +17,8 @@ export { Progress } from './Progress.js';
 export { ResizablePane } from './ResizablePane.js';
 export { WhichKeyPopup } from './WhichKeyPopup.js';
 export { InspectorPane } from './InspectorPane.js';
+export { ContextSection } from './ContextSection.js';
+export { PinnedTabsBar } from './PinnedTabsBar.js';
 export { PermissionCard } from './PermissionCard.js';
 export { PromptCard } from './PromptCard.js';
 export { PermissionPrompts } from './PermissionPrompts.js';
