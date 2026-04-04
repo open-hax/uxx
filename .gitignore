@@ -1,3 +1,7 @@
 node_modules/
+reagent/.shadow-cljs/
+reagent/dist/
+helix/.shadow-cljs/
+helix/dist/
 open-hax-uxx-*.tgz
 .DS_Store

@@ -5,220 +5,226 @@
 (def colors
   {
     :background {
-      :default "#272822"
-      :surface "#1e1f1c"
-      :elevated "#34352f"
-      :highlight "#3e3d32"
-      :overlay "rgba(0, 0, 0, 0.6)"
+      :default "var(--uxx-colors-background-default, #272822)"
+      :surface "var(--uxx-colors-background-surface, #1e1f1c)"
+      :elevated "var(--uxx-colors-background-elevated, #34352f)"
+      :highlight "var(--uxx-colors-background-highlight, #3e3d32)"
+      :overlay "var(--uxx-colors-background-overlay, rgba(0, 0, 0, 0.6))"
     }
-    :selection {:default "rgba(135, 139, 145, 0.5)"}
+    :selection {:default "var(--uxx-colors-selection-default, rgba(135, 139, 145, 0.5))"}
     :text {
-      :default "#f8f8f2"
-      :bright "#f8f8f2"
-      :panel "#cccccc"
-      :soft "#90908a"
-      :muted "#75715e"
-      :subtle "#464741"
-      :inverse "#272822"
-      :secondary "#75715e"
+      :default "var(--uxx-colors-text-default, #f8f8f2)"
+      :bright "var(--uxx-colors-text-bright, #f8f8f2)"
+      :panel "var(--uxx-colors-text-panel, #cccccc)"
+      :soft "var(--uxx-colors-text-soft, #90908a)"
+      :muted "var(--uxx-colors-text-muted, #75715e)"
+      :subtle "var(--uxx-colors-text-subtle, #464741)"
+      :inverse "var(--uxx-colors-text-inverse, #272822)"
+      :secondary "var(--uxx-colors-text-secondary, #75715e)"
     }
     :interactive {
-      :default "#a6e22e"
-      :hover "#8fce26"
-      :active "#7cb824"
-      :disabled "#75715e"
+      :default "var(--uxx-colors-interactive-default, #a6e22e)"
+      :hover "var(--uxx-colors-interactive-hover, #8fce26)"
+      :active "var(--uxx-colors-interactive-active, #7cb824)"
+      :disabled "var(--uxx-colors-interactive-disabled, #75715e)"
     }
     :button {
       :primary {
-        :bg "#75715e"
-        :fg "#f8f8f2"
-        :hover "#8a856e"
-        :active "#6a6654"
+        :bg "var(--uxx-colors-button-primary-bg, #75715e)"
+        :fg "var(--uxx-colors-button-primary-fg, #f8f8f2)"
+        :hover "var(--uxx-colors-button-primary-hover, #8a856e)"
+        :active "var(--uxx-colors-button-primary-active, #6a6654)"
       }
       :secondary {
-        :bg "#414339"
-        :fg "#f8f8f2"
-        :hover "#505248"
-        :active "#3a3c33"
+        :bg "var(--uxx-colors-button-secondary-bg, #414339)"
+        :fg "var(--uxx-colors-button-secondary-fg, #f8f8f2)"
+        :hover "var(--uxx-colors-button-secondary-hover, #505248)"
+        :active "var(--uxx-colors-button-secondary-active, #3a3c33)"
       }
       :ghost {
-        :bg "transparent"
-        :fg "#f8f8f2"
-        :hover "#414339"
-        :active "#34352f"
+        :bg "var(--uxx-colors-button-ghost-bg, transparent)"
+        :fg "var(--uxx-colors-button-ghost-fg, #f8f8f2)"
+        :hover "var(--uxx-colors-button-ghost-hover, #414339)"
+        :active "var(--uxx-colors-button-ghost-active, #34352f)"
       }
       :danger {
-        :bg "#f92672"
-        :fg "#f8f8f2"
-        :hover "#e61b63"
-        :active "#d1155c"
+        :bg "var(--uxx-colors-button-danger-bg, #f92672)"
+        :fg "var(--uxx-colors-button-danger-fg, #f8f8f2)"
+        :hover "var(--uxx-colors-button-danger-hover, #e61b63)"
+        :active "var(--uxx-colors-button-danger-active, #d1155c)"
       }
     }
     :badge {
       :default {
-        :bg "#75715e"
-        :fg "#f8f8f2"
+        :bg "var(--uxx-colors-badge-default-bg, #75715e)"
+        :fg "var(--uxx-colors-badge-default-fg, #f8f8f2)"
       }
       :success {
-        :bg "rgba(166, 226, 46, 0.15)"
-        :fg "#a6e22e"
+        :bg "var(--uxx-colors-badge-success-bg, rgba(166, 226, 46, 0.15))"
+        :fg "var(--uxx-colors-badge-success-fg, #a6e22e)"
       }
       :warning {
-        :bg "rgba(253, 151, 31, 0.15)"
-        :fg "#fd971f"
+        :bg "var(--uxx-colors-badge-warning-bg, rgba(253, 151, 31, 0.15))"
+        :fg "var(--uxx-colors-badge-warning-fg, #fd971f)"
       }
       :error {
-        :bg "rgba(249, 38, 114, 0.15)"
-        :fg "#f92672"
+        :bg "var(--uxx-colors-badge-error-bg, rgba(249, 38, 114, 0.15))"
+        :fg "var(--uxx-colors-badge-error-fg, #f92672)"
       }
       :info {
-        :bg "rgba(102, 217, 239, 0.15)"
-        :fg "#66d9ef"
+        :bg "var(--uxx-colors-badge-info-bg, rgba(102, 217, 239, 0.15))"
+        :fg "var(--uxx-colors-badge-info-fg, #66d9ef)"
       }
     }
     :border {
-      :default "#34352f"
-      :subtle "#464741"
-      :focus "#99947c"
-      :error "#f92672"
+      :default "var(--uxx-colors-border-default, #34352f)"
+      :subtle "var(--uxx-colors-border-subtle, #464741)"
+      :focus "var(--uxx-colors-border-focus, #99947c)"
+      :error "var(--uxx-colors-border-error, #f92672)"
     }
     :accent {
-      :yellow "#e6db74"
-      :orange "#fd971f"
-      :red "#f92672"
-      :magenta "#ae81ff"
-      :blue "#66d9ef"
-      :cyan "#66d9ef"
-      :green "#a6e22e"
+      :yellow "var(--uxx-colors-accent-yellow, #e6db74)"
+      :orange "var(--uxx-colors-accent-orange, #fd971f)"
+      :red "var(--uxx-colors-accent-red, #f92672)"
+      :magenta "var(--uxx-colors-accent-magenta, #ae81ff)"
+      :blue "var(--uxx-colors-accent-blue, #66d9ef)"
+      :cyan "var(--uxx-colors-accent-cyan, #66d9ef)"
+      :green "var(--uxx-colors-accent-green, #a6e22e)"
+    }
+    :semantic {
+      :error "var(--uxx-colors-semantic-error, #f92672)"
+      :warning "var(--uxx-colors-semantic-warning, #fd971f)"
+      :success "var(--uxx-colors-semantic-success, #a6e22e)"
+      :info "var(--uxx-colors-semantic-info, #66d9ef)"
     }
     :status {
-      :alive "#a6e22e"
-      :dead "#f92672"
-      :open "#a6e22e"
-      :closed "#75715e"
-      :merged "#ae81ff"
-      :sleeping "#66d9ef"
-      :eating "#fd971f"
-      :working "#e6db74"
+      :alive "var(--uxx-colors-status-alive, #a6e22e)"
+      :dead "var(--uxx-colors-status-dead, #f92672)"
+      :open "var(--uxx-colors-status-open, #a6e22e)"
+      :closed "var(--uxx-colors-status-closed, #75715e)"
+      :merged "var(--uxx-colors-status-merged, #ae81ff)"
+      :sleeping "var(--uxx-colors-status-sleeping, #66d9ef)"
+      :eating "var(--uxx-colors-status-eating, #fd971f)"
+      :working "var(--uxx-colors-status-working, #e6db74)"
     }
     :chart {
-      :segment0 "#66d9ef"
-      :segment1 "#a6e22e"
-      :segment2 "#e6db74"
-      :segment3 "#fd971f"
-      :segment4 "#ae81ff"
-      :segment5 "#7ca3b5"
+      :segment0 "var(--uxx-colors-chart-segment0, #66d9ef)"
+      :segment1 "var(--uxx-colors-chart-segment1, #a6e22e)"
+      :segment2 "var(--uxx-colors-chart-segment2, #e6db74)"
+      :segment3 "var(--uxx-colors-chart-segment3, #fd971f)"
+      :segment4 "var(--uxx-colors-chart-segment4, #ae81ff)"
+      :segment5 "var(--uxx-colors-chart-segment5, #7ca3b5)"
     }
     :fill {
       :good {
-        :start "#a6e22e"
-        :end "#78efb7"
+        :start "var(--uxx-colors-fill-good-start, #a6e22e)"
+        :end "var(--uxx-colors-fill-good-end, #78efb7)"
       }
       :warn {
-        :start "#fd971f"
-        :end "#ffd280"
+        :start "var(--uxx-colors-fill-warn-start, #fd971f)"
+        :end "var(--uxx-colors-fill-warn-end, #ffd280)"
       }
       :danger {
-        :start "#f92672"
-        :end "#ff9e92"
+        :start "var(--uxx-colors-fill-danger-start, #f92672)"
+        :end "var(--uxx-colors-fill-danger-end, #ff9e92)"
       }
       :neutral {
-        :start "#7aa7bd"
-        :end "#98bfd0"
+        :start "var(--uxx-colors-fill-neutral-start, #7aa7bd)"
+        :end "var(--uxx-colors-fill-neutral-end, #98bfd0)"
       }
     }
     :surface {
-      :panel "rgba(30, 31, 28, 0.82)"
-      :card "rgba(52, 53, 47, 0.65)"
-      :card-alt "rgba(62, 61, 50, 0.55)"
-      :input "rgba(65, 67, 57, 0.78)"
-      :nav "rgba(30, 31, 28, 0.6)"
+      :panel "var(--uxx-colors-surface-panel, rgba(30, 31, 28, 0.82))"
+      :card "var(--uxx-colors-surface-card, rgba(52, 53, 47, 0.65))"
+      :card-alt "var(--uxx-colors-surface-card-alt, rgba(62, 61, 50, 0.55))"
+      :input "var(--uxx-colors-surface-input, rgba(65, 67, 57, 0.78))"
+      :nav "var(--uxx-colors-surface-nav, rgba(30, 31, 28, 0.6))"
     }
     :alpha {
       :green {
-        :_08 "rgba(166, 226, 46, 0.08)"
-        :_12 "rgba(166, 226, 46, 0.12)"
-        :_14 "rgba(166, 226, 46, 0.14)"
-        :_15 "rgba(166, 226, 46, 0.15)"
-        :_16 "rgba(166, 226, 46, 0.16)"
-        :_25 "rgba(166, 226, 46, 0.25)"
-        :_28 "rgba(166, 226, 46, 0.28)"
-        :_30 "rgba(166, 226, 46, 0.30)"
-        :_35 "rgba(166, 226, 46, 0.35)"
-        :_38 "rgba(166, 226, 46, 0.38)"
-        :_40 "rgba(166, 226, 46, 0.40)"
-        :_45 "rgba(166, 226, 46, 0.45)"
-        :_50 "rgba(166, 226, 46, 0.50)"
-        :_55 "rgba(166, 226, 46, 0.55)"
-        :_60 "rgba(166, 226, 46, 0.60)"
-        :_80 "rgba(166, 226, 46, 0.80)"
+        :_08 "var(--uxx-colors-alpha-green-_08, rgba(166, 226, 46, 0.08))"
+        :_12 "var(--uxx-colors-alpha-green-_12, rgba(166, 226, 46, 0.12))"
+        :_14 "var(--uxx-colors-alpha-green-_14, rgba(166, 226, 46, 0.14))"
+        :_15 "var(--uxx-colors-alpha-green-_15, rgba(166, 226, 46, 0.15))"
+        :_16 "var(--uxx-colors-alpha-green-_16, rgba(166, 226, 46, 0.16))"
+        :_25 "var(--uxx-colors-alpha-green-_25, rgba(166, 226, 46, 0.25))"
+        :_28 "var(--uxx-colors-alpha-green-_28, rgba(166, 226, 46, 0.28))"
+        :_30 "var(--uxx-colors-alpha-green-_30, rgba(166, 226, 46, 0.3))"
+        :_35 "var(--uxx-colors-alpha-green-_35, rgba(166, 226, 46, 0.35))"
+        :_38 "var(--uxx-colors-alpha-green-_38, rgba(166, 226, 46, 0.38))"
+        :_40 "var(--uxx-colors-alpha-green-_40, rgba(166, 226, 46, 0.4))"
+        :_45 "var(--uxx-colors-alpha-green-_45, rgba(166, 226, 46, 0.45))"
+        :_50 "var(--uxx-colors-alpha-green-_50, rgba(166, 226, 46, 0.5))"
+        :_55 "var(--uxx-colors-alpha-green-_55, rgba(166, 226, 46, 0.55))"
+        :_60 "var(--uxx-colors-alpha-green-_60, rgba(166, 226, 46, 0.6))"
+        :_80 "var(--uxx-colors-alpha-green-_80, rgba(166, 226, 46, 0.8))"
       }
       :red {
-        :_12 "rgba(249, 38, 114, 0.12)"
-        :_14 "rgba(249, 38, 114, 0.14)"
-        :_15 "rgba(249, 38, 114, 0.15)"
-        :_25 "rgba(249, 38, 114, 0.25)"
-        :_30 "rgba(249, 38, 114, 0.30)"
-        :_38 "rgba(249, 38, 114, 0.38)"
-        :_40 "rgba(249, 38, 114, 0.40)"
-        :_45 "rgba(249, 38, 114, 0.45)"
-        :_46 "rgba(249, 38, 114, 0.46)"
-        :_50 "rgba(249, 38, 114, 0.50)"
+        :_12 "var(--uxx-colors-alpha-red-_12, rgba(249, 38, 114, 0.12))"
+        :_14 "var(--uxx-colors-alpha-red-_14, rgba(249, 38, 114, 0.14))"
+        :_15 "var(--uxx-colors-alpha-red-_15, rgba(249, 38, 114, 0.15))"
+        :_25 "var(--uxx-colors-alpha-red-_25, rgba(249, 38, 114, 0.25))"
+        :_30 "var(--uxx-colors-alpha-red-_30, rgba(249, 38, 114, 0.3))"
+        :_38 "var(--uxx-colors-alpha-red-_38, rgba(249, 38, 114, 0.38))"
+        :_40 "var(--uxx-colors-alpha-red-_40, rgba(249, 38, 114, 0.4))"
+        :_45 "var(--uxx-colors-alpha-red-_45, rgba(249, 38, 114, 0.45))"
+        :_46 "var(--uxx-colors-alpha-red-_46, rgba(249, 38, 114, 0.46))"
+        :_50 "var(--uxx-colors-alpha-red-_50, rgba(249, 38, 114, 0.5))"
       }
       :orange {
-        :_12 "rgba(253, 151, 31, 0.12)"
-        :_15 "rgba(253, 151, 31, 0.15)"
-        :_32 "rgba(253, 151, 31, 0.32)"
-        :_35 "rgba(253, 151, 31, 0.35)"
-        :_40 "rgba(253, 151, 31, 0.40)"
+        :_12 "var(--uxx-colors-alpha-orange-_12, rgba(253, 151, 31, 0.12))"
+        :_15 "var(--uxx-colors-alpha-orange-_15, rgba(253, 151, 31, 0.15))"
+        :_32 "var(--uxx-colors-alpha-orange-_32, rgba(253, 151, 31, 0.32))"
+        :_35 "var(--uxx-colors-alpha-orange-_35, rgba(253, 151, 31, 0.35))"
+        :_40 "var(--uxx-colors-alpha-orange-_40, rgba(253, 151, 31, 0.4))"
       }
       :blue {
-        :_15 "rgba(102, 217, 239, 0.15)"
-        :_20 "rgba(102, 217, 239, 0.20)"
-        :_35 "rgba(102, 217, 239, 0.35)"
-        :_45 "rgba(102, 217, 239, 0.45)"
-        :_80 "rgba(102, 217, 239, 0.80)"
-        :_95 "rgba(102, 217, 239, 0.95)"
+        :_15 "var(--uxx-colors-alpha-blue-_15, rgba(102, 217, 239, 0.15))"
+        :_20 "var(--uxx-colors-alpha-blue-_20, rgba(102, 217, 239, 0.2))"
+        :_35 "var(--uxx-colors-alpha-blue-_35, rgba(102, 217, 239, 0.35))"
+        :_45 "var(--uxx-colors-alpha-blue-_45, rgba(102, 217, 239, 0.45))"
+        :_80 "var(--uxx-colors-alpha-blue-_80, rgba(102, 217, 239, 0.8))"
+        :_95 "var(--uxx-colors-alpha-blue-_95, rgba(102, 217, 239, 0.95))"
       }
       :magenta {
-        :_08 "rgba(174, 129, 255, 0.08)"
-        :_14 "rgba(174, 129, 255, 0.14)"
-        :_30 "rgba(174, 129, 255, 0.30)"
+        :_08 "var(--uxx-colors-alpha-magenta-_08, rgba(174, 129, 255, 0.08))"
+        :_14 "var(--uxx-colors-alpha-magenta-_14, rgba(174, 129, 255, 0.14))"
+        :_30 "var(--uxx-colors-alpha-magenta-_30, rgba(174, 129, 255, 0.3))"
       }
-      :yellow {:_06 "rgba(230, 219, 116, 0.06)"}
+      :yellow {:_06 "var(--uxx-colors-alpha-yellow-_06, rgba(230, 219, 116, 0.06))"}
       :bg {
-        :_08 "rgba(73, 72, 62, 0.08)"
-        :_10 "rgba(73, 72, 62, 0.10)"
-        :_12 "rgba(73, 72, 62, 0.12)"
-        :_14 "rgba(73, 72, 62, 0.14)"
-        :_16 "rgba(73, 72, 62, 0.16)"
-        :_18 "rgba(73, 72, 62, 0.18)"
-        :_24 "rgba(62, 61, 50, 0.24)"
-        :_25 "rgba(73, 72, 62, 0.25)"
-        :_28 "rgba(73, 72, 62, 0.28)"
-        :_30 "rgba(73, 72, 62, 0.30)"
-        :_46 "rgba(30, 31, 28, 0.46)"
-        :_55 "rgba(73, 72, 62, 0.55)"
-        :_60 "rgba(30, 31, 28, 0.60)"
-        :_62 "rgba(30, 31, 28, 0.62)"
-        :_68 "rgba(30, 31, 28, 0.68)"
-        :_70 "rgba(73, 72, 62, 0.70)"
-        :_72 "rgba(30, 31, 28, 0.72)"
-        :_80 "rgba(30, 31, 28, 0.80)"
-        :_85 "rgba(62, 61, 50, 0.85)"
-        :_88 "rgba(62, 61, 50, 0.88)"
-        :_88b "rgba(39, 40, 34, 0.88)"
-        :_90 "rgba(30, 31, 28, 0.90)"
-        :_95 "rgba(30, 31, 28, 0.95)"
+        :_08 "var(--uxx-colors-alpha-bg-_08, rgba(65, 67, 57, 0.08))"
+        :_10 "var(--uxx-colors-alpha-bg-_10, rgba(65, 67, 57, 0.1))"
+        :_12 "var(--uxx-colors-alpha-bg-_12, rgba(65, 67, 57, 0.12))"
+        :_14 "var(--uxx-colors-alpha-bg-_14, rgba(65, 67, 57, 0.14))"
+        :_16 "var(--uxx-colors-alpha-bg-_16, rgba(65, 67, 57, 0.16))"
+        :_18 "var(--uxx-colors-alpha-bg-_18, rgba(65, 67, 57, 0.18))"
+        :_24 "var(--uxx-colors-alpha-bg-_24, rgba(62, 61, 50, 0.24))"
+        :_25 "var(--uxx-colors-alpha-bg-_25, rgba(65, 67, 57, 0.25))"
+        :_28 "var(--uxx-colors-alpha-bg-_28, rgba(65, 67, 57, 0.28))"
+        :_30 "var(--uxx-colors-alpha-bg-_30, rgba(65, 67, 57, 0.3))"
+        :_46 "var(--uxx-colors-alpha-bg-_46, rgba(30, 31, 28, 0.46))"
+        :_55 "var(--uxx-colors-alpha-bg-_55, rgba(65, 67, 57, 0.55))"
+        :_60 "var(--uxx-colors-alpha-bg-_60, rgba(30, 31, 28, 0.6))"
+        :_62 "var(--uxx-colors-alpha-bg-_62, rgba(30, 31, 28, 0.62))"
+        :_68 "var(--uxx-colors-alpha-bg-_68, rgba(30, 31, 28, 0.68))"
+        :_70 "var(--uxx-colors-alpha-bg-_70, rgba(65, 67, 57, 0.7))"
+        :_72 "var(--uxx-colors-alpha-bg-_72, rgba(30, 31, 28, 0.72))"
+        :_80 "var(--uxx-colors-alpha-bg-_80, rgba(30, 31, 28, 0.8))"
+        :_85 "var(--uxx-colors-alpha-bg-_85, rgba(62, 61, 50, 0.85))"
+        :_88 "var(--uxx-colors-alpha-bg-_88, rgba(62, 61, 50, 0.88))"
+        :_88b "var(--uxx-colors-alpha-bg-_88b, rgba(39, 40, 34, 0.88))"
+        :_90 "var(--uxx-colors-alpha-bg-_90, rgba(30, 31, 28, 0.9))"
+        :_95 "var(--uxx-colors-alpha-bg-_95, rgba(30, 31, 28, 0.95))"
       }
-      :warning-bg "rgba(58, 41, 16, 0.88)"
-      :error-bg "rgba(70, 24, 24, 0.42)"
-      :error-bg-solid "rgba(70, 24, 24, 0.90)"
-      :federation-error "rgba(127, 29, 29, 0.22)"
-      :white {:_08 "rgba(255, 255, 255, 0.08)"}
-      :shadow "rgba(0, 0, 0, 0.35)"
-      :shadow-light "rgba(0, 0, 0, 0.30)"
-      :shadow-deep "rgba(15, 23, 42, 0.22)"
+      :warning-bg "var(--uxx-colors-alpha-warning-bg, rgba(58, 41, 16, 0.88))"
+      :error-bg "var(--uxx-colors-alpha-error-bg, rgba(70, 24, 24, 0.42))"
+      :error-bg-solid "var(--uxx-colors-alpha-error-bg-solid, rgba(70, 24, 24, 0.9))"
+      :federation-error "var(--uxx-colors-alpha-federation-error, rgba(127, 29, 29, 0.22))"
+      :white {:_08 "var(--uxx-colors-alpha-white-_08, rgba(255, 255, 255, 0.08))"}
+      :shadow "var(--uxx-colors-alpha-shadow, rgba(0, 0, 0, 0.35))"
+      :shadow-light "var(--uxx-colors-alpha-shadow-light, rgba(0, 0, 0, 0.3))"
+      :shadow-deep "var(--uxx-colors-alpha-shadow-deep, rgba(15, 23, 42, 0.22))"
     }
   })
 
@@ -254,6 +260,569 @@
       :warning "#fd971f"
       :success "#a6e22e"
       :info "#66d9ef"
+    }
+  })
+
+(def night-owl
+  {
+    :bg {
+      :default "#011627"
+      :darker "#01111d"
+      :lighter "#0b2942"
+      :selection "#1d3b53"
+      :tab-inactive "#0b253a"
+      :group-border "#5f7e97"
+    }
+    :fg {
+      :default "#d6deeb"
+      :bright "#ffffff"
+      :panel "#d2dee7"
+      :soft "#89a4bb"
+      :muted "#5f7e97"
+      :subtle "#4b6479"
+    }
+    :accent {
+      :yellow "#ffeb95"
+      :orange "#F78C6C"
+      :red "#EF5350"
+      :magenta "#c792ea"
+      :blue "#82AAFF"
+      :cyan "#80CBC4"
+      :green "#c5e478"
+    }
+    :semantic {
+      :error "#EF5350"
+      :warning "#FFCA28"
+      :success "#c5e478"
+      :info "#82AAFF"
+    }
+  })
+
+(def themes
+  {
+    :monokai {
+      :name "monokai"
+      :label "Monokai"
+      :appearance "dark"
+      :palette {
+        :bg {
+          :default "#272822"
+          :darker "#1e1f1c"
+          :lighter "#3e3d32"
+          :selection "#414339"
+          :tab-inactive "#34352f"
+          :group-border "#34352f"
+        }
+        :fg {
+          :default "#f8f8f2"
+          :bright "#f8f8f2"
+          :panel "#cccccc"
+          :soft "#90908a"
+          :muted "#75715e"
+          :subtle "#464741"
+        }
+        :accent {
+          :yellow "#e6db74"
+          :orange "#fd971f"
+          :red "#f92672"
+          :magenta "#ae81ff"
+          :blue "#66d9ef"
+          :cyan "#66d9ef"
+          :green "#a6e22e"
+        }
+        :semantic {
+          :error "#f92672"
+          :warning "#fd971f"
+          :success "#a6e22e"
+          :info "#66d9ef"
+        }
+      }
+      :colors {
+        :background {
+          :default "#272822"
+          :surface "#1e1f1c"
+          :elevated "#34352f"
+          :highlight "#3e3d32"
+          :overlay "rgba(0, 0, 0, 0.6)"
+        }
+        :selection {:default "rgba(135, 139, 145, 0.5)"}
+        :text {
+          :default "#f8f8f2"
+          :bright "#f8f8f2"
+          :panel "#cccccc"
+          :soft "#90908a"
+          :muted "#75715e"
+          :subtle "#464741"
+          :inverse "#272822"
+          :secondary "#75715e"
+        }
+        :interactive {
+          :default "#a6e22e"
+          :hover "#8fce26"
+          :active "#7cb824"
+          :disabled "#75715e"
+        }
+        :button {
+          :primary {
+            :bg "#75715e"
+            :fg "#f8f8f2"
+            :hover "#8a856e"
+            :active "#6a6654"
+          }
+          :secondary {
+            :bg "#414339"
+            :fg "#f8f8f2"
+            :hover "#505248"
+            :active "#3a3c33"
+          }
+          :ghost {
+            :bg "transparent"
+            :fg "#f8f8f2"
+            :hover "#414339"
+            :active "#34352f"
+          }
+          :danger {
+            :bg "#f92672"
+            :fg "#f8f8f2"
+            :hover "#e61b63"
+            :active "#d1155c"
+          }
+        }
+        :badge {
+          :default {
+            :bg "#75715e"
+            :fg "#f8f8f2"
+          }
+          :success {
+            :bg "rgba(166, 226, 46, 0.15)"
+            :fg "#a6e22e"
+          }
+          :warning {
+            :bg "rgba(253, 151, 31, 0.15)"
+            :fg "#fd971f"
+          }
+          :error {
+            :bg "rgba(249, 38, 114, 0.15)"
+            :fg "#f92672"
+          }
+          :info {
+            :bg "rgba(102, 217, 239, 0.15)"
+            :fg "#66d9ef"
+          }
+        }
+        :border {
+          :default "#34352f"
+          :subtle "#464741"
+          :focus "#99947c"
+          :error "#f92672"
+        }
+        :accent {
+          :yellow "#e6db74"
+          :orange "#fd971f"
+          :red "#f92672"
+          :magenta "#ae81ff"
+          :blue "#66d9ef"
+          :cyan "#66d9ef"
+          :green "#a6e22e"
+        }
+        :semantic {
+          :error "#f92672"
+          :warning "#fd971f"
+          :success "#a6e22e"
+          :info "#66d9ef"
+        }
+        :status {
+          :alive "#a6e22e"
+          :dead "#f92672"
+          :open "#a6e22e"
+          :closed "#75715e"
+          :merged "#ae81ff"
+          :sleeping "#66d9ef"
+          :eating "#fd971f"
+          :working "#e6db74"
+        }
+        :chart {
+          :segment0 "#66d9ef"
+          :segment1 "#a6e22e"
+          :segment2 "#e6db74"
+          :segment3 "#fd971f"
+          :segment4 "#ae81ff"
+          :segment5 "#7ca3b5"
+        }
+        :fill {
+          :good {
+            :start "#a6e22e"
+            :end "#78efb7"
+          }
+          :warn {
+            :start "#fd971f"
+            :end "#ffd280"
+          }
+          :danger {
+            :start "#f92672"
+            :end "#ff9e92"
+          }
+          :neutral {
+            :start "#7aa7bd"
+            :end "#98bfd0"
+          }
+        }
+        :surface {
+          :panel "rgba(30, 31, 28, 0.82)"
+          :card "rgba(52, 53, 47, 0.65)"
+          :card-alt "rgba(62, 61, 50, 0.55)"
+          :input "rgba(65, 67, 57, 0.78)"
+          :nav "rgba(30, 31, 28, 0.6)"
+        }
+        :alpha {
+          :green {
+            :_08 "rgba(166, 226, 46, 0.08)"
+            :_12 "rgba(166, 226, 46, 0.12)"
+            :_14 "rgba(166, 226, 46, 0.14)"
+            :_15 "rgba(166, 226, 46, 0.15)"
+            :_16 "rgba(166, 226, 46, 0.16)"
+            :_25 "rgba(166, 226, 46, 0.25)"
+            :_28 "rgba(166, 226, 46, 0.28)"
+            :_30 "rgba(166, 226, 46, 0.3)"
+            :_35 "rgba(166, 226, 46, 0.35)"
+            :_38 "rgba(166, 226, 46, 0.38)"
+            :_40 "rgba(166, 226, 46, 0.4)"
+            :_45 "rgba(166, 226, 46, 0.45)"
+            :_50 "rgba(166, 226, 46, 0.5)"
+            :_55 "rgba(166, 226, 46, 0.55)"
+            :_60 "rgba(166, 226, 46, 0.6)"
+            :_80 "rgba(166, 226, 46, 0.8)"
+          }
+          :red {
+            :_12 "rgba(249, 38, 114, 0.12)"
+            :_14 "rgba(249, 38, 114, 0.14)"
+            :_15 "rgba(249, 38, 114, 0.15)"
+            :_25 "rgba(249, 38, 114, 0.25)"
+            :_30 "rgba(249, 38, 114, 0.3)"
+            :_38 "rgba(249, 38, 114, 0.38)"
+            :_40 "rgba(249, 38, 114, 0.4)"
+            :_45 "rgba(249, 38, 114, 0.45)"
+            :_46 "rgba(249, 38, 114, 0.46)"
+            :_50 "rgba(249, 38, 114, 0.5)"
+          }
+          :orange {
+            :_12 "rgba(253, 151, 31, 0.12)"
+            :_15 "rgba(253, 151, 31, 0.15)"
+            :_32 "rgba(253, 151, 31, 0.32)"
+            :_35 "rgba(253, 151, 31, 0.35)"
+            :_40 "rgba(253, 151, 31, 0.4)"
+          }
+          :blue {
+            :_15 "rgba(102, 217, 239, 0.15)"
+            :_20 "rgba(102, 217, 239, 0.2)"
+            :_35 "rgba(102, 217, 239, 0.35)"
+            :_45 "rgba(102, 217, 239, 0.45)"
+            :_80 "rgba(102, 217, 239, 0.8)"
+            :_95 "rgba(102, 217, 239, 0.95)"
+          }
+          :magenta {
+            :_08 "rgba(174, 129, 255, 0.08)"
+            :_14 "rgba(174, 129, 255, 0.14)"
+            :_30 "rgba(174, 129, 255, 0.3)"
+          }
+          :yellow {:_06 "rgba(230, 219, 116, 0.06)"}
+          :bg {
+            :_08 "rgba(65, 67, 57, 0.08)"
+            :_10 "rgba(65, 67, 57, 0.1)"
+            :_12 "rgba(65, 67, 57, 0.12)"
+            :_14 "rgba(65, 67, 57, 0.14)"
+            :_16 "rgba(65, 67, 57, 0.16)"
+            :_18 "rgba(65, 67, 57, 0.18)"
+            :_24 "rgba(62, 61, 50, 0.24)"
+            :_25 "rgba(65, 67, 57, 0.25)"
+            :_28 "rgba(65, 67, 57, 0.28)"
+            :_30 "rgba(65, 67, 57, 0.3)"
+            :_46 "rgba(30, 31, 28, 0.46)"
+            :_55 "rgba(65, 67, 57, 0.55)"
+            :_60 "rgba(30, 31, 28, 0.6)"
+            :_62 "rgba(30, 31, 28, 0.62)"
+            :_68 "rgba(30, 31, 28, 0.68)"
+            :_70 "rgba(65, 67, 57, 0.7)"
+            :_72 "rgba(30, 31, 28, 0.72)"
+            :_80 "rgba(30, 31, 28, 0.8)"
+            :_85 "rgba(62, 61, 50, 0.85)"
+            :_88 "rgba(62, 61, 50, 0.88)"
+            :_88b "rgba(39, 40, 34, 0.88)"
+            :_90 "rgba(30, 31, 28, 0.9)"
+            :_95 "rgba(30, 31, 28, 0.95)"
+          }
+          :warning-bg "rgba(58, 41, 16, 0.88)"
+          :error-bg "rgba(70, 24, 24, 0.42)"
+          :error-bg-solid "rgba(70, 24, 24, 0.9)"
+          :federation-error "rgba(127, 29, 29, 0.22)"
+          :white {:_08 "rgba(255, 255, 255, 0.08)"}
+          :shadow "rgba(0, 0, 0, 0.35)"
+          :shadow-light "rgba(0, 0, 0, 0.3)"
+          :shadow-deep "rgba(15, 23, 42, 0.22)"
+        }
+      }
+    }
+    :night-owl {
+      :name "night-owl"
+      :label "Night Owl"
+      :appearance "dark"
+      :palette {
+        :bg {
+          :default "#011627"
+          :darker "#01111d"
+          :lighter "#0b2942"
+          :selection "#1d3b53"
+          :tab-inactive "#0b253a"
+          :group-border "#5f7e97"
+        }
+        :fg {
+          :default "#d6deeb"
+          :bright "#ffffff"
+          :panel "#d2dee7"
+          :soft "#89a4bb"
+          :muted "#5f7e97"
+          :subtle "#4b6479"
+        }
+        :accent {
+          :yellow "#ffeb95"
+          :orange "#F78C6C"
+          :red "#EF5350"
+          :magenta "#c792ea"
+          :blue "#82AAFF"
+          :cyan "#80CBC4"
+          :green "#c5e478"
+        }
+        :semantic {
+          :error "#EF5350"
+          :warning "#FFCA28"
+          :success "#c5e478"
+          :info "#82AAFF"
+        }
+      }
+      :colors {
+        :background {
+          :default "#011627"
+          :surface "#01111d"
+          :elevated "#0b253a"
+          :highlight "#0b2942"
+          :overlay "rgba(0, 0, 0, 0.6)"
+        }
+        :selection {:default "rgba(29, 59, 83, 0.5)"}
+        :text {
+          :default "#d6deeb"
+          :bright "#ffffff"
+          :panel "#d2dee7"
+          :soft "#89a4bb"
+          :muted "#5f7e97"
+          :subtle "#4b6479"
+          :inverse "#011627"
+          :secondary "#5f7e97"
+        }
+        :interactive {
+          :default "#80CBC4"
+          :hover "#7fdbca"
+          :active "#21c7a8"
+          :disabled "#5f7e97"
+        }
+        :button {
+          :primary {
+            :bg "#7e57c2cc"
+            :fg "#ffffffcc"
+            :hover "#7e57c2"
+            :active "#6747a4"
+          }
+          :secondary {
+            :bg "#1d3b53"
+            :fg "#d6deeb"
+            :hover "#234d708c"
+            :active "#0e293f"
+          }
+          :ghost {
+            :bg "transparent"
+            :fg "#d6deeb"
+            :hover "rgba(29, 59, 83, 0.55)"
+            :active "#0b2942"
+          }
+          :danger {
+            :bg "#EF5350"
+            :fg "#ffffffcc"
+            :hover "#ec5f67"
+            :active "#d3423e"
+          }
+        }
+        :badge {
+          :default {
+            :bg "#5f7e97"
+            :fg "#ffffff"
+          }
+          :success {
+            :bg "rgba(197, 228, 120, 0.15)"
+            :fg "#c5e478"
+          }
+          :warning {
+            :bg "rgba(247, 140, 108, 0.15)"
+            :fg "#F78C6C"
+          }
+          :error {
+            :bg "rgba(239, 83, 80, 0.15)"
+            :fg "#EF5350"
+          }
+          :info {
+            :bg "rgba(130, 170, 255, 0.15)"
+            :fg "#82AAFF"
+          }
+        }
+        :border {
+          :default "#5f7e97"
+          :subtle "#4b6479"
+          :focus "#82AAFF"
+          :error "#EF5350"
+        }
+        :accent {
+          :yellow "#ffeb95"
+          :orange "#F78C6C"
+          :red "#EF5350"
+          :magenta "#c792ea"
+          :blue "#82AAFF"
+          :cyan "#80CBC4"
+          :green "#c5e478"
+        }
+        :semantic {
+          :error "#EF5350"
+          :warning "#FFCA28"
+          :success "#c5e478"
+          :info "#82AAFF"
+        }
+        :status {
+          :alive "#c5e478"
+          :dead "#EF5350"
+          :open "#c5e478"
+          :closed "#5f7e97"
+          :merged "#c792ea"
+          :sleeping "#82AAFF"
+          :eating "#F78C6C"
+          :working "#ffeb95"
+        }
+        :chart {
+          :segment0 "#82AAFF"
+          :segment1 "#c5e478"
+          :segment2 "#ffeb95"
+          :segment3 "#F78C6C"
+          :segment4 "#c792ea"
+          :segment5 "#5f7e97"
+        }
+        :fill {
+          :good {
+            :start "#c5e478"
+            :end "#d9f5dd"
+          }
+          :warn {
+            :start "#F78C6C"
+            :end "#ffcb8b"
+          }
+          :danger {
+            :start "#EF5350"
+            :end "#ff869a"
+          }
+          :neutral {
+            :start "#82AAFF"
+            :end "#c5e4fd"
+          }
+        }
+        :surface {
+          :panel "rgba(1, 17, 29, 0.82)"
+          :card "rgba(11, 37, 58, 0.65)"
+          :card-alt "rgba(11, 41, 66, 0.55)"
+          :input "rgba(29, 59, 83, 0.78)"
+          :nav "rgba(1, 17, 29, 0.6)"
+        }
+        :alpha {
+          :green {
+            :_08 "rgba(197, 228, 120, 0.08)"
+            :_12 "rgba(197, 228, 120, 0.12)"
+            :_14 "rgba(197, 228, 120, 0.14)"
+            :_15 "rgba(197, 228, 120, 0.15)"
+            :_16 "rgba(197, 228, 120, 0.16)"
+            :_25 "rgba(197, 228, 120, 0.25)"
+            :_28 "rgba(197, 228, 120, 0.28)"
+            :_30 "rgba(197, 228, 120, 0.3)"
+            :_35 "rgba(197, 228, 120, 0.35)"
+            :_38 "rgba(197, 228, 120, 0.38)"
+            :_40 "rgba(197, 228, 120, 0.4)"
+            :_45 "rgba(197, 228, 120, 0.45)"
+            :_50 "rgba(197, 228, 120, 0.5)"
+            :_55 "rgba(197, 228, 120, 0.55)"
+            :_60 "rgba(197, 228, 120, 0.6)"
+            :_80 "rgba(197, 228, 120, 0.8)"
+          }
+          :red {
+            :_12 "rgba(239, 83, 80, 0.12)"
+            :_14 "rgba(239, 83, 80, 0.14)"
+            :_15 "rgba(239, 83, 80, 0.15)"
+            :_25 "rgba(239, 83, 80, 0.25)"
+            :_30 "rgba(239, 83, 80, 0.3)"
+            :_38 "rgba(239, 83, 80, 0.38)"
+            :_40 "rgba(239, 83, 80, 0.4)"
+            :_45 "rgba(239, 83, 80, 0.45)"
+            :_46 "rgba(239, 83, 80, 0.46)"
+            :_50 "rgba(239, 83, 80, 0.5)"
+          }
+          :orange {
+            :_12 "rgba(247, 140, 108, 0.12)"
+            :_15 "rgba(247, 140, 108, 0.15)"
+            :_32 "rgba(247, 140, 108, 0.32)"
+            :_35 "rgba(247, 140, 108, 0.35)"
+            :_40 "rgba(247, 140, 108, 0.4)"
+          }
+          :blue {
+            :_15 "rgba(130, 170, 255, 0.15)"
+            :_20 "rgba(130, 170, 255, 0.2)"
+            :_35 "rgba(130, 170, 255, 0.35)"
+            :_45 "rgba(130, 170, 255, 0.45)"
+            :_80 "rgba(130, 170, 255, 0.8)"
+            :_95 "rgba(130, 170, 255, 0.95)"
+          }
+          :magenta {
+            :_08 "rgba(199, 146, 234, 0.08)"
+            :_14 "rgba(199, 146, 234, 0.14)"
+            :_30 "rgba(199, 146, 234, 0.3)"
+          }
+          :yellow {:_06 "rgba(255, 235, 149, 0.06)"}
+          :bg {
+            :_08 "rgba(29, 59, 83, 0.08)"
+            :_10 "rgba(29, 59, 83, 0.1)"
+            :_12 "rgba(29, 59, 83, 0.12)"
+            :_14 "rgba(29, 59, 83, 0.14)"
+            :_16 "rgba(29, 59, 83, 0.16)"
+            :_18 "rgba(29, 59, 83, 0.18)"
+            :_24 "rgba(11, 41, 66, 0.24)"
+            :_25 "rgba(29, 59, 83, 0.25)"
+            :_28 "rgba(29, 59, 83, 0.28)"
+            :_30 "rgba(29, 59, 83, 0.3)"
+            :_46 "rgba(1, 17, 29, 0.46)"
+            :_55 "rgba(29, 59, 83, 0.55)"
+            :_60 "rgba(1, 17, 29, 0.6)"
+            :_62 "rgba(1, 17, 29, 0.62)"
+            :_68 "rgba(1, 17, 29, 0.68)"
+            :_70 "rgba(29, 59, 83, 0.7)"
+            :_72 "rgba(1, 17, 29, 0.72)"
+            :_80 "rgba(1, 17, 29, 0.8)"
+            :_85 "rgba(11, 41, 66, 0.85)"
+            :_88 "rgba(11, 41, 66, 0.88)"
+            :_88b "rgba(1, 22, 39, 0.88)"
+            :_90 "rgba(1, 17, 29, 0.9)"
+            :_95 "rgba(1, 17, 29, 0.95)"
+          }
+          :warning-bg "#675700F2"
+          :error-bg "rgba(171, 3, 0, 0.42)"
+          :error-bg-solid "#AB0300F2"
+          :federation-error "rgba(239, 83, 80, 0.22)"
+          :white {:_08 "rgba(255, 255, 255, 0.08)"}
+          :shadow "rgba(1, 22, 39, 0.35)"
+          :shadow-light "rgba(1, 11, 20, 0.3)"
+          :shadow-deep "rgba(1, 17, 29, 0.45)"
+        }
+      }
     }
   })
 

@@ -263,7 +263,7 @@ export function FileTree({
     return (
       <>
         {text.slice(0, index)}
-        <span style={{ backgroundColor: 'rgba(166, 226, 46, 0.3)' }}>
+        <span style={{ backgroundColor: tokens.colors.alpha.green._30 }}>
           {text.slice(index, index + query.length)}
         </span>
         {text.slice(index + query.length)}

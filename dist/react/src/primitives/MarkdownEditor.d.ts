@@ -1,4 +1,5 @@
 import React from 'react';
+import { type ThemePreference } from '@open-hax/uxx/tokens';
 export interface MarkdownEditorProps {
     value?: string;
     defaultValue?: string;
@@ -8,7 +9,7 @@ export interface MarkdownEditorProps {
     statusBar?: boolean;
     lineNumbers?: boolean;
     wrap?: boolean;
-    theme?: 'dark' | 'light' | 'auto';
+    theme?: ThemePreference;
     highlightActiveLine?: boolean;
     matchBrackets?: boolean;
     spellcheck?: boolean;

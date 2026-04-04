@@ -2,7 +2,13 @@ export { Button, type ButtonProps, type ButtonVariant, type ButtonSize } from '.
 export { Badge, type BadgeProps, type BadgeVariant, type BadgeSize } from './Badge.js';
 export { Spinner, type SpinnerProps, type SpinnerSize } from './Spinner.js';
 export { Card, type CardProps, type CardVariant, type CardPadding, type CardRadius } from './Card.js';
+export { CardHeader, type CardHeaderProps } from './CardHeader.js';
+export { CardBody, type CardBodyProps } from './CardBody.js';
+export { CardFooter, type CardFooterProps } from './CardFooter.js';
 export { Modal, type ModalProps, type ModalSize, type ScrollBehavior } from './Modal.js';
+export { ModalHeader, type ModalHeaderProps } from './ModalHeader.js';
+export { ModalBody, type ModalBodyProps } from './ModalBody.js';
+export { ModalFooter, type ModalFooterProps } from './ModalFooter.js';
 export { Tooltip, type TooltipProps, type TooltipPlacement, type TooltipTrigger } from './Tooltip.js';
 export { Input, type InputProps, type InputType, type InputSize, type InputVariant } from './Input.js';
 export { Select, type SelectProps, type SelectSize, type SelectVariant, type SelectOption } from './Select.js';
@@ -11,6 +17,10 @@ export { Progress, type ProgressProps, type ProgressVariant, type ProgressSize }
 export { ResizablePane, type ResizablePaneProps, type ResizeDirection } from './ResizablePane.js';
 export { WhichKeyPopup, type WhichKeyPopupProps, type BindingEntry, type WhichKeyPosition, type WhichKeySortKey } from './WhichKeyPopup.js';
 export { InspectorPane, type InspectorPaneProps, type Entity, type PinnedEntry, type ErrorState } from './InspectorPane.js';
+export { ContextSection, type ContextSectionProps } from './ContextSection.js';
+export { PinnedTabsBar, type PinnedTabsBarProps } from './PinnedTabsBar.js';
+export { PermissionCard, type PermissionCardProps } from './PermissionCard.js';
+export { PromptCard, type PromptCardProps } from './PromptCard.js';
 export { PermissionPrompts, type PermissionPromptsProps, type PermissionRequest, type InputPrompt, type PermissionResponse } from './PermissionPrompts.js';
 export { ReactReagentSeam, useAdapter, type Adapter, type ReactReagentSeamProps } from './ReactReagentSeam.js';
 export { CommandPalette, type CommandPaletteProps, type CommandItem, type CommandGroup } from './CommandPalette.js';

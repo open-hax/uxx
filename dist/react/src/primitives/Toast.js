@@ -12,20 +12,20 @@ const ToastContext = createContext(null);
 // Type colors
 const typeColors = {
     info: {
-        bg: 'rgba(102, 217, 239, 0.15)',
-        border: '#66d9ef'
+        bg: tokens.colors.badge.info.bg,
+        border: tokens.colors.semantic.info,
     },
     success: {
-        bg: 'rgba(166, 226, 46, 0.15)',
-        border: '#a6e22e'
+        bg: tokens.colors.badge.success.bg,
+        border: tokens.colors.semantic.success,
     },
     warning: {
-        bg: 'rgba(253, 151, 31, 0.15)',
-        border: '#fd971f'
+        bg: tokens.colors.badge.warning.bg,
+        border: tokens.colors.semantic.warning,
     },
     error: {
-        bg: 'rgba(249, 38, 114, 0.15)',
-        border: '#f92672'
+        bg: tokens.colors.badge.error.bg,
+        border: tokens.colors.semantic.error,
     },
 };
 // Type icons
@@ -85,7 +85,7 @@ const actionButtonStyles = {
     padding: `${tokens.spacing[1]}px ${tokens.spacing[2]}px`,
     fontSize: tokens.fontSize.sm,
     fontWeight: tokens.fontWeight.medium,
-    color: tokens.monokai.accent.cyan,
+    color: tokens.colors.accent.cyan,
     textDecoration: 'underline',
 };
 /**

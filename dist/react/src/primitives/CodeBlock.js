@@ -1,7 +1,12 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useMemo, useCallback } from 'react';
 import { Highlight, themes } from 'prism-react-renderer';
-import { tokens } from '@open-hax/uxx/tokens';
+import { tokens, withAlpha } from '@open-hax/uxx/tokens';
+import { useResolvedTheme } from '../theme.js';
+const PRISM_THEME_MAP = {
+    monokai: themes.vsDark,
+    'night-owl': themes.nightOwl,
+};
 // Language detection from file extension
 const EXTENSION_MAP = {
     '.ts': 'typescript',
@@ -121,6 +126,9 @@ export const CodeBlock = ({ code, language: explicitLanguage, filename, theme = 
     const [showAll, setShowAll] = useState(false);
     const language = useMemo(() => detectLanguage(code, filename, explicitLanguage), [code, filename, explicitLanguage]);
     const prismLanguage = useMemo(() => PRISM_LANG_MAP[language] || language, [language]);
+    const resolvedTheme = useResolvedTheme(theme);
+    const themeColors = resolvedTheme.colors;
+    const prismTheme = useMemo(() => PRISM_THEME_MAP[resolvedTheme.name] ?? themes.vsDark, [resolvedTheme.name]);
     const lines = useMemo(() => code.split('\n'), [code]);
     const visibleLines = useMemo(() => {
         if (!maxLines || showAll)
@@ -142,21 +150,21 @@ export const CodeBlock = ({ code, language: explicitLanguage, filename, theme = 
     const diffStyle = useMemo(() => {
         if (diff === 'add') {
             return {
-                backgroundColor: 'rgba(102, 217, 239, 0.08)',
-                borderLeft: '3px solid rgb(102, 217, 239)',
+                backgroundColor: themeColors.alpha.blue._15,
+                borderLeft: `3px solid ${themeColors.accent.cyan}`,
             };
         }
         if (diff === 'remove') {
             return {
-                backgroundColor: 'rgba(249, 38, 114, 0.08)',
-                borderLeft: '3px solid rgb(249, 38, 114)',
+                backgroundColor: themeColors.alpha.red._15,
+                borderLeft: `3px solid ${themeColors.accent.red}`,
             };
         }
         return {};
-    }, [diff]);
+    }, [diff, themeColors]);
     if (collapsed) {
         return (_jsxs("div", { className: className, "data-component": "code-block", "data-language": language, "data-collapsed": true, onClick: () => setCollapsed(false), style: {
-                background: tokens.colors.background.elevated,
+                background: themeColors.background.elevated,
                 padding: '8px 12px',
                 borderRadius: tokens.spacing[2],
                 cursor: 'pointer',
@@ -165,12 +173,12 @@ export const CodeBlock = ({ code, language: explicitLanguage, filename, theme = 
                 gap: '8px',
                 fontFamily: 'JetBrains Mono, monospace',
                 fontSize: 13,
-                color: tokens.colors.text.muted,
+                color: themeColors.text.muted,
                 ...diffStyle,
             }, children: [_jsx("span", { children: "\u25B6" }), _jsx("span", { children: filename || language }), _jsxs("span", { style: { marginLeft: 'auto', opacity: 0.5 }, children: [lines.length, " lines"] })] }));
     }
     return (_jsxs("div", { className: className, "data-component": "code-block", "data-language": language, "data-diff": diff, style: {
-            background: tokens.colors.background.elevated,
+            background: themeColors.background.elevated,
             borderRadius: tokens.spacing[2],
             overflow: 'hidden',
             position: 'relative',
@@ -180,30 +188,30 @@ export const CodeBlock = ({ code, language: explicitLanguage, filename, theme = 
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     padding: '8px 12px',
-                    background: 'rgba(255, 255, 255, 0.02)',
-                    borderBottom: `1px solid ${tokens.colors.border.subtle}`,
+                    background: withAlpha(themeColors.text.default, 0.02),
+                    borderBottom: `1px solid ${themeColors.border.subtle}`,
                 }, children: [_jsxs("div", { style: { display: 'flex', alignItems: 'center', gap: 8 }, children: [collapsible && (_jsx("button", { onClick: () => setCollapsed(true), style: {
                                     background: 'none',
                                     border: 'none',
-                                    color: tokens.colors.text.muted,
+                                    color: themeColors.text.muted,
                                     cursor: 'pointer',
                                     padding: 0,
                                     fontSize: 12,
                                 }, children: "\u25BC" })), showLanguage && (_jsx("span", { style: {
                                     fontSize: 12,
-                                    color: tokens.colors.text.muted,
+                                    color: themeColors.text.muted,
                                     textTransform: 'uppercase',
                                     letterSpacing: '0.5px',
                                 }, children: filename || language }))] }), showCopy && (_jsx("button", { onClick: handleCopy, style: {
                             background: 'none',
                             border: 'none',
-                            color: copied ? tokens.monokai.accent.cyan : tokens.colors.text.muted,
+                            color: copied ? themeColors.accent.cyan : themeColors.text.muted,
                             cursor: 'pointer',
                             fontSize: 12,
                             padding: '4px 8px',
                             borderRadius: 4,
                             transition: 'color 0.2s',
-                        }, children: copied ? '✓ Copied' : 'Copy' }))] })), _jsx(Highlight, { theme: themes.vsDark, code: visibleLines.join('\n'), language: prismLanguage, children: ({ className: highlightClass, style, tokens: prismTokens, getLineProps, getTokenProps }) => (_jsx("pre", { className: highlightClass, style: {
+                        }, children: copied ? '✓ Copied' : 'Copy' }))] })), _jsx(Highlight, { theme: prismTheme, code: visibleLines.join('\n'), language: prismLanguage, children: ({ className: highlightClass, style, tokens: prismTokens, getLineProps, getTokenProps }) => (_jsx("pre", { className: highlightClass, style: {
                         ...style,
                         margin: 0,
                         padding: tokens.spacing[4],
@@ -218,27 +226,27 @@ export const CodeBlock = ({ code, language: explicitLanguage, filename, theme = 
                         return (_jsxs("div", { ...getLineProps({ line }), style: {
                                 display: 'flex',
                                 backgroundColor: isHighlighted
-                                    ? 'rgba(102, 217, 239, 0.1)'
+                                    ? withAlpha(themeColors.accent.cyan, 0.1)
                                     : 'transparent',
                                 borderLeft: isHighlighted
-                                    ? '2px solid rgb(102, 217, 239)'
+                                    ? `2px solid ${themeColors.accent.cyan}`
                                     : '2px solid transparent',
                             }, children: [lineNumbers && (_jsx("span", { style: {
                                         display: 'inline-block',
                                         width: 40,
                                         marginRight: 16,
                                         textAlign: 'right',
-                                        color: tokens.colors.text.subtle,
+                                        color: themeColors.text.subtle,
                                         userSelect: 'none',
                                         opacity: 0.5,
                                     }, children: lineNumber })), _jsx("span", { style: { flex: 1 }, children: line.map((token, key) => (_jsx("span", { ...getTokenProps({ token }) }, key))) })] }, index));
                     }) })) }), maxLines && lines.length > maxLines && !showAll && (_jsxs("button", { onClick: () => setShowAll(true), style: {
                     width: '100%',
                     padding: '8px',
-                    background: 'rgba(255, 255, 255, 0.02)',
+                    background: withAlpha(themeColors.text.default, 0.02),
                     border: 'none',
-                    borderTop: `1px solid ${tokens.colors.border.subtle}`,
-                    color: tokens.colors.text.muted,
+                    borderTop: `1px solid ${themeColors.border.subtle}`,
+                    color: themeColors.text.muted,
                     cursor: 'pointer',
                     fontSize: 12,
                 }, children: ["Show ", lines.length - maxLines, " more lines"] }))] }));

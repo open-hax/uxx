@@ -73,9 +73,9 @@ function getFileStatusIcon(status) {
 // Get file status color
 function getFileStatusColor(status) {
     switch (status) {
-        case 'added': return tokens.monokai.accent.cyan;
-        case 'modified': return tokens.monokai.accent.orange;
-        case 'deleted': return tokens.monokai.accent.red;
+        case 'added': return tokens.colors.accent.cyan;
+        case 'modified': return tokens.colors.accent.orange;
+        case 'deleted': return tokens.colors.accent.red;
         default: return tokens.colors.text.muted;
     }
 }
@@ -125,7 +125,7 @@ export const Feed = ({ items, variant = 'timeline', groupBy = 'date', showTimest
                         top: 0,
                         bottom: 0,
                         width: 3,
-                        background: tokens.monokai.accent.cyan,
+                        background: tokens.colors.accent.cyan,
                         borderRadius: '0 2px 2px 0',
                     } })), isTimeline && (_jsxs("div", { style: {
                         display: 'flex',
@@ -213,7 +213,7 @@ export const Feed = ({ items, variant = 'timeline', groupBy = 'date', showTimest
                                 gap: 12,
                                 marginTop: 8,
                                 fontSize: 12,
-                            }, children: [_jsxs("span", { style: { color: tokens.monokai.accent.cyan }, children: ["+", item.diff.additions] }), _jsxs("span", { style: { color: tokens.monokai.accent.red }, children: ["-", item.diff.deletions] })] })), item.actions && item.actions.length > 0 && (_jsx("div", { style: {
+                            }, children: [_jsxs("span", { style: { color: tokens.colors.accent.cyan }, children: ["+", item.diff.additions] }), _jsxs("span", { style: { color: tokens.colors.accent.red }, children: ["-", item.diff.deletions] })] })), item.actions && item.actions.length > 0 && (_jsx("div", { style: {
                                 display: 'flex',
                                 gap: 8,
                                 marginTop: 8,

@@ -175,7 +175,7 @@ export function FileTree({ items, selectedId, expandedIds: controlledExpandedIds
         const index = lowerText.indexOf(lowerQuery);
         if (index === -1)
             return text;
-        return (_jsxs(_Fragment, { children: [text.slice(0, index), _jsx("span", { style: { backgroundColor: 'rgba(166, 226, 46, 0.3)' }, children: text.slice(index, index + query.length) }), text.slice(index + query.length)] }));
+        return (_jsxs(_Fragment, { children: [text.slice(0, index), _jsx("span", { style: { backgroundColor: tokens.colors.alpha.green._30 }, children: text.slice(index, index + query.length) }), text.slice(index + query.length)] }));
     };
     // Render item recursively
     const renderItem = (item, depth) => {

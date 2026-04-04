@@ -16,12 +16,12 @@ const sizeStyles = {
 };
 // Variant gradients
 const variantGradients = {
-    default: `linear-gradient(90deg, ${tokens.colors.accent.cyan}CC, ${tokens.colors.accent.cyan})`,
-    success: `linear-gradient(90deg, ${tokens.colors.accent.green}CC, ${tokens.colors.accent.green})`,
-    warning: `linear-gradient(90deg, ${tokens.colors.accent.orange}CC, ${tokens.colors.accent.orange})`,
-    error: `linear-gradient(90deg, ${tokens.colors.accent.red}CC, ${tokens.colors.accent.red})`,
-    info: `linear-gradient(90deg, ${tokens.colors.accent.blue}CC, ${tokens.colors.accent.blue})`,
-    pressure: 'linear-gradient(90deg, rgba(102,217,239,0.92), rgba(166,226,46,0.86), rgba(174,129,255,0.72))',
+    default: `linear-gradient(90deg, ${tokens.colors.alpha.blue._80}, ${tokens.colors.accent.cyan})`,
+    success: `linear-gradient(90deg, ${tokens.colors.alpha.green._80}, ${tokens.colors.accent.green})`,
+    warning: `linear-gradient(90deg, ${tokens.colors.alpha.orange._40}, ${tokens.colors.accent.orange})`,
+    error: `linear-gradient(90deg, ${tokens.colors.alpha.red._45}, ${tokens.colors.accent.red})`,
+    info: `linear-gradient(90deg, ${tokens.colors.alpha.blue._80}, ${tokens.colors.accent.blue})`,
+    pressure: `linear-gradient(90deg, ${tokens.colors.alpha.blue._95}, ${tokens.colors.alpha.green._80}, ${tokens.colors.alpha.magenta._30})`,
 };
 // Track styles
 const trackStyles = {
@@ -87,8 +87,8 @@ function getStripedBackground(color) {
     45deg,
     ${color},
     ${color} 10px,
-    ${color}CC 10px,
-    ${color}CC 20px
+    ${tokens.colors.alpha.white._08} 10px,
+    ${tokens.colors.alpha.white._08} 20px
   )`;
 }
 /**

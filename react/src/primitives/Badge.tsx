@@ -82,19 +82,19 @@ const variantStyles: Record<BadgeVariant, { bg: string; fg: string }> = {
     fg: tokens.colors.badge.default.fg,
   },
   merged: {
-    bg: 'rgba(174, 129, 255, 0.15)',
+    bg: tokens.colors.alpha.magenta._14,
     fg: tokens.colors.accent.magenta,
   },
   alive: {
-    bg: 'rgba(166, 226, 46, 0.1)',
-    fg: '#2e7d32',
+    bg: tokens.colors.alpha.green._12,
+    fg: tokens.colors.accent.green,
   },
   dead: {
-    bg: 'rgba(249, 38, 114, 0.1)',
-    fg: '#c62828',
+    bg: tokens.colors.alpha.red._12,
+    fg: tokens.colors.accent.red,
   },
   running: {
-    bg: 'rgba(102, 217, 239, 0.15)',
+    bg: tokens.colors.alpha.blue._15,
     fg: tokens.colors.accent.blue,
   },
   stopped: {

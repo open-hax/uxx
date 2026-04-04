@@ -1,8 +1,9 @@
 import React from 'react';
+import { type ThemePreference } from '@open-hax/uxx/tokens';
 export interface MarkdownProps {
     content: string;
     variant?: 'default' | 'preview' | 'compact' | 'full';
-    theme?: 'dark' | 'light' | 'auto';
+    theme?: ThemePreference;
     lineNumbers?: boolean;
     copyButton?: boolean;
     linkTarget?: '_self' | '_blank';
