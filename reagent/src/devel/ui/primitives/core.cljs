@@ -24,6 +24,8 @@
 (def resizable-pane interop/resizable-pane)
 (def which-key-popup interop/which-key-popup)
 (def inspector-pane interop/inspector-pane)
+(def context-section interop/context-section)
+(def pinned-tabs-bar interop/pinned-tabs-bar)
 (def permission-card interop/permission-card)
 (def prompt-card interop/prompt-card)
 (def permission-prompts interop/permission-prompts)

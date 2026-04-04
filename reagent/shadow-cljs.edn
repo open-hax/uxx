@@ -32,6 +32,8 @@
                                :ResizablePane devel.ui.core/resizable-pane
                                :WhichKeyPopup devel.ui.core/which-key-popup
                                :InspectorPane devel.ui.core/inspector-pane
+                               :ContextSection devel.ui.core/context-section
+                               :PinnedTabsBar devel.ui.core/pinned-tabs-bar
                                :PermissionCard devel.ui.core/permission-card
                                :PromptCard devel.ui.core/prompt-card
                                :PermissionPrompts devel.ui.core/permission-prompts

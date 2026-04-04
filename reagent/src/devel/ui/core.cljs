@@ -27,6 +27,8 @@
 (def resizable-pane primitives/resizable-pane)
 (def which-key-popup primitives/which-key-popup)
 (def inspector-pane primitives/inspector-pane)
+(def context-section primitives/context-section)
+(def pinned-tabs-bar primitives/pinned-tabs-bar)
 (def permission-card primitives/permission-card)
 (def prompt-card primitives/prompt-card)
 (def permission-prompts primitives/permission-prompts)

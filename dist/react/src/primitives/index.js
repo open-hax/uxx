@@ -17,6 +17,8 @@ export { Progress } from './Progress.js';
 export { ResizablePane } from './ResizablePane.js';
 export { WhichKeyPopup } from './WhichKeyPopup.js';
 export { InspectorPane } from './InspectorPane.js';
+export { PermissionCard } from './PermissionCard.js';
+export { PromptCard } from './PromptCard.js';
 export { PermissionPrompts } from './PermissionPrompts.js';
 export { ReactReagentSeam, useAdapter } from './ReactReagentSeam.js';
 export { CommandPalette } from './CommandPalette.js';

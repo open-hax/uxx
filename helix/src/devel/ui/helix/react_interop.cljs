@@ -131,6 +131,8 @@
 (def resizable-pane (wrap-react-component primitives/ResizablePane))
 (def which-key-popup (wrap-react-component primitives/WhichKeyPopup))
 (def inspector-pane (wrap-react-component primitives/InspectorPane))
+(def context-section (wrap-react-component primitives/ContextSection))
+(def pinned-tabs-bar (wrap-react-component primitives/PinnedTabsBar))
 (def permission-card (wrap-react-component primitives/PermissionCard))
 (def prompt-card (wrap-react-component primitives/PromptCard))
 (def permission-prompts (wrap-react-component primitives/PermissionPrompts))
@@ -187,6 +189,8 @@
    :resizable-pane resizable-pane
    :which-key-popup which-key-popup
    :inspector-pane inspector-pane
+   :context-section context-section
+   :pinned-tabs-bar pinned-tabs-bar
    :permission-card permission-card
    :prompt-card prompt-card
    :permission-prompts permission-prompts

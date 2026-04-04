@@ -32,6 +32,8 @@
                                :ResizablePane devel.ui.helix.core/resizable-pane
                                :WhichKeyPopup devel.ui.helix.core/which-key-popup
                                :InspectorPane devel.ui.helix.core/inspector-pane
+                               :ContextSection devel.ui.helix.core/context-section
+                               :PinnedTabsBar devel.ui.helix.core/pinned-tabs-bar
                                :PermissionCard devel.ui.helix.core/permission-card
                                :PromptCard devel.ui.helix.core/prompt-card
                                :PermissionPrompts devel.ui.helix.core/permission-prompts

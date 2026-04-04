@@ -17,6 +17,8 @@ export { Progress, type ProgressProps, type ProgressVariant, type ProgressSize }
 export { ResizablePane, type ResizablePaneProps, type ResizeDirection } from './ResizablePane.js';
 export { WhichKeyPopup, type WhichKeyPopupProps, type BindingEntry, type WhichKeyPosition, type WhichKeySortKey } from './WhichKeyPopup.js';
 export { InspectorPane, type InspectorPaneProps, type Entity, type PinnedEntry, type ErrorState } from './InspectorPane.js';
+export { ContextSection, type ContextSectionProps } from './ContextSection.js';
+export { PinnedTabsBar, type PinnedTabsBarProps } from './PinnedTabsBar.js';
 export { PermissionCard, type PermissionCardProps } from './PermissionCard.js';
 export { PromptCard, type PromptCardProps } from './PromptCard.js';
 export { PermissionPrompts, type PermissionPromptsProps, type PermissionRequest, type InputPrompt, type PermissionResponse } from './PermissionPrompts.js';

@@ -61,6 +61,8 @@ Parity here means **public exported surface**, not every source file in `react/`
 | `ResizablePane` | `resizable-pane` | `resizable-pane` | ✅ |
 | `WhichKeyPopup` | `which-key-popup` | `which-key-popup` | ✅ |
 | `InspectorPane` | `inspector-pane` | `inspector-pane` | ✅ |
+| `PermissionCard` | `permission-card` | `permission-card` | ✅ |
+| `PromptCard` | `prompt-card` | `prompt-card` | ✅ |
 | `PermissionPrompts` | `permission-prompts` | `permission-prompts` | ✅ |
 | `ReactReagentSeam` | `react-reagent-seam` | `react-reagent-seam` | ✅ |
 | `CommandPalette` | `command-palette` | `command-palette` | ✅ |

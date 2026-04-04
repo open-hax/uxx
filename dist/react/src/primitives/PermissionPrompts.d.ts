@@ -5,37 +5,8 @@
  * A panel for handling permission requests and input prompts from an AI agent or system,
  * with options for one-time approval, persistent approval, and rejection.
  */
-export interface PermissionRequest {
-    /** Unique identifier */
-    id: string;
-    /** Display title */
-    title?: string;
-    /** Session identifier */
-    sessionId?: string;
-    /** Additional metadata */
-    metadata?: Record<string, unknown>;
-    /** Timeout in milliseconds */
-    timeoutMs?: number;
-    /** Default response */
-    defaultResponse?: 'once' | 'always' | 'reject';
-}
-export interface InputPrompt {
-    /** Unique identifier */
-    id: string;
-    /** Display title */
-    title?: string;
-    /** Prompt body (string or object with prompt key) */
-    body?: string | {
-        prompt: string;
-    };
-    /** Input placeholder */
-    placeholder?: string;
-    /** Multiline input */
-    multiline?: boolean;
-    /** Session identifier */
-    sessionId?: string;
-}
-export type PermissionResponse = 'once' | 'always' | 'reject';
+import type { PermissionRequest, InputPrompt, PermissionResponse } from './PermissionPrompts.types.js';
+export type { PermissionRequest, InputPrompt, PermissionResponse } from './PermissionPrompts.types.js';
 export interface PermissionPromptsProps {
     /** Pending permission requests */
     permissions?: PermissionRequest[];
