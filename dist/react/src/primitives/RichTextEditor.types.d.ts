@@ -4,7 +4,7 @@ export interface ToolbarConfig {
     groups?: ToolbarGroup[];
 }
 export interface ToolbarItem {
-    type: 'bold' | 'italic' | 'underline' | 'strikethrough' | 'code' | 'heading' | 'quote' | 'list' | 'link' | 'image' | 'code-block' | 'divider' | 'undo' | 'redo' | 'separator';
+    type: 'bold' | 'italic' | 'underline' | 'strikethrough' | 'code' | 'heading' | 'quote' | 'list' | 'link' | 'image' | 'code-block' | 'divider' | 'undo' | 'redo';
     icon?: ReactNode;
     label?: string;
     shortcut?: string;

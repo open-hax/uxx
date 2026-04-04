@@ -84,6 +84,7 @@ export const RichTextEditor = ({ value: controlledValue, defaultValue = '', form
     });
     const [showMentions, setShowMentions] = useState(false);
     const [mentionFilter, setMentionFilter] = useState('');
+    const [selectedMentionIndex, setSelectedMentionIndex] = useState(0);
     const value = controlledValue !== undefined
         ? (format === 'html' ? controlledValue : markdownToHtml(controlledValue))
         : internalValue;
@@ -112,47 +113,6 @@ export const RichTextEditor = ({ value: controlledValue, defaultValue = '', form
             }
         }
     }, [controlledValue, format, onChange]);
-    // Handle keyboard shortcuts
-    const handleKeyDown = useCallback((e) => {
-        // Save
-        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-            e.preventDefault();
-            if (onSave && editorRef.current) {
-                const html = editorRef.current.innerHTML;
-                onSave(format === 'markdown' ? htmlToMarkdown(html) : html);
-            }
-            return;
-        }
-        // Bold
-        if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
-            e.preventDefault();
-            execCommand('bold');
-            return;
-        }
-        // Italic
-        if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
-            e.preventDefault();
-            execCommand('italic');
-            return;
-        }
-        // Underline
-        if ((e.ctrlKey || e.metaKey) && e.key === 'u') {
-            e.preventDefault();
-            execCommand('underline');
-            return;
-        }
-        // Mentions trigger
-        if (mentions && e.key === mentionTrigger) {
-            setShowMentions(true);
-            setMentionFilter('');
-        }
-        else if (showMentions && e.key.length === 1) {
-            setMentionFilter((prev) => prev + e.key);
-        }
-        else if (showMentions && e.key === 'Escape') {
-            setShowMentions(false);
-        }
-    }, [execCommand, format, onSave, showMentions, mentions, mentionTrigger]);
     // Handle image paste/upload
     const handlePaste = useCallback(async (e) => {
         const items = e.clipboardData?.items;
@@ -189,6 +149,8 @@ export const RichTextEditor = ({ value: controlledValue, defaultValue = '', form
         const mentionText = `${mentionTrigger}${item.name}`;
         execCommand('insertText', mentionText);
         setShowMentions(false);
+        setMentionFilter('');
+        setSelectedMentionIndex(0);
     }, [execCommand, mentionTrigger]);
     // Filtered mentions
     const filteredMentions = useMemo(() => {
@@ -197,6 +159,86 @@ export const RichTextEditor = ({ value: controlledValue, defaultValue = '', form
         return mentions.items.filter((item) => item.name.toLowerCase().includes(mentionFilter.toLowerCase()) ||
             item.id.toLowerCase().includes(mentionFilter.toLowerCase()));
     }, [mentions, mentionFilter]);
+    useEffect(() => {
+        if (!showMentions) {
+            return;
+        }
+        setSelectedMentionIndex((prev) => Math.min(prev, Math.max(filteredMentions.length - 1, 0)));
+    }, [filteredMentions.length, showMentions]);
+    // Handle keyboard shortcuts
+    const handleKeyDown = useCallback((e) => {
+        // Save
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+            e.preventDefault();
+            if (onSave && editorRef.current) {
+                const html = editorRef.current.innerHTML;
+                onSave(format === 'markdown' ? htmlToMarkdown(html) : html);
+            }
+            return;
+        }
+        // Bold
+        if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+            e.preventDefault();
+            execCommand('bold');
+            return;
+        }
+        // Italic
+        if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
+            e.preventDefault();
+            execCommand('italic');
+            return;
+        }
+        // Underline
+        if ((e.ctrlKey || e.metaKey) && e.key === 'u') {
+            e.preventDefault();
+            execCommand('underline');
+            return;
+        }
+        // Mentions trigger / navigation
+        if (mentions && e.key === mentionTrigger && !e.ctrlKey && !e.metaKey && !e.altKey) {
+            setShowMentions(true);
+            setMentionFilter('');
+            setSelectedMentionIndex(0);
+            return;
+        }
+        if (showMentions) {
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                setSelectedMentionIndex((prev) => Math.min(prev + 1, Math.max(filteredMentions.length - 1, 0)));
+                return;
+            }
+            if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                setSelectedMentionIndex((prev) => Math.max(prev - 1, 0));
+                return;
+            }
+            if (e.key === 'Enter') {
+                const activeMention = filteredMentions[selectedMentionIndex];
+                if (activeMention) {
+                    e.preventDefault();
+                    insertMention(activeMention);
+                    return;
+                }
+            }
+            if (e.key === 'Backspace') {
+                setMentionFilter((prev) => prev.slice(0, -1));
+                setSelectedMentionIndex(0);
+                return;
+            }
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                setShowMentions(false);
+                setMentionFilter('');
+                setSelectedMentionIndex(0);
+                return;
+            }
+            if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key.length === 1) {
+                setMentionFilter((prev) => prev + e.key);
+                setSelectedMentionIndex(0);
+                return;
+            }
+        }
+    }, [execCommand, filteredMentions, format, insertMention, mentionTrigger, mentions, onSave, selectedMentionIndex, showMentions]);
     // Toolbar items
     const defaultToolbarItems = useMemo(() => [
         { type: 'heading', label: 'H', shortcut: 'Ctrl+1' },
@@ -261,10 +303,20 @@ export const RichTextEditor = ({ value: controlledValue, defaultValue = '', form
             case 'code-block':
                 execCommand('insertHTML', '<pre><code>Code here</code></pre>');
                 break;
+            case 'undo':
+                execCommand('undo');
+                break;
+            case 'redo':
+                execCommand('redo');
+                break;
+            case 'divider':
+                break;
+            default:
+                break;
         }
     }, [execCommand, insertLink, insertImage]);
     const toolbarChromeItems = useMemo(() => toolbarItems.map((item, index) => {
-        if (item.type === 'divider' || item.type === 'separator') {
+        if (item.type === 'divider') {
             return { type: 'divider', key: `divider-${index}` };
         }
         return {
@@ -316,7 +368,7 @@ export const RichTextEditor = ({ value: controlledValue, defaultValue = '', form
                             color: tokens.colors.text.subtle,
                             pointerEvents: 'none',
                             fontSize: 14,
-                        }, children: placeholder })), showMentions && filteredMentions.length > 0 && (_jsx(MentionSuggestions, { items: filteredMentions, onSelect: insertMention, renderItem: mentions?.render }))] }), _jsx("style", { children: `
+                        }, children: placeholder })), showMentions && filteredMentions.length > 0 && (_jsx(MentionSuggestions, { items: filteredMentions, onSelect: insertMention, renderItem: mentions?.render, selectedIndex: selectedMentionIndex, onSelectedIndexChange: setSelectedMentionIndex }))] }), _jsx("style", { children: `
         [data-placeholder]:empty:before {
           content: attr(data-placeholder);
           color: ${tokens.colors.text.subtle};

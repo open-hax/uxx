@@ -59,7 +59,7 @@ export function InspectorDetailView({
           {entity.type}
         </div>
       )}
-      {entity.text && entity.text !== '' && (
+      {entity.text && (
         <div
           style={{
             color: tokens.colors.text.secondary,

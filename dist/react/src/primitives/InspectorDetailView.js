@@ -23,7 +23,7 @@ export function InspectorDetailView({ entity, renderDetail, title = 'Detail', })
                     color: tokens.colors.text.secondary,
                     textTransform: 'capitalize',
                     marginBottom: `${tokens.spacing[2]}px`,
-                }, children: entity.type })), entity.text && entity.text !== '' && (_jsx("div", { style: {
+                }, children: entity.type })), entity.text && (_jsx("div", { style: {
                     color: tokens.colors.text.secondary,
                     whiteSpace: 'pre-wrap',
                     fontFamily: tokens.fontFamily.mono,

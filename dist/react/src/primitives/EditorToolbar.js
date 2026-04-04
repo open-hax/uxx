@@ -24,7 +24,12 @@ export function EditorToolbar({ items, className, background = tokens.colors.bac
                         margin: '0 4px',
                     } }, item.key ?? `divider-${index}`));
             }
-            return (_jsx("button", { type: "button", "data-testid": item.testId, "aria-label": item.ariaLabel, onClick: item.onClick, disabled: item.disabled, title: item.title, style: {
+            const accessibleLabel = item.ariaLabel ??
+                (typeof item.label === 'string' ? item.label : undefined) ??
+                item.title ??
+                item.key ??
+                'Toolbar action';
+            return (_jsx("button", { type: "button", "data-testid": item.testId, "aria-label": accessibleLabel, onClick: item.onClick, disabled: item.disabled, title: item.title, style: {
                     background: 'none',
                     border: 'none',
                     padding: '4px 8px',

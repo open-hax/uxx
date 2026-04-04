@@ -19,6 +19,7 @@ describe('MentionSuggestions', () => {
 
     expect(screen.getByText('Alice Chen')).toBeInTheDocument();
     await userEvent.click(screen.getByText('Bob Martinez'));
+    expect(onSelect).toHaveBeenCalledTimes(1);
     expect(onSelect).toHaveBeenCalledWith({
       id: 'bob',
       name: 'Bob Martinez',

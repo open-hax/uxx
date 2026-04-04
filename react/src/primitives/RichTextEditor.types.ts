@@ -20,8 +20,7 @@ export interface ToolbarItem {
     | 'code-block'
     | 'divider'
     | 'undo'
-    | 'redo'
-    | 'separator';
+    | 'redo';
   icon?: ReactNode;
   label?: string;
   shortcut?: string;

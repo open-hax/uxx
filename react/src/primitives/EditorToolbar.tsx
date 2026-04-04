@@ -32,7 +32,7 @@ export interface EditorToolbarProps {
   wrap?: boolean;
 }
 
-function normalizePadding(padding: EditorToolbarProps['padding']): string | number {
+function normalizePadding(padding: EditorToolbarProps['padding']): string {
   if (typeof padding === 'number') {
     return `${padding}px`;
   }
@@ -80,12 +80,19 @@ export function EditorToolbar({
           );
         }
 
+        const accessibleLabel =
+          item.ariaLabel ??
+          (typeof item.label === 'string' ? item.label : undefined) ??
+          item.title ??
+          item.key ??
+          'Toolbar action';
+
         return (
           <button
             key={item.key ?? `button-${index}`}
             type="button"
             data-testid={item.testId}
-            aria-label={item.ariaLabel}
+            aria-label={accessibleLabel}
             onClick={item.onClick}
             disabled={item.disabled}
             title={item.title}

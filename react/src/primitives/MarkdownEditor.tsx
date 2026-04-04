@@ -90,40 +90,6 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     setCursorPosition({ line, column });
   }, []);
   
-  // Keyboard shortcuts
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-      // Save: Ctrl+S or Cmd+S
-      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-        e.preventDefault();
-        onSave?.(value);
-        return;
-      }
-      
-      // Bold: Ctrl+B
-      if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
-        e.preventDefault();
-        insertFormatting('**', '**');
-        return;
-      }
-      
-      // Italic: Ctrl+I
-      if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
-        e.preventDefault();
-        insertFormatting('*', '*');
-        return;
-      }
-      
-      // Tab handling
-      if (e.key === 'Tab') {
-        e.preventDefault();
-        insertText('  ');
-        return;
-      }
-    },
-    [value, onSave]
-  );
-  
   // Insert text at cursor
   const insertText = useCallback(
     (text: string) => {
@@ -146,7 +112,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     },
     [value, controlledValue, onChange]
   );
-  
+
   // Insert formatting around selection
   const insertFormatting = useCallback(
     (before: string, after: string) => {
@@ -175,6 +141,112 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       }, 0);
     },
     [value, controlledValue, onChange]
+  );
+
+  // Keyboard shortcuts
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      const hasAccel = e.ctrlKey || e.metaKey;
+      const key = e.key.toLowerCase();
+
+      // Save: Ctrl+S or Cmd+S
+      if (hasAccel && !e.shiftKey && key === 's') {
+        e.preventDefault();
+        onSave?.(value);
+        return;
+      }
+
+      if (hasAccel && e.shiftKey) {
+        if (key === 's') {
+          e.preventDefault();
+          insertFormatting('~~', '~~');
+          return;
+        }
+
+        if (key === 'i') {
+          e.preventDefault();
+          insertText('![alt](url)');
+          return;
+        }
+
+        if (key === 'l') {
+          e.preventDefault();
+          insertText('1. ');
+          return;
+        }
+
+        if (key === 'c') {
+          e.preventDefault();
+          insertText('```\n\n```\n');
+          return;
+        }
+      }
+
+      if (hasAccel && !e.shiftKey) {
+        if (key === '1') {
+          e.preventDefault();
+          insertText('# ');
+          return;
+        }
+
+        if (key === '2') {
+          e.preventDefault();
+          insertText('## ');
+          return;
+        }
+
+        if (key === '3') {
+          e.preventDefault();
+          insertText('### ');
+          return;
+        }
+
+        if (key === 'k') {
+          e.preventDefault();
+          insertFormatting('[', '](url)');
+          return;
+        }
+
+        if (key === 'l') {
+          e.preventDefault();
+          insertText('- ');
+          return;
+        }
+
+        if (key === 'q') {
+          e.preventDefault();
+          insertText('> ');
+          return;
+        }
+
+        if (e.key === '`') {
+          e.preventDefault();
+          insertFormatting('`', '`');
+          return;
+        }
+      }
+
+      // Bold: Ctrl+B
+      if (hasAccel && !e.shiftKey && key === 'b') {
+        e.preventDefault();
+        insertFormatting('**', '**');
+        return;
+      }
+
+      // Italic: Ctrl+I
+      if (hasAccel && !e.shiftKey && key === 'i') {
+        e.preventDefault();
+        insertFormatting('*', '*');
+        return;
+      }
+
+      // Tab handling
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        insertText('  ');
+      }
+    },
+    [insertFormatting, insertText, onSave, value]
   );
   
   // Toolbar actions

@@ -16,6 +16,12 @@ export const Retryable: Story = {
   },
 };
 
+export const DefaultRetryability: Story = {
+  args: {
+    error: { message: 'Transient network problem.' },
+  },
+};
+
 export const NonRetryable: Story = {
   args: {
     error: { message: 'Permission denied.', retryable: false },

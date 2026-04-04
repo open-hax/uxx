@@ -18,7 +18,7 @@ export interface EditorStatusBarProps {
   gap?: number;
 }
 
-function normalizePadding(padding: EditorStatusBarProps['padding']): string | number {
+function normalizePadding(padding: EditorStatusBarProps['padding']): string {
   if (typeof padding === 'number') {
     return `${padding}px`;
   }
@@ -35,7 +35,7 @@ export function EditorStatusBar({
   padding,
   gap = 16,
 }: EditorStatusBarProps) {
-  let endAlignedSeen = false;
+  const firstEndIndex = items.findIndex((item) => item.align === 'end');
 
   return (
     <div
@@ -53,10 +53,7 @@ export function EditorStatusBar({
       }}
     >
       {items.map((item, index) => {
-        const isFirstEndAligned = item.align === 'end' && !endAlignedSeen;
-        if (item.align === 'end') {
-          endAlignedSeen = true;
-        }
+        const isFirstEndAligned = index === firstEndIndex;
 
         return (
           <span

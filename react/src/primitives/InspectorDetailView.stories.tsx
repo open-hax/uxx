@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { InspectorDetailView } from './InspectorDetailView';
-import type { Entity } from './InspectorPane';
+import type { Entity } from './InspectorPane.types';
 
 const entity: Entity = {
   id: 'session-123',

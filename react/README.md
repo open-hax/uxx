@@ -120,9 +120,9 @@ When you add or change a public component here, parity work for the ClojureScrip
 
 See [`../docs/framework-parity.md`](../docs/framework-parity.md).
 
-## React-only composition status
+## Composition status
 
-`src/compositions/EntityCard.tsx` is now exported from the published root React API. Reagent and Helix parity for it is still pending.
+`src/compositions/EntityCard.tsx` is now part of the shared public parity surface across React, Reagent, and Helix.
 
 ## License
 
