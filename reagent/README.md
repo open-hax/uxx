@@ -66,7 +66,7 @@ Normal React hook rules still apply.
 ### Components
 
 - `button`, `badge`, `spinner`, `card`, `card-header`, `card-body`, `card-footer`, `modal`, `modal-header`, `modal-body`, `modal-footer`, `tooltip`, `input`, `select`, `textarea`, `progress`
-- `resizable-pane`, `which-key-popup`, `inspector-pane`, `permission-prompts`, `react-reagent-seam`, `command-palette`, `chat`, `toast`, `file-tree`, `tabs`
+- `resizable-pane`, `which-key-popup`, `inspector-pane`, `permission-card`, `prompt-card`, `permission-prompts`, `react-reagent-seam`, `command-palette`, `chat`, `toast`, `file-tree`, `tabs`
 - `searchable-select`, `collapsible-panel`, `key-value-section`, `surface-hero`, `panel-header`, `metric-tile`, `metric-tile-grid`, `filter-toolbar`, `action-strip`, `status-chip-stack`, `data-table-shell`, `pagination`
 - `feed`, `markdown`, `code-block`, `diff-viewer`, `markdown-editor`, `rich-text-editor`
 
