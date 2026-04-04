@@ -1,23 +1,13 @@
 (ns devel.ui.helix.core
-  "Core exports for Helix UI component library.
-   
-   This library provides a set of UI components built with Helix,
-   a modern ClojureScript interface to React.
-   
-   Usage:
-   ```clojure
-   (:require [devel.ui.helix.core :as ui])
-   
-   ($ ui/button {:variant :primary :on-click handle-click}
-      \"Click me\")
-   
-   ($ ui/card {:variant :elevated}
-      ($ ui/card-header {} \"Card Title\")
-      ($ ui/card-body {} \"Card content\"))
-   ```"
+  "Core exports for the Helix package.
+
+   Component wrappers track the canonical React implementation in ../dist,
+   while exposing idiomatic kebab-case vars for ClojureScript consumers."
   (:require [devel.ui.helix.primitives.core :as primitives]))
 
-;; Component exports
+(def theme-provider primitives/theme-provider)
+(def toast-provider primitives/toast-provider)
+
 (def button primitives/button)
 (def badge primitives/badge)
 (def spinner primitives/spinner)
@@ -31,21 +21,49 @@
 (def modal-footer primitives/modal-footer)
 (def tooltip primitives/tooltip)
 (def input primitives/input)
+(def select primitives/select)
+(def textarea primitives/textarea)
 (def progress primitives/progress)
+(def resizable-pane primitives/resizable-pane)
+(def which-key-popup primitives/which-key-popup)
+(def inspector-pane primitives/inspector-pane)
+(def permission-card primitives/permission-card)
+(def prompt-card primitives/prompt-card)
+(def permission-prompts primitives/permission-prompts)
+(def react-reagent-seam primitives/react-reagent-seam)
+(def command-palette primitives/command-palette)
+(def chat primitives/chat)
+(def toast primitives/toast)
+(def file-tree primitives/file-tree)
+(def tabs primitives/tabs)
+(def searchable-select primitives/searchable-select)
+(def collapsible-panel primitives/collapsible-panel)
+(def key-value-section primitives/key-value-section)
+(def surface-hero primitives/surface-hero)
+(def panel-header primitives/panel-header)
+(def metric-tile primitives/metric-tile)
+(def metric-tile-grid primitives/metric-tile-grid)
+(def filter-toolbar primitives/filter-toolbar)
+(def action-strip primitives/action-strip)
+(def status-chip-stack primitives/status-chip-stack)
+(def data-table-shell primitives/data-table-shell)
+(def pagination primitives/pagination)
+(def feed primitives/feed)
+(def markdown primitives/markdown)
+(def code-block primitives/code-block)
+(def diff-viewer primitives/diff-viewer)
+(def markdown-editor primitives/markdown-editor)
+(def rich-text-editor primitives/rich-text-editor)
 
-;; Component registry for dynamic lookup
-(def components
-  {:button button
-   :badge badge
-   :spinner spinner
-   :card card
-   :card-header card-header
-   :card-body card-body
-   :card-footer card-footer
-   :modal modal
-   :modal-header modal-header
-   :modal-body modal-body
-   :modal-footer modal-footer
-   :tooltip tooltip
-   :input input
-   :progress progress})
+(def use-toast primitives/use-toast)
+(def use-adapter primitives/use-adapter)
+(def use-uxx-theme primitives/use-uxx-theme)
+(def use-resolved-theme primitives/use-resolved-theme)
+(def use-theme-name primitives/use-theme-name)
+(def paginate-items primitives/paginate-items)
+(def calculate-total-pages primitives/calculate-total-pages)
+
+(def components primitives/components)
+(def providers primitives/providers)
+(def hooks primitives/hooks)
+(def utilities primitives/utilities)

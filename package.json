@@ -39,6 +39,7 @@
     "test:coverage": "vitest run --config react/vitest.config.ts --coverage",
     "storybook": "cd react && npm run storybook",
     "storybook:build": "cd react && npm run build-storybook",
+    "perf:browser": "vite docs/perf-browser --host 127.0.0.1 --port 4173",
     "storybook:pm2:start": "pm2 start ./scripts/storybook-server.sh --name uxx-storybook --no-autorestart",
     "storybook:pm2:stop": "pm2 stop uxx-storybook",
     "storybook:pm2:delete": "pm2 delete uxx-storybook",
@@ -49,7 +50,9 @@
     "react-dom": ">=18.0.0"
   },
   "dependencies": {
-    "prism-react-renderer": "^2.4.1"
+    "clsx": "^2.1.1",
+    "prism-react-renderer": "^2.4.1",
+    "scheduler": "^0.23.2"
   },
   "devDependencies": {
     "@storybook/addon-essentials": "^8.6.18",

@@ -20,4 +20,5 @@
  */
 export * from './theme.js';
 export * from './primitives/index.js';
+export * from './compositions/index.js';
 //# sourceMappingURL=index.d.ts.map

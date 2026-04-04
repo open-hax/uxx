@@ -25,5 +25,5 @@ export * from './theme.js';
 // Primitives
 export * from './primitives/index.js';
 
-// Composites (to be added)
-// export * from './composites/index.js';
+// Compositions
+export * from './compositions/index.js';

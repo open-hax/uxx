@@ -1,34 +1,66 @@
 (ns devel.ui.primitives.core
-  "Core exports for Reagent UI primitives."
-  (:require [devel.ui.primitives.button]
-            [devel.ui.primitives.badge]
-            [devel.ui.primitives.spinner]
-            [devel.ui.primitives.card]
-            [devel.ui.primitives.modal]
-            [devel.ui.primitives.tooltip]
-            [devel.ui.primitives.input]
-            [devel.ui.primitives.progress]
-            [devel.ui.primitives.resizable-pane]
-            [devel.ui.primitives.which-key-popup]
-            [devel.ui.primitives.inspector-pane]
-            [devel.ui.primitives.permission-prompts]
-            [devel.ui.primitives.react-reagent-seam]
-            [devel.ui.primitives.pagination]))
+  "Public Reagent exports backed by the canonical React implementation."
+  (:require [devel.ui.react-interop :as interop]))
 
-(def button devel.ui.primitives.button/button)
-(def badge devel.ui.primitives.badge/badge)
-(def spinner devel.ui.primitives.spinner/spinner)
-(def card devel.ui.primitives.card/card)
-(def modal devel.ui.primitives.modal/modal)
-(def tooltip devel.ui.primitives.tooltip/tooltip)
-(def input devel.ui.primitives.input/input)
-(def progress devel.ui.primitives.progress/progress)
-(def resizable-pane devel.ui.primitives.resizable-pane/resizable-pane)
-(def which-key-popup devel.ui.primitives.which-key-popup/which-key-popup)
-(def inspector-pane devel.ui.primitives.inspector-pane/inspector-pane)
-(def permission-prompts devel.ui.primitives.permission-prompts/permission-prompts)
-(def react-reagent-seam devel.ui.primitives.react-reagent-seam/react-reagent-seam)
-(def create-adapter devel.ui.primitives.react-reagent-seam/create-adapter)
-(def pagination devel.ui.primitives.pagination/pagination)
-(def paginate-items devel.ui.primitives.pagination/paginate-items)
-(def calculate-total-pages devel.ui.primitives.pagination/calculate-total-pages)
+(def theme-provider interop/theme-provider)
+(def toast-provider interop/toast-provider)
+
+(def button interop/button)
+(def badge interop/badge)
+(def spinner interop/spinner)
+(def card interop/card)
+(def card-header interop/card-header)
+(def card-body interop/card-body)
+(def card-footer interop/card-footer)
+(def modal interop/modal)
+(def modal-header interop/modal-header)
+(def modal-body interop/modal-body)
+(def modal-footer interop/modal-footer)
+(def tooltip interop/tooltip)
+(def input interop/input)
+(def select interop/select)
+(def textarea interop/textarea)
+(def progress interop/progress)
+(def resizable-pane interop/resizable-pane)
+(def which-key-popup interop/which-key-popup)
+(def inspector-pane interop/inspector-pane)
+(def permission-card interop/permission-card)
+(def prompt-card interop/prompt-card)
+(def permission-prompts interop/permission-prompts)
+(def react-reagent-seam interop/react-reagent-seam)
+(def command-palette interop/command-palette)
+(def chat interop/chat)
+(def toast interop/toast)
+(def file-tree interop/file-tree)
+(def tabs interop/tabs)
+(def searchable-select interop/searchable-select)
+(def collapsible-panel interop/collapsible-panel)
+(def key-value-section interop/key-value-section)
+(def surface-hero interop/surface-hero)
+(def panel-header interop/panel-header)
+(def metric-tile interop/metric-tile)
+(def metric-tile-grid interop/metric-tile-grid)
+(def filter-toolbar interop/filter-toolbar)
+(def action-strip interop/action-strip)
+(def status-chip-stack interop/status-chip-stack)
+(def data-table-shell interop/data-table-shell)
+(def pagination interop/pagination)
+(def feed interop/feed)
+(def markdown interop/markdown)
+(def code-block interop/code-block)
+(def diff-viewer interop/diff-viewer)
+(def markdown-editor interop/markdown-editor)
+(def rich-text-editor interop/rich-text-editor)
+
+(def use-toast interop/use-toast)
+(def use-adapter interop/use-adapter)
+(def use-uxx-theme interop/use-uxx-theme)
+(def use-resolved-theme interop/use-resolved-theme)
+(def use-theme-name interop/use-theme-name)
+(def paginate-items interop/paginate-items)
+(def calculate-total-pages interop/calculate-total-pages)
+
+(def components interop/components)
+(def providers interop/providers)
+(def hooks interop/hooks)
+(def utilities interop/utilities)
