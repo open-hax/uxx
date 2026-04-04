@@ -1,6 +1,8 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { tokens } from '@open-hax/uxx/tokens';
+import { EditorToolbar } from './EditorToolbar.js';
+import { MentionSuggestions } from './MentionSuggestions.js';
 // Convert HTML to Markdown (basic)
 function htmlToMarkdown(html) {
     let md = html;
@@ -85,6 +87,7 @@ export const RichTextEditor = ({ value: controlledValue, defaultValue = '', form
     const value = controlledValue !== undefined
         ? (format === 'html' ? controlledValue : markdownToHtml(controlledValue))
         : internalValue;
+    const mentionTrigger = mentions?.trigger ?? '@';
     // Execute formatting command
     const execCommand = useCallback((command, value) => {
         document.execCommand(command, false, value);
@@ -139,7 +142,7 @@ export const RichTextEditor = ({ value: controlledValue, defaultValue = '', form
             return;
         }
         // Mentions trigger
-        if (mentions && e.key === '@') {
+        if (mentions && e.key === mentionTrigger) {
             setShowMentions(true);
             setMentionFilter('');
         }
@@ -149,7 +152,7 @@ export const RichTextEditor = ({ value: controlledValue, defaultValue = '', form
         else if (showMentions && e.key === 'Escape') {
             setShowMentions(false);
         }
-    }, [execCommand, format, onSave, showMentions, mentions]);
+    }, [execCommand, format, onSave, showMentions, mentions, mentionTrigger]);
     // Handle image paste/upload
     const handlePaste = useCallback(async (e) => {
         const items = e.clipboardData?.items;
@@ -183,10 +186,10 @@ export const RichTextEditor = ({ value: controlledValue, defaultValue = '', form
     }, [execCommand]);
     // Insert mention
     const insertMention = useCallback((item) => {
-        const mentionText = `@${item.name}`;
+        const mentionText = `${mentionTrigger}${item.name}`;
         execCommand('insertText', mentionText);
         setShowMentions(false);
-    }, [execCommand]);
+    }, [execCommand, mentionTrigger]);
     // Filtered mentions
     const filteredMentions = useMemo(() => {
         if (!mentions)
@@ -195,7 +198,7 @@ export const RichTextEditor = ({ value: controlledValue, defaultValue = '', form
             item.id.toLowerCase().includes(mentionFilter.toLowerCase()));
     }, [mentions, mentionFilter]);
     // Toolbar items
-    const toolbarItems = useMemo(() => [
+    const defaultToolbarItems = useMemo(() => [
         { type: 'heading', label: 'H', shortcut: 'Ctrl+1' },
         { type: 'divider' },
         { type: 'bold', label: 'B', shortcut: 'Ctrl+B' },
@@ -211,6 +214,17 @@ export const RichTextEditor = ({ value: controlledValue, defaultValue = '', form
         { type: 'quote', label: '"' },
         { type: 'code-block', label: '{ }' },
     ], []);
+    const toolbarItems = useMemo(() => {
+        if (toolbar && typeof toolbar === 'object') {
+            if (toolbar.items && toolbar.items.length > 0) {
+                return toolbar.items;
+            }
+            if (toolbar.groups && toolbar.groups.length > 0) {
+                return toolbar.groups.flatMap((group, index) => index === 0 ? group.items : [{ type: 'divider' }, ...group.items]);
+            }
+        }
+        return defaultToolbarItems;
+    }, [defaultToolbarItems, toolbar]);
     // Handle toolbar action
     const handleToolbarAction = useCallback((item) => {
         switch (item.type) {
@@ -249,6 +263,22 @@ export const RichTextEditor = ({ value: controlledValue, defaultValue = '', form
                 break;
         }
     }, [execCommand, insertLink, insertImage]);
+    const toolbarChromeItems = useMemo(() => toolbarItems.map((item, index) => {
+        if (item.type === 'divider' || item.type === 'separator') {
+            return { type: 'divider', key: `divider-${index}` };
+        }
+        return {
+            key: `${item.type}-${index}`,
+            label: item.icon || item.label || item.type,
+            title: item.shortcut ? `${item.label ?? item.type} (${item.shortcut})` : item.label,
+            disabled,
+            onClick: () => handleToolbarAction(item),
+            buttonStyle: {
+                fontWeight: item.type === 'bold' ? 'bold' : 'normal',
+                fontStyle: item.type === 'italic' ? 'italic' : 'normal',
+            },
+        };
+    }), [disabled, handleToolbarAction, toolbarItems]);
     // Focus on mount if autofocus
     useEffect(() => {
         if (autofocus && editorRef.current) {
@@ -268,37 +298,7 @@ export const RichTextEditor = ({ value: controlledValue, defaultValue = '', form
             border: `1px solid ${tokens.colors.border.default}`,
             borderRadius: tokens.spacing[2],
             overflow: 'hidden',
-        }, children: [toolbar && !readonly && (_jsx("div", { style: {
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 2,
-                    padding: '8px 12px',
-                    background: tokens.colors.background.surface,
-                    borderBottom: `1px solid ${tokens.colors.border.subtle}`,
-                    flexWrap: 'wrap',
-                }, children: toolbarItems.map((item, index) => {
-                    if (item.type === 'divider') {
-                        return (_jsx("div", { style: {
-                                width: 1,
-                                height: 20,
-                                background: tokens.colors.border.default,
-                                margin: '0 4px',
-                            } }, index));
-                    }
-                    return (_jsx("button", { onClick: () => handleToolbarAction(item), disabled: disabled, title: item.shortcut ? `${item.label} (${item.shortcut})` : item.label, style: {
-                            background: 'none',
-                            border: 'none',
-                            padding: '4px 8px',
-                            borderRadius: 4,
-                            color: tokens.colors.text.default,
-                            cursor: disabled ? 'not-allowed' : 'pointer',
-                            fontFamily: 'inherit',
-                            fontSize: 13,
-                            fontWeight: item.type === 'bold' ? 'bold' : 'normal',
-                            fontStyle: item.type === 'italic' ? 'italic' : 'normal',
-                            opacity: disabled ? 0.5 : 1,
-                        }, children: item.icon || item.label }, index));
-                }) })), _jsxs("div", { style: { position: 'relative' }, children: [_jsx("div", { ref: editorRef, contentEditable: !readonly && !disabled, onInput: handleInput, onKeyDown: handleKeyDown, onPaste: handlePaste, onFocus: onFocus, onBlur: onBlur, spellCheck: spellcheck, "data-placeholder": placeholder, style: {
+        }, children: [toolbar && !readonly && (_jsx(EditorToolbar, { items: toolbarChromeItems, background: tokens.colors.background.surface, borderColor: tokens.colors.border.subtle, textColor: tokens.colors.text.default, gap: 2 })), _jsxs("div", { style: { position: 'relative' }, children: [_jsx("div", { ref: editorRef, contentEditable: !readonly && !disabled, onInput: handleInput, onKeyDown: handleKeyDown, onPaste: handlePaste, onFocus: onFocus, onBlur: onBlur, spellCheck: spellcheck, "data-placeholder": placeholder, style: {
                             minHeight,
                             maxHeight,
                             padding: tokens.spacing[4],
@@ -316,29 +316,7 @@ export const RichTextEditor = ({ value: controlledValue, defaultValue = '', form
                             color: tokens.colors.text.subtle,
                             pointerEvents: 'none',
                             fontSize: 14,
-                        }, children: placeholder })), showMentions && filteredMentions.length > 0 && (_jsx("div", { style: {
-                            position: 'absolute',
-                            top: '100%',
-                            left: 0,
-                            right: 0,
-                            background: tokens.colors.background.elevated,
-                            border: `1px solid ${tokens.colors.border.default}`,
-                            borderRadius: tokens.spacing[2],
-                            maxHeight: 200,
-                            overflow: 'auto',
-                            zIndex: 1000,
-                        }, children: filteredMentions.map((item) => (_jsxs("button", { onClick: () => insertMention(item), style: {
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 8,
-                                width: '100%',
-                                padding: '8px 12px',
-                                background: 'transparent',
-                                border: 'none',
-                                textAlign: 'left',
-                                cursor: 'pointer',
-                                color: tokens.colors.text.default,
-                            }, children: [item.avatar && (_jsx("img", { src: item.avatar, alt: item.name, style: { width: 24, height: 24, borderRadius: '50%' } })), _jsxs("div", { children: [_jsx("div", { style: { fontWeight: 500 }, children: item.name }), item.description && (_jsx("div", { style: { fontSize: 12, color: tokens.colors.text.muted }, children: item.description }))] })] }, item.id))) }))] }), _jsx("style", { children: `
+                        }, children: placeholder })), showMentions && filteredMentions.length > 0 && (_jsx(MentionSuggestions, { items: filteredMentions, onSelect: insertMention, renderItem: mentions?.render }))] }), _jsx("style", { children: `
         [data-placeholder]:empty:before {
           content: attr(data-placeholder);
           color: ${tokens.colors.text.subtle};

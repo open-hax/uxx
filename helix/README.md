@@ -67,10 +67,11 @@ Normal React hook rules still apply.
 
 ### Components
 
+- `entity-card`
 - `button`, `badge`, `spinner`, `card`, `card-header`, `card-body`, `card-footer`, `modal`, `modal-header`, `modal-body`, `modal-footer`, `tooltip`, `input`, `select`, `textarea`, `progress`
-- `resizable-pane`, `which-key-popup`, `inspector-pane`, `context-section`, `pinned-tabs-bar`, `permission-card`, `prompt-card`, `permission-prompts`, `react-reagent-seam`, `command-palette`, `chat`, `toast`, `file-tree`, `tabs`
+- `resizable-pane`, `which-key-popup`, `inspector-pane`, `inspector-header`, `inspector-detail-view`, `inspector-empty-state`, `inspector-error-state`, `context-section`, `pinned-tabs-bar`, `permission-card`, `prompt-card`, `permission-prompts`, `react-reagent-seam`, `command-palette`, `chat`, `toast`, `file-tree`, `tabs`
 - `searchable-select`, `collapsible-panel`, `key-value-section`, `surface-hero`, `panel-header`, `metric-tile`, `metric-tile-grid`, `filter-toolbar`, `action-strip`, `status-chip-stack`, `data-table-shell`, `pagination`
-- `feed`, `markdown`, `code-block`, `diff-viewer`, `markdown-editor`, `rich-text-editor`
+- `feed`, `markdown`, `code-block`, `diff-viewer`, `mention-suggestions`, `editor-toolbar`, `editor-status-bar`, `markdown-editor`, `rich-text-editor`
 
 ## Build
 
@@ -92,7 +93,7 @@ npm run watch
 
 - The React package remains the canonical implementation.
 - This package intentionally prioritizes parity and documentation clarity over divergent custom rendering.
-- React-only compositions like `EntityCard` are still not exposed here until explicit wrapper support is added.
+- Composition-level exports such as `entity-card` are surfaced through the same wrapper bridge as the primitives.
 
 See [`../docs/framework-parity.md`](../docs/framework-parity.md) for the detailed matrix.
 

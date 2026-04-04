@@ -30,13 +30,13 @@ React-only hooks still exist as hooks, but they are re-exported for advanced Clo
 Public parity now covers these exported components:
 
 - Foundations: `Button`, `Badge`, `Spinner`, `Card`, `CardHeader`, `CardBody`, `CardFooter`, `Modal`, `ModalHeader`, `ModalBody`, `ModalFooter`, `Tooltip`, `Input`, `Select`, `Textarea`, `Progress`
-- Workspace UI: `ResizablePane`, `WhichKeyPopup`, `InspectorPane`, `ContextSection`, `PinnedTabsBar`, `PermissionCard`, `PromptCard`, `PermissionPrompts`, `ReactReagentSeam`, `CommandPalette`, `Chat`, `Toast`, `FileTree`, `Tabs`
+- Workspace UI: `ResizablePane`, `WhichKeyPopup`, `InspectorPane`, `InspectorHeader`, `InspectorDetailView`, `InspectorEmptyState`, `InspectorErrorState`, `ContextSection`, `PinnedTabsBar`, `PermissionCard`, `PromptCard`, `PermissionPrompts`, `ReactReagentSeam`, `CommandPalette`, `Chat`, `Toast`, `FileTree`, `Tabs`
 - Data + structure: `SearchableSelect`, `CollapsiblePanel`, `KeyValueSection`, `SurfaceHero`, `PanelHeader`, `MetricTile`, `MetricTileGrid`, `FilterToolbar`, `ActionStrip`, `StatusChipStack`, `DataTableShell`, `Pagination`
-- Content + editors: `Feed`, `Markdown`, `CodeBlock`, `DiffViewer`, `MarkdownEditor`, `RichTextEditor`
+- Content + editors: `Feed`, `Markdown`, `CodeBlock`, `DiffViewer`, `MentionSuggestions`, `EditorToolbar`, `EditorStatusBar`, `MarkdownEditor`, `RichTextEditor`
 
-React now also exports the first composition-level component:
+All three bindings now export the first composition-level component:
 
-- Compositions: `EntityCard` (React public now; Reagent/Helix parity pending)
+- Compositions: `EntityCard`
 
 The new section primitives are now public across all three bindings:
 
@@ -141,9 +141,9 @@ cd orgs/open-hax/uxx/reagent && npm run build
 cd orgs/open-hax/uxx/helix && npm run build
 ```
 
-## Note on React-only compositions
+## Note on compositions
 
-`react/src/compositions/EntityCard.tsx` is now part of the published React API. It is still excluded from Reagent and Helix parity until explicit wrapper support is added and documented.
+`react/src/compositions/EntityCard.tsx` is now part of the published API for React, Reagent, and Helix through the wrapper layers.
 
 ## License
 

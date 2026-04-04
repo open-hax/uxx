@@ -2,6 +2,8 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { tokens } from '@open-hax/uxx/tokens';
 import { Markdown } from './Markdown.js';
+import { EditorStatusBar } from './EditorStatusBar.js';
+import { EditorToolbar } from './EditorToolbar.js';
 import { useResolvedTheme } from '../theme.js';
 export const MarkdownEditor = ({ value: controlledValue, defaultValue = '', previewMode = 'split', previewRatio = 0.5, toolbar = true, statusBar = true, lineNumbers = true, wrap = true, theme = 'dark', highlightActiveLine = true, spellcheck = false, placeholder = 'Write your markdown here...', onChange, onSave, autosave, className, }) => {
     const [internalValue, setInternalValue] = useState(defaultValue);
@@ -110,74 +112,99 @@ export const MarkdownEditor = ({ value: controlledValue, defaultValue = '', prev
     // Toolbar actions
     const toolbarActions = useMemo(() => [
         {
+            key: 'h1',
             label: 'H1',
-            action: () => insertText('# '),
-            shortcut: 'Ctrl+1',
+            onClick: () => insertText('# '),
+            title: 'Ctrl+1',
         },
         {
+            key: 'h2',
             label: 'H2',
-            action: () => insertText('## '),
-            shortcut: 'Ctrl+2',
+            onClick: () => insertText('## '),
+            title: 'Ctrl+2',
         },
         {
+            key: 'h3',
             label: 'H3',
-            action: () => insertText('### '),
-            shortcut: 'Ctrl+3',
+            onClick: () => insertText('### '),
+            title: 'Ctrl+3',
         },
-        { divider: true },
+        { type: 'divider', key: 'div-heading' },
         {
+            key: 'bold',
             label: 'B',
-            action: () => insertFormatting('**', '**'),
-            shortcut: 'Ctrl+B',
+            onClick: () => insertFormatting('**', '**'),
+            title: 'Ctrl+B',
+            buttonStyle: { fontWeight: 'bold' },
         },
         {
+            key: 'italic',
             label: 'I',
-            action: () => insertFormatting('*', '*'),
-            shortcut: 'Ctrl+I',
+            onClick: () => insertFormatting('*', '*'),
+            title: 'Ctrl+I',
+            buttonStyle: { fontStyle: 'italic' },
         },
         {
+            key: 'strike',
             label: 'S',
-            action: () => insertFormatting('~~', '~~'),
-            shortcut: 'Ctrl+Shift+S',
+            onClick: () => insertFormatting('~~', '~~'),
+            title: 'Ctrl+Shift+S',
         },
         {
+            key: 'inline-code',
             label: '</>',
-            action: () => insertFormatting('`', '`'),
-            shortcut: 'Ctrl+`',
+            onClick: () => insertFormatting('`', '`'),
+            title: 'Ctrl+`',
         },
-        { divider: true },
+        { type: 'divider', key: 'div-format' },
         {
+            key: 'link',
             label: 'Link',
-            action: () => insertFormatting('[', '](url)'),
-            shortcut: 'Ctrl+K',
+            onClick: () => insertFormatting('[', '](url)'),
+            title: 'Ctrl+K',
         },
         {
+            key: 'image',
             label: 'Image',
-            action: () => insertText('![alt](url)'),
-            shortcut: 'Ctrl+Shift+I',
+            onClick: () => insertText('![alt](url)'),
+            title: 'Ctrl+Shift+I',
         },
-        { divider: true },
+        { type: 'divider', key: 'div-media' },
         {
+            key: 'list',
             label: 'List',
-            action: () => insertText('- '),
-            shortcut: 'Ctrl+L',
+            onClick: () => insertText('- '),
+            title: 'Ctrl+L',
         },
         {
+            key: 'numbered-list',
             label: 'Num',
-            action: () => insertText('1. '),
-            shortcut: 'Ctrl+Shift+L',
+            onClick: () => insertText('1. '),
+            title: 'Ctrl+Shift+L',
         },
         {
+            key: 'quote',
             label: 'Quote',
-            action: () => insertText('> '),
-            shortcut: 'Ctrl+Q',
+            onClick: () => insertText('> '),
+            title: 'Ctrl+Q',
         },
         {
+            key: 'code-block',
             label: 'Code',
-            action: () => insertText('```\n\n```\n'),
-            shortcut: 'Ctrl+Shift+C',
+            onClick: () => insertText('```\n\n```\n'),
+            title: 'Ctrl+Shift+C',
         },
     ], [insertText, insertFormatting]);
+    const statusItems = useMemo(() => [
+        {
+            key: 'cursor',
+            label: `Ln ${cursorPosition.line}, Col ${cursorPosition.column}`,
+        },
+        { key: 'lines', label: `${stats.lines} lines` },
+        { key: 'words', label: `${stats.words} words` },
+        { key: 'characters', label: `${stats.characters} characters` },
+        { key: 'mode', label: 'Markdown', align: 'end' },
+    ], [cursorPosition, stats]);
     // Autosave
     useEffect(() => {
         if (!autosave?.enabled || !autosave?.key)
@@ -197,36 +224,7 @@ export const MarkdownEditor = ({ value: controlledValue, defaultValue = '', prev
             background: themeColors.background.default,
             borderRadius: tokens.spacing[2],
             overflow: 'hidden',
-        }, children: [toolbar && (_jsx("div", { style: {
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 4,
-                    padding: '8px 12px',
-                    background: themeColors.background.surface,
-                    borderBottom: `1px solid ${themeColors.border.subtle}`,
-                    flexWrap: 'wrap',
-                }, children: toolbarActions.map((item, index) => {
-                    if ('divider' in item) {
-                        return (_jsx("div", { style: {
-                                width: 1,
-                                height: 20,
-                                background: themeColors.border.default,
-                                margin: '0 4px',
-                            } }, index));
-                    }
-                    return (_jsx("button", { onClick: item.action, title: item.shortcut, style: {
-                            background: 'none',
-                            border: 'none',
-                            padding: '4px 8px',
-                            borderRadius: 4,
-                            color: themeColors.text.default,
-                            cursor: 'pointer',
-                            fontFamily: 'inherit',
-                            fontSize: 13,
-                            fontWeight: item.label === 'B' ? 'bold' : 'normal',
-                            fontStyle: item.label === 'I' ? 'italic' : 'normal',
-                        }, children: item.label }, index));
-                }) })), _jsxs("div", { style: {
+        }, children: [toolbar && (_jsx(EditorToolbar, { items: toolbarActions, background: themeColors.background.surface, borderColor: themeColors.border.subtle, textColor: themeColors.text.default })), _jsxs("div", { style: {
                     flex: 1,
                     display: 'flex',
                     overflow: 'hidden',
@@ -254,16 +252,7 @@ export const MarkdownEditor = ({ value: controlledValue, defaultValue = '', prev
                             resize: 'none',
                             whiteSpace: wrap ? 'pre-wrap' : 'pre',
                             overflow: 'auto',
-                        } })] }), statusBar && (_jsxs("div", { style: {
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 16,
-                    padding: '4px 12px',
-                    background: themeColors.background.surface,
-                    borderTop: `1px solid ${themeColors.border.subtle}`,
-                    fontSize: 12,
-                    color: themeColors.text.muted,
-                }, children: [_jsxs("span", { children: ["Ln ", cursorPosition.line, ", Col ", cursorPosition.column] }), _jsxs("span", { children: [stats.lines, " lines"] }), _jsxs("span", { children: [stats.words, " words"] }), _jsxs("span", { children: [stats.characters, " characters"] }), _jsx("span", { style: { marginLeft: 'auto' }, children: "Markdown" })] }))] }));
+                        } })] }), statusBar && (_jsx(EditorStatusBar, { items: statusItems, background: themeColors.background.surface, borderColor: themeColors.border.subtle, textColor: themeColors.text.muted }))] }));
     // Render preview
     const renderPreview = () => (_jsx("div", { ref: previewRef, style: {
             flex: previewMode === 'split' ? previewRatio : 1,
