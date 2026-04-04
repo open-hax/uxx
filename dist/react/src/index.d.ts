@@ -18,5 +18,6 @@
  * }
  * ```
  */
+export * from './theme.js';
 export * from './primitives/index.js';
 //# sourceMappingURL=index.d.ts.map

@@ -56,14 +56,14 @@ const getTabStyles = (variant, size, isActive, disabled) => {
         return {
             ...base,
             borderRadius: '9999px',
-            backgroundColor: isActive ? tokens.monokai.accent.cyan : 'transparent',
+            backgroundColor: isActive ? tokens.colors.accent.cyan : 'transparent',
             color: isActive ? tokens.colors.background.default : tokens.colors.text.muted,
         };
     }
     if (variant === 'underline') {
         return {
             ...base,
-            borderBottom: isActive ? `2px solid ${tokens.monokai.accent.cyan}` : '2px solid transparent',
+            borderBottom: isActive ? `2px solid ${tokens.colors.accent.cyan}` : '2px solid transparent',
             marginBottom: '-1px',
             color: isActive ? tokens.colors.text.default : tokens.colors.text.muted,
         };
@@ -182,7 +182,7 @@ export function Tabs({ value: controlledValue, defaultValue, onChange, items, va
                         e.stopPropagation();
                         onClose?.(item.id);
                     }, onMouseEnter: (e) => {
-                        e.currentTarget.style.backgroundColor = 'rgba(249, 38, 114, 0.2)';
+                        e.currentTarget.style.backgroundColor = tokens.colors.badge.error.bg;
                     }, onMouseLeave: (e) => {
                         e.currentTarget.style.backgroundColor = 'transparent';
                     }, children: "\u00D7" }))] }, item.id));
@@ -193,7 +193,7 @@ export function Tabs({ value: controlledValue, defaultValue, onChange, items, va
             flex: 1,
             minHeight: 0,
         }, children: [_jsxs("div", { role: "tablist", "aria-orientation": orientation, style: getTabListStyles(variant, orientation), children: [items.map(renderTab), addable && (_jsx("button", { style: addButtonStyles, onClick: onAdd, onMouseEnter: (e) => {
-                            e.currentTarget.style.borderColor = tokens.monokai.accent.cyan;
+                            e.currentTarget.style.borderColor = tokens.colors.accent.cyan;
                             e.currentTarget.style.color = tokens.colors.text.default;
                         }, onMouseLeave: (e) => {
                             e.currentTarget.style.borderColor = tokens.colors.border.default;

@@ -18,6 +18,8 @@
  * }
  * ```
  */
+// Theme runtime
+export * from './theme.js';
 // Primitives
 export * from './primitives/index.js';
 // Composites (to be added)

@@ -1,12 +1,11 @@
 /* @open-hax/uxx styles */
 
-/* CSS Custom Properties from tokens */
+/* Default theme aliases (Monokai) */
 :root {
-  /* Colors - Monokai Base */
   --color-bg-default: #272822;
   --color-bg-lighter: #3e3d32;
   --color-bg-darker: #1e1f1c;
-  --color-bg-selection: #49483e;
+  --color-bg-selection: #414339;
   
   /* Foreground */
   --color-fg-default: #f8f8f2;
@@ -19,10 +18,11 @@
   --color-accent-red: #f92672;
   --color-accent-magenta: #ae81ff;
   --color-accent-blue: #66d9ef;
-  --color-accent-cyan: #a6e22e;
+  --color-accent-cyan: #66d9ef;
+  --color-accent-green: #a6e22e;
   
   /* Semantic */
-  --color-success: var(--color-accent-cyan);
+  --color-success: var(--color-accent-green);
   --color-warning: var(--color-accent-orange);
   --color-error: var(--color-accent-red);
   --color-info: var(--color-accent-blue);
@@ -56,9 +56,36 @@
   --radius-lg: 12px;
 }
 
-/* Dark theme (default) */
 .theme-monokai,
 [data-theme='monokai'] {
+  background-color: var(--color-bg-default);
+  color: var(--color-fg-default);
+}
+
+.theme-night-owl,
+[data-theme='night-owl'] {
+  --color-bg-default: #011627;
+  --color-bg-lighter: #0b2942;
+  --color-bg-darker: #01111d;
+  --color-bg-selection: #1d3b53;
+
+  --color-fg-default: #d6deeb;
+  --color-fg-muted: #5f7e97;
+  --color-fg-subtle: #4b6479;
+
+  --color-accent-yellow: #ffeb95;
+  --color-accent-orange: #f78c6c;
+  --color-accent-red: #ef5350;
+  --color-accent-magenta: #c792ea;
+  --color-accent-blue: #82aaff;
+  --color-accent-cyan: #80cbc4;
+  --color-accent-green: #c5e478;
+
+  --color-success: var(--color-accent-green);
+  --color-warning: #ffca28;
+  --color-error: var(--color-accent-red);
+  --color-info: var(--color-accent-blue);
+
   background-color: var(--color-bg-default);
   color: var(--color-fg-default);
 }

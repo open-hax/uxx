@@ -497,9 +497,35 @@ Contracts specify:
 
 ## Design Tokens
 
-### Colors
+### Colors & Themes
 
-Monokai-based palette with semantic aliases:
+Monokai remains the default theme, with Night Owl available as a second built-in theme.
+Theme-aware consumers can resolve tokens by name or preference:
+
+```typescript
+import { resolveThemeTokens, themes } from '@open-hax/uxx/tokens';
+
+const monokai = resolveThemeTokens('monokai');
+const nightOwl = resolveThemeTokens('night-owl');
+const auto = resolveThemeTokens('auto');
+
+themes.monokai.colors.background.default;
+themes['night-owl'].colors.background.default;
+```
+
+Wrap React consumers in `ThemeProvider` to make every token-driven component respond to the active theme:
+
+```tsx
+import { ThemeProvider, Button, Card } from '@open-hax/uxx';
+
+<ThemeProvider theme="night-owl">
+  <Card>
+    <Button>Night Owl aware</Button>
+  </Card>
+</ThemeProvider>
+```
+
+Shared semantic aliases still exist and are now CSS-variable backed, so token-driven components update automatically inside the provider:
 
 ```typescript
 // Component colors
@@ -508,7 +534,8 @@ colors.badge.{default,success,warning,error,info}
 colors.border.{default,subtle,focus,error}
 
 // Accent colors
-monokai.accent.{cyan,blue,red,orange}
+themes.monokai.palette.accent.{cyan,blue,red,orange}
+themes['night-owl'].palette.accent.{cyan,blue,red,orange}
 
 // Status colors
 colors.status.{alive,dead,open,closed,merged}
@@ -634,4 +661,4 @@ Located in `tools/ui-audit/`:
 
 ## License
 
-GPL-3.0-or-later
+LGPL-3.0-or-later

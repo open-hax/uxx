@@ -1,9 +1,10 @@
 import React from 'react';
+import { type ThemePreference } from '@open-hax/uxx/tokens';
 export interface CodeBlockProps {
     code: string;
     language?: string;
     filename?: string;
-    theme?: 'dark' | 'light' | 'auto';
+    theme?: ThemePreference;
     lineNumbers?: boolean;
     highlightLines?: number[];
     startLine?: number;

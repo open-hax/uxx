@@ -1,287 +1,685 @@
 /**
  * Design Tokens - Colors
- * 
- * Official Monokai Classic palette from VS Code theme.
- * Source: github.com/brayevalerien/cb94ac685ebc186f359deae113b6710c
- * 
- * Key principle: surfaces are DARKER than the editor bg (#272822),
- * matching VS Code's sidebar (#1e1f1c) and panel model.
+ *
+ * Multi-theme token registry for UXX.
+ *
+ * Monokai remains the default theme for backward compatibility.
+ * Add new themes by defining a base palette and registering it with
+ * `createThemeDefinition(...)`.
  */
+
+type HexColor = `#${string}`;
+
+export interface ThemePalette {
+  bg: {
+    default: HexColor;
+    darker: HexColor;
+    lighter: HexColor;
+    selection: HexColor;
+    tabInactive: HexColor;
+    groupBorder: HexColor;
+  };
+  fg: {
+    default: HexColor;
+    bright: HexColor;
+    panel: HexColor;
+    soft: HexColor;
+    muted: HexColor;
+    subtle: HexColor;
+  };
+  accent: {
+    yellow: HexColor;
+    orange: HexColor;
+    red: HexColor;
+    magenta: HexColor;
+    blue: HexColor;
+    cyan: HexColor;
+    green: HexColor;
+  };
+  semantic: {
+    error: HexColor;
+    warning: HexColor;
+    success: HexColor;
+    info: HexColor;
+  };
+}
+
+function normalizeHex(hex: string): string {
+  const raw = hex.replace('#', '').trim();
+  if (raw.length === 3) {
+    return raw.split('').map((char) => `${char}${char}`).join('');
+  }
+  return raw;
+}
+
+function alphaToString(alpha: number): string {
+  const rounded = Number(alpha.toFixed(2));
+  return Number.isInteger(rounded) ? String(rounded) : String(rounded);
+}
+
+export function withAlpha(hex: string, alpha: number): string {
+  const normalized = normalizeHex(hex);
+  if (normalized.length !== 6) {
+    return hex;
+  }
+
+  const r = parseInt(normalized.slice(0, 2), 16);
+  const g = parseInt(normalized.slice(2, 4), 16);
+  const b = parseInt(normalized.slice(4, 6), 16);
+
+  return `rgba(${r}, ${g}, ${b}, ${alphaToString(alpha)})`;
+}
+
+function mergeThemeObjects<T extends Record<string, unknown>>(
+  base: T,
+  overrides?: Record<string, unknown>,
+): T {
+  if (!overrides) {
+    return base;
+  }
+
+  const result: Record<string, unknown> = { ...base };
+
+  for (const [key, value] of Object.entries(overrides)) {
+    const current = result[key];
+
+    if (
+      value &&
+      typeof value === 'object' &&
+      !Array.isArray(value) &&
+      current &&
+      typeof current === 'object' &&
+      !Array.isArray(current)
+    ) {
+      result[key] = mergeThemeObjects(
+        current as Record<string, unknown>,
+        value as Record<string, unknown>,
+      );
+      continue;
+    }
+
+    result[key] = value;
+  }
+
+  return result as T;
+}
+
+function createThemeColors(
+  palette: ThemePalette,
+  overrides?: Record<string, unknown>,
+) {
+  const base = {
+    background: {
+      default: palette.bg.default,
+      surface: palette.bg.darker,
+      elevated: palette.bg.tabInactive,
+      highlight: palette.bg.lighter,
+      overlay: 'rgba(0, 0, 0, 0.6)',
+    },
+
+    selection: {
+      default: withAlpha(palette.bg.selection, 0.5),
+    },
+
+    text: {
+      default: palette.fg.default,
+      bright: palette.fg.bright,
+      panel: palette.fg.panel,
+      soft: palette.fg.soft,
+      muted: palette.fg.muted,
+      subtle: palette.fg.subtle,
+      inverse: palette.bg.default,
+      secondary: palette.fg.muted,
+    },
+
+    interactive: {
+      default: palette.accent.cyan,
+      hover: withAlpha(palette.accent.cyan, 0.88),
+      active: withAlpha(palette.accent.cyan, 0.72),
+      disabled: palette.fg.muted,
+    },
+
+    button: {
+      primary: {
+        bg: palette.accent.cyan,
+        fg: palette.bg.default,
+        hover: withAlpha(palette.accent.cyan, 0.88),
+        active: withAlpha(palette.accent.cyan, 0.72),
+      },
+      secondary: {
+        bg: palette.bg.selection,
+        fg: palette.fg.default,
+        hover: withAlpha(palette.bg.selection, 0.88),
+        active: withAlpha(palette.bg.selection, 0.72),
+      },
+      ghost: {
+        bg: 'transparent',
+        fg: palette.fg.default,
+        hover: withAlpha(palette.fg.default, 0.08),
+        active: withAlpha(palette.fg.default, 0.14),
+      },
+      danger: {
+        bg: palette.accent.red,
+        fg: palette.fg.default,
+        hover: withAlpha(palette.accent.red, 0.88),
+        active: withAlpha(palette.accent.red, 0.72),
+      },
+    },
+
+    badge: {
+      default: {
+        bg: palette.fg.muted,
+        fg: palette.fg.default,
+      },
+      success: {
+        bg: withAlpha(palette.accent.green, 0.15),
+        fg: palette.accent.green,
+      },
+      warning: {
+        bg: withAlpha(palette.accent.orange, 0.15),
+        fg: palette.accent.orange,
+      },
+      error: {
+        bg: withAlpha(palette.accent.red, 0.15),
+        fg: palette.accent.red,
+      },
+      info: {
+        bg: withAlpha(palette.accent.blue, 0.15),
+        fg: palette.accent.blue,
+      },
+    },
+
+    border: {
+      default: palette.bg.groupBorder,
+      subtle: palette.fg.subtle,
+      focus: palette.accent.cyan,
+      error: palette.accent.red,
+    },
+
+    accent: palette.accent,
+
+    semantic: {
+      error: palette.semantic.error,
+      warning: palette.semantic.warning,
+      success: palette.semantic.success,
+      info: palette.semantic.info,
+    },
+
+    status: {
+      alive: palette.accent.green,
+      dead: palette.accent.red,
+      open: palette.accent.green,
+      closed: palette.fg.muted,
+      merged: palette.accent.magenta,
+      sleeping: palette.accent.blue,
+      eating: palette.accent.orange,
+      working: palette.accent.yellow,
+    },
+
+    chart: {
+      segment0: palette.accent.blue,
+      segment1: palette.accent.green,
+      segment2: palette.accent.yellow,
+      segment3: palette.accent.orange,
+      segment4: palette.accent.magenta,
+      segment5: palette.fg.soft,
+    },
+
+    fill: {
+      good: { start: palette.accent.green, end: withAlpha(palette.accent.green, 0.55) },
+      warn: { start: palette.accent.orange, end: withAlpha(palette.accent.orange, 0.55) },
+      danger: { start: palette.accent.red, end: withAlpha(palette.accent.red, 0.55) },
+      neutral: { start: palette.accent.blue, end: withAlpha(palette.accent.blue, 0.55) },
+    },
+
+    surface: {
+      panel: withAlpha(palette.bg.darker, 0.82),
+      card: withAlpha(palette.bg.tabInactive, 0.65),
+      cardAlt: withAlpha(palette.bg.lighter, 0.55),
+      input: withAlpha(palette.bg.selection, 0.78),
+      nav: withAlpha(palette.bg.darker, 0.6),
+    },
+
+    alpha: {
+      green: {
+        _08: withAlpha(palette.accent.green, 0.08),
+        _12: withAlpha(palette.accent.green, 0.12),
+        _14: withAlpha(palette.accent.green, 0.14),
+        _15: withAlpha(palette.accent.green, 0.15),
+        _16: withAlpha(palette.accent.green, 0.16),
+        _25: withAlpha(palette.accent.green, 0.25),
+        _28: withAlpha(palette.accent.green, 0.28),
+        _30: withAlpha(palette.accent.green, 0.3),
+        _35: withAlpha(palette.accent.green, 0.35),
+        _38: withAlpha(palette.accent.green, 0.38),
+        _40: withAlpha(palette.accent.green, 0.4),
+        _45: withAlpha(palette.accent.green, 0.45),
+        _50: withAlpha(palette.accent.green, 0.5),
+        _55: withAlpha(palette.accent.green, 0.55),
+        _60: withAlpha(palette.accent.green, 0.6),
+        _80: withAlpha(palette.accent.green, 0.8),
+      },
+      red: {
+        _12: withAlpha(palette.accent.red, 0.12),
+        _14: withAlpha(palette.accent.red, 0.14),
+        _15: withAlpha(palette.accent.red, 0.15),
+        _25: withAlpha(palette.accent.red, 0.25),
+        _30: withAlpha(palette.accent.red, 0.3),
+        _38: withAlpha(palette.accent.red, 0.38),
+        _40: withAlpha(palette.accent.red, 0.4),
+        _45: withAlpha(palette.accent.red, 0.45),
+        _46: withAlpha(palette.accent.red, 0.46),
+        _50: withAlpha(palette.accent.red, 0.5),
+      },
+      orange: {
+        _12: withAlpha(palette.accent.orange, 0.12),
+        _15: withAlpha(palette.accent.orange, 0.15),
+        _32: withAlpha(palette.accent.orange, 0.32),
+        _35: withAlpha(palette.accent.orange, 0.35),
+        _40: withAlpha(palette.accent.orange, 0.4),
+      },
+      blue: {
+        _15: withAlpha(palette.accent.blue, 0.15),
+        _20: withAlpha(palette.accent.blue, 0.2),
+        _35: withAlpha(palette.accent.blue, 0.35),
+        _45: withAlpha(palette.accent.blue, 0.45),
+        _80: withAlpha(palette.accent.blue, 0.8),
+        _95: withAlpha(palette.accent.blue, 0.95),
+      },
+      magenta: {
+        _08: withAlpha(palette.accent.magenta, 0.08),
+        _14: withAlpha(palette.accent.magenta, 0.14),
+        _30: withAlpha(palette.accent.magenta, 0.3),
+      },
+      yellow: {
+        _06: withAlpha(palette.accent.yellow, 0.06),
+      },
+      bg: {
+        _08: withAlpha(palette.bg.selection, 0.08),
+        _10: withAlpha(palette.bg.selection, 0.1),
+        _12: withAlpha(palette.bg.selection, 0.12),
+        _14: withAlpha(palette.bg.selection, 0.14),
+        _16: withAlpha(palette.bg.selection, 0.16),
+        _18: withAlpha(palette.bg.selection, 0.18),
+        _24: withAlpha(palette.bg.lighter, 0.24),
+        _25: withAlpha(palette.bg.selection, 0.25),
+        _28: withAlpha(palette.bg.selection, 0.28),
+        _30: withAlpha(palette.bg.selection, 0.3),
+        _46: withAlpha(palette.bg.darker, 0.46),
+        _55: withAlpha(palette.bg.selection, 0.55),
+        _60: withAlpha(palette.bg.darker, 0.6),
+        _62: withAlpha(palette.bg.darker, 0.62),
+        _68: withAlpha(palette.bg.darker, 0.68),
+        _70: withAlpha(palette.bg.selection, 0.7),
+        _72: withAlpha(palette.bg.darker, 0.72),
+        _80: withAlpha(palette.bg.darker, 0.8),
+        _85: withAlpha(palette.bg.lighter, 0.85),
+        _88: withAlpha(palette.bg.lighter, 0.88),
+        _88b: withAlpha(palette.bg.default, 0.88),
+        _90: withAlpha(palette.bg.darker, 0.9),
+        _95: withAlpha(palette.bg.darker, 0.95),
+      },
+      warningBg: withAlpha(palette.accent.orange, 0.2),
+      errorBg: withAlpha(palette.accent.red, 0.42),
+      errorBgSolid: withAlpha(palette.accent.red, 0.9),
+      federationError: withAlpha(palette.accent.red, 0.22),
+      white: {
+        _08: 'rgba(255, 255, 255, 0.08)',
+      },
+      shadow: 'rgba(0, 0, 0, 0.35)',
+      shadowLight: 'rgba(0, 0, 0, 0.3)',
+      shadowDeep: 'rgba(15, 23, 42, 0.22)',
+    },
+  } as const;
+
+  return mergeThemeObjects(base, overrides);
+}
+
+export type ThemeColors = ReturnType<typeof createThemeColors>;
+export type ThemeCssVariables = Record<string, string>;
+
+function toKebabCase(value: string): string {
+  return value.replace(/([A-Z])/g, '-$1').toLowerCase();
+}
+
+function createCssVarReference(path: string[], fallback: string): string {
+  return `var(--uxx-${path.map(toKebabCase).join('-')}, ${fallback})`;
+}
+
+function createCssVarMirror<T>(value: T, path: string[] = []): T {
+  if (typeof value === 'string') {
+    return createCssVarReference(path, value) as T;
+  }
+
+  if (typeof value === 'object' && value !== null) {
+    const entries = Object.entries(value).map(([key, child]) => [
+      key,
+      createCssVarMirror(child, [...path, key]),
+    ]);
+
+    return Object.fromEntries(entries) as T;
+  }
+
+  return value;
+}
+
+function flattenThemeCssVariables(
+  value: unknown,
+  path: string[] = [],
+  result: ThemeCssVariables = {},
+): ThemeCssVariables {
+  if (typeof value === 'string') {
+    result[`--uxx-${path.map(toKebabCase).join('-')}`] = value;
+    return result;
+  }
+
+  if (typeof value === 'object' && value !== null) {
+    for (const [key, child] of Object.entries(value)) {
+      flattenThemeCssVariables(child, [...path, key], result);
+    }
+  }
+
+  return result;
+}
+
+function flattenThemeTokenAliasVariables(
+  value: unknown,
+  path: string[] = [],
+  result: ThemeCssVariables = {},
+): ThemeCssVariables {
+  if (typeof value === 'string') {
+    result[`--token-${path.join('-')}`] = value;
+    return result;
+  }
+
+  if (typeof value === 'object' && value !== null) {
+    for (const [key, child] of Object.entries(value)) {
+      flattenThemeTokenAliasVariables(child, [...path, key], result);
+    }
+  }
+
+  return result;
+}
+
+export interface ThemeDefinition {
+  name: string;
+  label: string;
+  appearance: 'dark' | 'light';
+  palette: ThemePalette;
+  colors: ThemeColors;
+}
+
+export function createThemeDefinition(
+  name: string,
+  label: string,
+  palette: ThemePalette,
+  options?: {
+    appearance?: 'dark' | 'light';
+    colorOverrides?: Record<string, unknown>;
+  },
+): ThemeDefinition {
+  return {
+    name,
+    label,
+    appearance: options?.appearance ?? 'dark',
+    palette,
+    colors: createThemeColors(palette, options?.colorOverrides),
+  };
+}
 
 // Monokai Classic Base Palette (from official VS Code theme)
 export const monokai = {
-  // Background tones
   bg: {
-    default: '#272822',   // Editor Background
-    darker: '#1e1f1c',    // Sidebar, Menu, Widget Background
-    lighter: '#3e3d32',   // Editor Line Highlight, List Hover
-    selection: '#414339', // Input, List Inactive Selection, Panel Border
-    tabInactive: '#34352f', // Tab Inactive Background
-    groupBorder: '#34352f', // Editor Group Border
+    default: '#272822',
+    darker: '#1e1f1c',
+    lighter: '#3e3d32',
+    selection: '#414339',
+    tabInactive: '#34352f',
+    groupBorder: '#34352f',
   },
-  
-  // Foreground tones
   fg: {
-    default: '#f8f8f2',   // Editor Foreground
-    bright: '#f8f8f2',    // Brightest text
-    panel: '#cccccc',     // Panel/menu foreground
-    soft: '#90908a',      // Secondary body text
-    muted: '#75715e',     // Badge Background, Panel Title Inactive
-    subtle: '#464741',    // Indent Guide, Whitespace
+    default: '#f8f8f2',
+    bright: '#f8f8f2',
+    panel: '#cccccc',
+    soft: '#90908a',
+    muted: '#75715e',
+    subtle: '#464741',
   },
-  
-  // Accent colors (classic Monokai syntax highlighting)
   accent: {
-    yellow: '#e6db74',    // strings
-    orange: '#fd971f',    // functions, params
-    red: '#f92672',       // keywords, tags
-    magenta: '#ae81ff',   // numbers, attributes
-    blue: '#66d9ef',      // types, params
-    cyan: '#66d9ef',      // alias used by components
-    green: '#a6e22e',     // strings (alternate)
+    yellow: '#e6db74',
+    orange: '#fd971f',
+    red: '#f92672',
+    magenta: '#ae81ff',
+    blue: '#66d9ef',
+    cyan: '#66d9ef',
+    green: '#a6e22e',
   },
-  
-  // Semantic colors
   semantic: {
     error: '#f92672',
     warning: '#fd971f',
     success: '#a6e22e',
     info: '#66d9ef',
   },
+} as const satisfies ThemePalette;
+
+export const nightOwl = {
+  bg: {
+    default: '#011627',
+    darker: '#01111d',
+    lighter: '#0b2942',
+    selection: '#1d3b53',
+    tabInactive: '#0b253a',
+    groupBorder: '#5f7e97',
+  },
+  fg: {
+    default: '#d6deeb',
+    bright: '#ffffff',
+    panel: '#d2dee7',
+    soft: '#89a4bb',
+    muted: '#5f7e97',
+    subtle: '#4b6479',
+  },
+  accent: {
+    yellow: '#ffeb95',
+    orange: '#F78C6C',
+    red: '#EF5350',
+    magenta: '#c792ea',
+    blue: '#82AAFF',
+    cyan: '#80CBC4',
+    green: '#c5e478',
+  },
+  semantic: {
+    error: '#EF5350',
+    warning: '#FFCA28',
+    success: '#c5e478',
+    info: '#82AAFF',
+  },
+} as const satisfies ThemePalette;
+
+export const themes = {
+  monokai: createThemeDefinition('monokai', 'Monokai', monokai, {
+    appearance: 'dark',
+    colorOverrides: {
+      selection: {
+        default: 'rgba(135, 139, 145, 0.5)',
+      },
+      interactive: {
+        default: monokai.accent.green,
+        hover: '#8fce26',
+        active: '#7cb824',
+        disabled: monokai.fg.muted,
+      },
+      button: {
+        primary: {
+          bg: monokai.fg.muted,
+          fg: monokai.fg.default,
+          hover: '#8a856e',
+          active: '#6a6654',
+        },
+        secondary: {
+          bg: monokai.bg.selection,
+          fg: monokai.fg.default,
+          hover: '#505248',
+          active: '#3a3c33',
+        },
+        ghost: {
+          bg: 'transparent',
+          fg: monokai.fg.default,
+          hover: monokai.bg.selection,
+          active: monokai.bg.tabInactive,
+        },
+        danger: {
+          bg: monokai.accent.red,
+          fg: monokai.fg.default,
+          hover: '#e61b63',
+          active: '#d1155c',
+        },
+      },
+      border: {
+        focus: '#99947c',
+      },
+      chart: {
+        segment5: '#7ca3b5',
+      },
+      fill: {
+        good: { start: monokai.accent.green, end: '#78efb7' },
+        warn: { start: monokai.accent.orange, end: '#ffd280' },
+        danger: { start: monokai.accent.red, end: '#ff9e92' },
+        neutral: { start: '#7aa7bd', end: '#98bfd0' },
+      },
+      alpha: {
+        warningBg: 'rgba(58, 41, 16, 0.88)',
+        errorBg: 'rgba(70, 24, 24, 0.42)',
+        errorBgSolid: 'rgba(70, 24, 24, 0.9)',
+        federationError: 'rgba(127, 29, 29, 0.22)',
+      },
+    },
+  }),
+  'night-owl': createThemeDefinition('night-owl', 'Night Owl', nightOwl, {
+    appearance: 'dark',
+    colorOverrides: {
+      interactive: {
+        default: nightOwl.accent.cyan,
+        hover: '#7fdbca',
+        active: '#21c7a8',
+        disabled: nightOwl.fg.muted,
+      },
+      button: {
+        primary: {
+          bg: '#7e57c2cc',
+          fg: '#ffffffcc',
+          hover: '#7e57c2',
+          active: '#6747a4',
+        },
+        secondary: {
+          bg: nightOwl.bg.selection,
+          fg: nightOwl.fg.default,
+          hover: '#234d708c',
+          active: '#0e293f',
+        },
+        ghost: {
+          bg: 'transparent',
+          fg: nightOwl.fg.default,
+          hover: withAlpha(nightOwl.bg.selection, 0.55),
+          active: nightOwl.bg.lighter,
+        },
+        danger: {
+          bg: nightOwl.accent.red,
+          fg: '#ffffffcc',
+          hover: '#ec5f67',
+          active: '#d3423e',
+        },
+      },
+      badge: {
+        default: {
+          bg: nightOwl.fg.muted,
+          fg: '#ffffff',
+        },
+      },
+      border: {
+        default: nightOwl.bg.groupBorder,
+        subtle: nightOwl.fg.subtle,
+        focus: nightOwl.accent.blue,
+      },
+      chart: {
+        segment5: '#5f7e97',
+      },
+      fill: {
+        good: { start: nightOwl.accent.green, end: '#d9f5dd' },
+        warn: { start: nightOwl.accent.orange, end: '#ffcb8b' },
+        danger: { start: nightOwl.accent.red, end: '#ff869a' },
+        neutral: { start: nightOwl.accent.blue, end: '#c5e4fd' },
+      },
+      alpha: {
+        warningBg: '#675700F2',
+        errorBg: 'rgba(171, 3, 0, 0.42)',
+        errorBgSolid: '#AB0300F2',
+        federationError: withAlpha(nightOwl.accent.red, 0.22),
+        shadow: 'rgba(1, 22, 39, 0.35)',
+        shadowLight: 'rgba(1, 11, 20, 0.3)',
+        shadowDeep: 'rgba(1, 17, 29, 0.45)',
+      },
+    },
+  }),
 } as const;
 
-// Semantic color aliases for components
-export const colors = {
-  // Backgrounds — surfaces are DARKER or same as bg, never lighter
-  background: {
-    default: monokai.bg.default,      // #272822 — editor bg
-    surface: monokai.bg.darker,       // #1e1f1c — sidebar/panel bg (darker)
-    elevated: monokai.bg.tabInactive, // #34352f — tab/card surface
-    highlight: monokai.bg.lighter,    // #3e3d32 — line highlight
-    overlay: 'rgba(0, 0, 0, 0.6)',
-  },
-  
-  // Selection/highlight colors
-  selection: {
-    default: 'rgba(135, 139, 145, 0.5)', // #878b9180 — Editor Selection
-  },
-  
-  // Text
-  text: {
-    default: monokai.fg.default,    // #f8f8f2
-    bright: monokai.fg.bright,
-    panel: monokai.fg.panel,
-    soft: monokai.fg.soft,
-    muted: monokai.fg.muted,        // #75715e
-    subtle: monokai.fg.subtle,      // #464741
-    inverse: monokai.bg.default,
-    secondary: monokai.fg.muted,
-  },
-  
-  // Interactive states
-  interactive: {
-    default: monokai.accent.green,
-    hover: '#8fce26',
-    active: '#7cb824',
-    disabled: monokai.fg.muted,
-  },
-  
-  // Component-specific
-  button: {
-    primary: {
-      bg: monokai.fg.muted,         // #75715e — VS Code Button Background
-      fg: monokai.fg.default,
-      hover: '#8a856e',
-      active: '#6a6654',
-    },
-    secondary: {
-      bg: monokai.bg.selection,     // #414339
-      fg: monokai.fg.default,
-      hover: '#505248',
-      active: '#3a3c33',
-    },
-    ghost: {
-      bg: 'transparent',
-      fg: monokai.fg.default,
-      hover: monokai.bg.selection,
-      active: monokai.bg.tabInactive,
-    },
-    danger: {
-      bg: monokai.accent.red,
-      fg: monokai.fg.default,
-      hover: '#e61b63',
-      active: '#d1155c',
-    },
-  },
-  
-  badge: {
-    default: {
-      bg: monokai.fg.muted,         // #75715e — VS Code Badge Background
-      fg: monokai.fg.default,
-    },
-    success: {
-      bg: 'rgba(166, 226, 46, 0.15)',
-      fg: monokai.accent.green,
-    },
-    warning: {
-      bg: 'rgba(253, 151, 31, 0.15)',
-      fg: monokai.accent.orange,
-    },
-    error: {
-      bg: 'rgba(249, 38, 114, 0.15)',
-      fg: monokai.accent.red,
-    },
-    info: {
-      bg: 'rgba(102, 217, 239, 0.15)',
-      fg: monokai.accent.blue,
-    },
-  },
-  
-  border: {
-    default: monokai.bg.groupBorder, // #34352f — Editor Group Border
-    subtle: monokai.fg.subtle,       // #464741 — Indent Guide
-    focus: '#99947c',                // VS Code Focus Border
-    error: monokai.accent.red,
-  },
-  
-  // Accent colors (direct access)
-  accent: monokai.accent,
-  
-  // Status colors
-  status: {
-    alive: monokai.accent.green,
-    dead: monokai.accent.red,
-    open: monokai.accent.green,
-    closed: monokai.fg.muted,
-    merged: monokai.accent.magenta,
-    sleeping: monokai.accent.blue,
-    eating: monokai.accent.orange,
-    working: monokai.accent.yellow,
-  },
+export type ThemeName = keyof typeof themes;
+export type ThemePreference = ThemeName | 'dark' | 'light' | 'auto';
 
-  // Chart/data-viz palette
-  chart: {
-    segment0: monokai.accent.blue,
-    segment1: monokai.accent.green,
-    segment2: monokai.accent.yellow,
-    segment3: monokai.accent.orange,
-    segment4: monokai.accent.magenta,
-    segment5: '#7ca3b5',
-  },
+export const defaultThemeName: ThemeName = 'monokai';
 
-  // Fill gradients
-  fill: {
-    good: { start: monokai.accent.green, end: '#78efb7' },
-    warn: { start: monokai.accent.orange, end: '#ffd280' },
-    danger: { start: monokai.accent.red, end: '#ff9e92' },
-    neutral: { start: '#7aa7bd', end: '#98bfd0' },
-  },
+function themeByAppearance(appearance: 'dark' | 'light'): ThemeDefinition {
+  return (
+    Object.values(themes).find((theme) => theme.appearance === appearance) ??
+    themes[defaultThemeName]
+  );
+}
 
-  // Surface tints — rgba overlays that sit on top of the background.
-  // These are NOT solid colors; they're translucent layers that let the
-  // body gradient show through for the glassmorphism effect.
-  // Derived from official VS Code Monokai Classic values.
-  surface: {
-    panel: 'rgba(30, 31, 28, 0.82)',    // Sidebar #1e1f1c at 82% opacity
-    card: 'rgba(52, 53, 47, 0.65)',     // Tab inactive #34352f at 65%
-    cardAlt: 'rgba(62, 61, 50, 0.55)',  // Line highlight #3e3d32 at 55%
-    input: 'rgba(65, 67, 57, 0.78)',    // Input #414339 at 78%
-    nav: 'rgba(30, 31, 28, 0.6)',       // Menu #1e1f1c at 60%
-  },
+export function resolveTheme(theme: ThemePreference = defaultThemeName): ThemeName {
+  if (theme === 'dark') {
+    return themeByAppearance('dark').name as ThemeName;
+  }
 
-  // Alpha overlays — reusable rgba values for borders, backgrounds, and accents.
-  // Every rgba in proxx CSS must map to one of these. No hardcoded colors allowed.
-  alpha: {
-    green: {
-      _08: 'rgba(166, 226, 46, 0.08)',
-      _12: 'rgba(166, 226, 46, 0.12)',
-      _14: 'rgba(166, 226, 46, 0.14)',
-      _15: 'rgba(166, 226, 46, 0.15)',
-      _16: 'rgba(166, 226, 46, 0.16)',
-      _25: 'rgba(166, 226, 46, 0.25)',
-      _28: 'rgba(166, 226, 46, 0.28)',
-      _30: 'rgba(166, 226, 46, 0.30)',
-      _35: 'rgba(166, 226, 46, 0.35)',
-      _38: 'rgba(166, 226, 46, 0.38)',
-      _40: 'rgba(166, 226, 46, 0.40)',
-      _45: 'rgba(166, 226, 46, 0.45)',
-      _50: 'rgba(166, 226, 46, 0.50)',
-      _55: 'rgba(166, 226, 46, 0.55)',
-      _60: 'rgba(166, 226, 46, 0.60)',
-      _80: 'rgba(166, 226, 46, 0.80)',
-    },
-    red: {
-      _12: 'rgba(249, 38, 114, 0.12)',
-      _14: 'rgba(249, 38, 114, 0.14)',
-      _15: 'rgba(249, 38, 114, 0.15)',
-      _25: 'rgba(249, 38, 114, 0.25)',
-      _30: 'rgba(249, 38, 114, 0.30)',
-      _38: 'rgba(249, 38, 114, 0.38)',
-      _40: 'rgba(249, 38, 114, 0.40)',
-      _45: 'rgba(249, 38, 114, 0.45)',
-      _46: 'rgba(249, 38, 114, 0.46)',
-      _50: 'rgba(249, 38, 114, 0.50)',
-    },
-    orange: {
-      _12: 'rgba(253, 151, 31, 0.12)',
-      _15: 'rgba(253, 151, 31, 0.15)',
-      _32: 'rgba(253, 151, 31, 0.32)',
-      _35: 'rgba(253, 151, 31, 0.35)',
-      _40: 'rgba(253, 151, 31, 0.40)',
-    },
-    blue: {
-      _15: 'rgba(102, 217, 239, 0.15)',
-      _20: 'rgba(102, 217, 239, 0.20)',
-      _35: 'rgba(102, 217, 239, 0.35)',
-      _45: 'rgba(102, 217, 239, 0.45)',
-      _80: 'rgba(102, 217, 239, 0.80)',
-      _95: 'rgba(102, 217, 239, 0.95)',
-    },
-    magenta: {
-      _08: 'rgba(174, 129, 255, 0.08)',
-      _14: 'rgba(174, 129, 255, 0.14)',
-      _30: 'rgba(174, 129, 255, 0.30)',
-    },
-    yellow: {
-      _06: 'rgba(230, 219, 116, 0.06)',
-    },
-    bg: {
-      _08: 'rgba(73, 72, 62, 0.08)',
-      _10: 'rgba(73, 72, 62, 0.10)',
-      _12: 'rgba(73, 72, 62, 0.12)',
-      _14: 'rgba(73, 72, 62, 0.14)',
-      _16: 'rgba(73, 72, 62, 0.16)',
-      _18: 'rgba(73, 72, 62, 0.18)',
-      _24: 'rgba(62, 61, 50, 0.24)',
-      _25: 'rgba(73, 72, 62, 0.25)',
-      _28: 'rgba(73, 72, 62, 0.28)',
-      _30: 'rgba(73, 72, 62, 0.30)',
-      _46: 'rgba(30, 31, 28, 0.46)',
-      _55: 'rgba(73, 72, 62, 0.55)',
-      _60: 'rgba(30, 31, 28, 0.60)',
-      _62: 'rgba(30, 31, 28, 0.62)',
-      _68: 'rgba(30, 31, 28, 0.68)',
-      _70: 'rgba(73, 72, 62, 0.70)',
-      _72: 'rgba(30, 31, 28, 0.72)',
-      _80: 'rgba(30, 31, 28, 0.80)',
-      _85: 'rgba(62, 61, 50, 0.85)',
-      _88: 'rgba(62, 61, 50, 0.88)',
-      _88b: 'rgba(39, 40, 34, 0.88)',
-      _90: 'rgba(30, 31, 28, 0.90)',
-      _95: 'rgba(30, 31, 28, 0.95)',
-    },
-    warningBg: 'rgba(58, 41, 16, 0.88)',
-    errorBg: 'rgba(70, 24, 24, 0.42)',
-    errorBgSolid: 'rgba(70, 24, 24, 0.90)',
-    federationError: 'rgba(127, 29, 29, 0.22)',
-    white: {
-      _08: 'rgba(255, 255, 255, 0.08)',
-    },
-    shadow: 'rgba(0, 0, 0, 0.35)',
-    shadowLight: 'rgba(0, 0, 0, 0.30)',
-    shadowDeep: 'rgba(15, 23, 42, 0.22)',
-  },
-} as const;
+  if (theme === 'light') {
+    return themeByAppearance('light').name as ThemeName;
+  }
+
+  if (theme === 'auto') {
+    if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+      return window.matchMedia('(prefers-color-scheme: light)').matches
+        ? themeByAppearance('light').name as ThemeName
+        : themeByAppearance('dark').name as ThemeName;
+    }
+    return defaultThemeName;
+  }
+
+  return theme;
+}
+
+export function getTheme(themeName: ThemeName = defaultThemeName): ThemeDefinition {
+  return themes[themeName];
+}
+
+export function resolveThemeTokens(theme: ThemePreference = defaultThemeName): ThemeDefinition {
+  return getTheme(resolveTheme(theme));
+}
+
+export function getThemeCssVariables(
+  theme: ThemePreference | ThemeName | ThemeDefinition = defaultThemeName,
+): ThemeCssVariables {
+  const resolved = typeof theme === 'object' && theme !== null && 'colors' in theme
+    ? theme
+    : resolveThemeTokens(theme as ThemePreference);
+
+  return {
+    ...flattenThemeCssVariables(resolved.colors, ['colors']),
+    ...flattenThemeTokenAliasVariables(resolved.colors, ['colors']),
+  };
+}
+
+// Backward-compatible default exports
+export const colors = createCssVarMirror(themes[defaultThemeName].colors, ['colors']);
 
 export type ColorToken = keyof typeof colors;
 export type MonokaiColor = typeof monokai;
+export type NightOwlColor = typeof nightOwl;

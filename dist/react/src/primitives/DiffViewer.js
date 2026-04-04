@@ -1,6 +1,7 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useMemo, useCallback } from 'react';
-import { tokens } from '@open-hax/uxx/tokens';
+import { tokens, withAlpha } from '@open-hax/uxx/tokens';
+import { useResolvedTheme } from '../theme.js';
 // Simple diff algorithm (Myers-like)
 function computeDiff(original, modified) {
     const oldLines = original.split('\n');
@@ -132,6 +133,8 @@ function groupIntoHunks(lines) {
 export const DiffViewer = ({ original, modified, filename, language, mode = 'unified', theme = 'dark', lineNumbers = true, showStats = true, showFilename = true, foldThreshold = 100, highlightLines, onLineClick, onHunkClick, className, }) => {
     const diff = useMemo(() => computeDiff(original, modified), [original, modified]);
     const hunks = useMemo(() => groupIntoHunks(diff), [diff]);
+    const resolvedTheme = useResolvedTheme(theme);
+    const themeColors = resolvedTheme.colors;
     const stats = useMemo(() => {
         let additions = 0;
         let deletions = 0;
@@ -158,24 +161,24 @@ export const DiffViewer = ({ original, modified, filename, language, mode = 'uni
                 fontSize: 13,
                 lineHeight: 1.5,
                 background: isHighlighted
-                    ? 'rgba(255, 255, 255, 0.05)'
+                    ? withAlpha(themeColors.text.default, 0.05)
                     : line.type === 'added'
-                        ? 'rgba(102, 217, 239, 0.15)'
+                        ? themeColors.badge.info.bg
                         : line.type === 'removed'
-                            ? 'rgba(249, 38, 114, 0.15)'
+                            ? themeColors.badge.error.bg
                             : 'transparent',
                 cursor: onLineClick ? 'pointer' : 'default',
             }, children: [_jsx("div", { style: {
                         width: 20,
                         textAlign: 'center',
-                        color: line.type === 'added' ? tokens.monokai.accent.cyan : line.type === 'removed' ? tokens.monokai.accent.red : 'transparent',
+                        color: line.type === 'added' ? themeColors.accent.cyan : line.type === 'removed' ? themeColors.accent.red : 'transparent',
                         userSelect: 'none',
                         flexShrink: 0,
                     }, children: line.type === 'added' ? '+' : line.type === 'removed' ? '-' : ' ' }), lineNumbers && (_jsx("div", { style: {
                         width: 40,
                         textAlign: 'right',
                         paddingRight: 12,
-                        color: tokens.colors.text.subtle,
+                        color: themeColors.text.subtle,
                         userSelect: 'none',
                         opacity: 0.5,
                         flexShrink: 0,
@@ -183,19 +186,19 @@ export const DiffViewer = ({ original, modified, filename, language, mode = 'uni
                         width: 40,
                         textAlign: 'right',
                         paddingRight: 12,
-                        color: tokens.colors.text.subtle,
+                        color: themeColors.text.subtle,
                         userSelect: 'none',
                         opacity: 0.5,
                         flexShrink: 0,
                     }, children: line.newLine || '' })), _jsx("div", { style: { flex: 1, whiteSpace: 'pre' }, children: line.content || ' ' })] }, index));
     };
     const renderSplitView = () => {
-        return (_jsxs("div", { style: { display: 'flex', gap: 1, background: tokens.colors.border.default }, children: [_jsxs("div", { style: { flex: 1, background: tokens.colors.background.default, overflow: 'auto' }, children: [_jsx("div", { style: {
+        return (_jsxs("div", { style: { display: 'flex', gap: 1, background: themeColors.border.default }, children: [_jsxs("div", { style: { flex: 1, background: themeColors.background.default, overflow: 'auto' }, children: [_jsx("div", { style: {
                                 padding: '4px 8px',
-                                background: tokens.colors.background.surface,
-                                borderBottom: `1px solid ${tokens.colors.border.default}`,
+                                background: themeColors.background.surface,
+                                borderBottom: `1px solid ${themeColors.border.default}`,
                                 fontSize: 12,
-                                color: tokens.colors.text.muted,
+                                color: themeColors.text.muted,
                                 textAlign: 'center',
                             }, children: "Original" }), diff.map((line, index) => (_jsxs("div", { style: {
                                 display: 'flex',
@@ -204,7 +207,7 @@ export const DiffViewer = ({ original, modified, filename, language, mode = 'uni
                                 lineHeight: 1.5,
                                 height: 20,
                                 background: line.type === 'removed'
-                                    ? 'rgba(249, 38, 114, 0.15)'
+                                    ? themeColors.badge.error.bg
                                     : line.type === 'added'
                                         ? 'transparent'
                                         : 'transparent',
@@ -212,15 +215,15 @@ export const DiffViewer = ({ original, modified, filename, language, mode = 'uni
                                         width: 40,
                                         textAlign: 'right',
                                         paddingRight: 12,
-                                        color: tokens.colors.text.subtle,
+                                        color: themeColors.text.subtle,
                                         userSelect: 'none',
                                         opacity: 0.5,
-                                    }, children: line.oldLine || '' })), _jsx("div", { style: { flex: 1, whiteSpace: 'pre', overflow: 'hidden' }, children: line.type !== 'added' ? line.content || ' ' : '' })] }, index)))] }), _jsxs("div", { style: { flex: 1, background: tokens.colors.background.default, overflow: 'auto' }, children: [_jsx("div", { style: {
+                                    }, children: line.oldLine || '' })), _jsx("div", { style: { flex: 1, whiteSpace: 'pre', overflow: 'hidden' }, children: line.type !== 'added' ? line.content || ' ' : '' })] }, index)))] }), _jsxs("div", { style: { flex: 1, background: themeColors.background.default, overflow: 'auto' }, children: [_jsx("div", { style: {
                                 padding: '4px 8px',
-                                background: tokens.colors.background.surface,
-                                borderBottom: `1px solid ${tokens.colors.border.default}`,
+                                background: themeColors.background.surface,
+                                borderBottom: `1px solid ${themeColors.border.default}`,
                                 fontSize: 12,
-                                color: tokens.colors.text.muted,
+                                color: themeColors.text.muted,
                                 textAlign: 'center',
                             }, children: "Modified" }), diff.map((line, index) => (_jsxs("div", { style: {
                                 display: 'flex',
@@ -229,38 +232,38 @@ export const DiffViewer = ({ original, modified, filename, language, mode = 'uni
                                 lineHeight: 1.5,
                                 height: 20,
                                 background: line.type === 'added'
-                                    ? 'rgba(102, 217, 239, 0.15)'
+                                    ? themeColors.badge.info.bg
                                     : 'transparent',
                             }, children: [lineNumbers && (_jsx("div", { style: {
                                         width: 40,
                                         textAlign: 'right',
                                         paddingRight: 12,
-                                        color: tokens.colors.text.subtle,
+                                        color: themeColors.text.subtle,
                                         userSelect: 'none',
                                         opacity: 0.5,
                                     }, children: line.newLine || '' })), _jsx("div", { style: { flex: 1, whiteSpace: 'pre', overflow: 'hidden' }, children: line.type !== 'removed' ? line.content || ' ' : '' })] }, index)))] })] }));
     };
     return (_jsxs("div", { className: className, "data-component": "diff-viewer", "data-mode": mode, role: "region", "aria-label": "Diff viewer", style: {
-            background: tokens.colors.background.default,
+            background: themeColors.background.default,
             borderRadius: tokens.spacing[2],
             overflow: 'hidden',
-            border: `1px solid ${tokens.colors.border.default}`,
+            border: `1px solid ${themeColors.border.default}`,
         }, children: [(showFilename || showStats) && (_jsxs("div", { style: {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     padding: '8px 12px',
-                    background: tokens.colors.background.surface,
-                    borderBottom: `1px solid ${tokens.colors.border.default}`,
+                    background: themeColors.background.surface,
+                    borderBottom: `1px solid ${themeColors.border.default}`,
                 }, children: [showFilename && (_jsx("div", { style: {
                             fontSize: 14,
                             fontWeight: 500,
-                            color: tokens.colors.text.default,
-                        }, children: filename || 'File diff' })), showStats && (_jsxs("div", { style: { display: 'flex', gap: 16, fontSize: 13 }, children: [_jsxs("span", { style: { color: tokens.monokai.accent.cyan }, children: ["+", stats.additions] }), _jsxs("span", { style: { color: tokens.monokai.accent.red }, children: ["-", stats.deletions] })] }))] })), mode === 'unified' ? (_jsx("div", { style: { overflow: 'auto' }, children: hunks.map((hunk, hunkIndex) => (_jsxs("div", { children: [hunks.length > 1 && (_jsx("div", { onClick: () => handleHunkClick(hunk), style: {
+                            color: themeColors.text.default,
+                        }, children: filename || 'File diff' })), showStats && (_jsxs("div", { style: { display: 'flex', gap: 16, fontSize: 13 }, children: [_jsxs("span", { style: { color: themeColors.accent.cyan }, children: ["+", stats.additions] }), _jsxs("span", { style: { color: themeColors.accent.red }, children: ["-", stats.deletions] })] }))] })), mode === 'unified' ? (_jsx("div", { style: { overflow: 'auto' }, children: hunks.map((hunk, hunkIndex) => (_jsxs("div", { children: [hunks.length > 1 && (_jsx("div", { onClick: () => handleHunkClick(hunk), style: {
                                 padding: '4px 12px',
-                                background: tokens.colors.background.elevated,
+                                background: themeColors.background.elevated,
                                 fontSize: 12,
-                                color: tokens.colors.text.muted,
+                                color: themeColors.text.muted,
                                 fontFamily: 'JetBrains Mono, monospace',
                                 cursor: onHunkClick ? 'pointer' : 'default',
                             }, children: hunk.header })), hunk.lines.map(renderUnifiedLine)] }, hunkIndex))) })) : (renderSplitView())] }));

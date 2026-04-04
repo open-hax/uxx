@@ -1,4 +1,5 @@
 import React from 'react';
+import { type ThemePreference } from '@open-hax/uxx/tokens';
 interface DiffLine {
     type: 'unchanged' | 'added' | 'removed';
     content: string;
@@ -19,7 +20,7 @@ export interface DiffViewerProps {
     filename?: string;
     language?: string;
     mode?: 'unified' | 'split';
-    theme?: 'dark' | 'light' | 'auto';
+    theme?: ThemePreference;
     lineNumbers?: boolean;
     showStats?: boolean;
     showFilename?: boolean;

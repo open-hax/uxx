@@ -16,8 +16,8 @@
  * };
  * ```
  */
-export { monokai, colors } from './colors.js';
-export type { ColorToken, MonokaiColor } from './colors.js';
+export { monokai, nightOwl, themes, colors, withAlpha, createThemeDefinition, defaultThemeName, getTheme, getThemeCssVariables, resolveTheme, resolveThemeTokens, } from './colors.js';
+export type { ColorToken, MonokaiColor, NightOwlColor, ThemeColors, ThemeCssVariables, ThemeDefinition, ThemeName, ThemePalette, ThemePreference, } from './colors.js';
 export { spacing, space } from './spacing.js';
 export type { SpacingToken } from './spacing.js';
 export { fontFamily, fontSize, fontWeight, lineHeight, typography } from './typography.js';
@@ -34,225 +34,231 @@ export type { ModalMode, ChordBinding } from './keybindings.js';
 export declare const tokens: {
     readonly colors: {
         readonly background: {
-            readonly default: "#272822";
-            readonly surface: "#1e1f1c";
-            readonly elevated: "#34352f";
-            readonly highlight: "#3e3d32";
+            readonly default: `#${string}`;
+            readonly surface: `#${string}`;
+            readonly elevated: `#${string}`;
+            readonly highlight: `#${string}`;
             readonly overlay: "rgba(0, 0, 0, 0.6)";
         };
         readonly selection: {
-            readonly default: "rgba(135, 139, 145, 0.5)";
+            readonly default: string;
         };
         readonly text: {
-            readonly default: "#f8f8f2";
-            readonly bright: "#f8f8f2";
-            readonly panel: "#cccccc";
-            readonly soft: "#90908a";
-            readonly muted: "#75715e";
-            readonly subtle: "#464741";
-            readonly inverse: "#272822";
-            readonly secondary: "#75715e";
+            readonly default: `#${string}`;
+            readonly bright: `#${string}`;
+            readonly panel: `#${string}`;
+            readonly soft: `#${string}`;
+            readonly muted: `#${string}`;
+            readonly subtle: `#${string}`;
+            readonly inverse: `#${string}`;
+            readonly secondary: `#${string}`;
         };
         readonly interactive: {
-            readonly default: "#a6e22e";
-            readonly hover: "#8fce26";
-            readonly active: "#7cb824";
-            readonly disabled: "#75715e";
+            readonly default: `#${string}`;
+            readonly hover: string;
+            readonly active: string;
+            readonly disabled: `#${string}`;
         };
         readonly button: {
             readonly primary: {
-                readonly bg: "#75715e";
-                readonly fg: "#f8f8f2";
-                readonly hover: "#8a856e";
-                readonly active: "#6a6654";
+                readonly bg: `#${string}`;
+                readonly fg: `#${string}`;
+                readonly hover: string;
+                readonly active: string;
             };
             readonly secondary: {
-                readonly bg: "#414339";
-                readonly fg: "#f8f8f2";
-                readonly hover: "#505248";
-                readonly active: "#3a3c33";
+                readonly bg: `#${string}`;
+                readonly fg: `#${string}`;
+                readonly hover: string;
+                readonly active: string;
             };
             readonly ghost: {
                 readonly bg: "transparent";
-                readonly fg: "#f8f8f2";
-                readonly hover: "#414339";
-                readonly active: "#34352f";
+                readonly fg: `#${string}`;
+                readonly hover: string;
+                readonly active: string;
             };
             readonly danger: {
-                readonly bg: "#f92672";
-                readonly fg: "#f8f8f2";
-                readonly hover: "#e61b63";
-                readonly active: "#d1155c";
+                readonly bg: `#${string}`;
+                readonly fg: `#${string}`;
+                readonly hover: string;
+                readonly active: string;
             };
         };
         readonly badge: {
             readonly default: {
-                readonly bg: "#75715e";
-                readonly fg: "#f8f8f2";
+                readonly bg: `#${string}`;
+                readonly fg: `#${string}`;
             };
             readonly success: {
-                readonly bg: "rgba(166, 226, 46, 0.15)";
-                readonly fg: "#a6e22e";
+                readonly bg: string;
+                readonly fg: `#${string}`;
             };
             readonly warning: {
-                readonly bg: "rgba(253, 151, 31, 0.15)";
-                readonly fg: "#fd971f";
+                readonly bg: string;
+                readonly fg: `#${string}`;
             };
             readonly error: {
-                readonly bg: "rgba(249, 38, 114, 0.15)";
-                readonly fg: "#f92672";
+                readonly bg: string;
+                readonly fg: `#${string}`;
             };
             readonly info: {
-                readonly bg: "rgba(102, 217, 239, 0.15)";
-                readonly fg: "#66d9ef";
+                readonly bg: string;
+                readonly fg: `#${string}`;
             };
         };
         readonly border: {
-            readonly default: "#34352f";
-            readonly subtle: "#464741";
-            readonly focus: "#99947c";
-            readonly error: "#f92672";
+            readonly default: `#${string}`;
+            readonly subtle: `#${string}`;
+            readonly focus: `#${string}`;
+            readonly error: `#${string}`;
         };
         readonly accent: {
-            readonly yellow: "#e6db74";
-            readonly orange: "#fd971f";
-            readonly red: "#f92672";
-            readonly magenta: "#ae81ff";
-            readonly blue: "#66d9ef";
-            readonly cyan: "#66d9ef";
-            readonly green: "#a6e22e";
+            yellow: `#${string}`;
+            orange: `#${string}`;
+            red: `#${string}`;
+            magenta: `#${string}`;
+            blue: `#${string}`;
+            cyan: `#${string}`;
+            green: `#${string}`;
+        };
+        readonly semantic: {
+            readonly error: `#${string}`;
+            readonly warning: `#${string}`;
+            readonly success: `#${string}`;
+            readonly info: `#${string}`;
         };
         readonly status: {
-            readonly alive: "#a6e22e";
-            readonly dead: "#f92672";
-            readonly open: "#a6e22e";
-            readonly closed: "#75715e";
-            readonly merged: "#ae81ff";
-            readonly sleeping: "#66d9ef";
-            readonly eating: "#fd971f";
-            readonly working: "#e6db74";
+            readonly alive: `#${string}`;
+            readonly dead: `#${string}`;
+            readonly open: `#${string}`;
+            readonly closed: `#${string}`;
+            readonly merged: `#${string}`;
+            readonly sleeping: `#${string}`;
+            readonly eating: `#${string}`;
+            readonly working: `#${string}`;
         };
         readonly chart: {
-            readonly segment0: "#66d9ef";
-            readonly segment1: "#a6e22e";
-            readonly segment2: "#e6db74";
-            readonly segment3: "#fd971f";
-            readonly segment4: "#ae81ff";
-            readonly segment5: "#7ca3b5";
+            readonly segment0: `#${string}`;
+            readonly segment1: `#${string}`;
+            readonly segment2: `#${string}`;
+            readonly segment3: `#${string}`;
+            readonly segment4: `#${string}`;
+            readonly segment5: `#${string}`;
         };
         readonly fill: {
             readonly good: {
-                readonly start: "#a6e22e";
-                readonly end: "#78efb7";
+                readonly start: `#${string}`;
+                readonly end: string;
             };
             readonly warn: {
-                readonly start: "#fd971f";
-                readonly end: "#ffd280";
+                readonly start: `#${string}`;
+                readonly end: string;
             };
             readonly danger: {
-                readonly start: "#f92672";
-                readonly end: "#ff9e92";
+                readonly start: `#${string}`;
+                readonly end: string;
             };
             readonly neutral: {
-                readonly start: "#7aa7bd";
-                readonly end: "#98bfd0";
+                readonly start: `#${string}`;
+                readonly end: string;
             };
         };
         readonly surface: {
-            readonly panel: "rgba(30, 31, 28, 0.82)";
-            readonly card: "rgba(52, 53, 47, 0.65)";
-            readonly cardAlt: "rgba(62, 61, 50, 0.55)";
-            readonly input: "rgba(65, 67, 57, 0.78)";
-            readonly nav: "rgba(30, 31, 28, 0.6)";
+            readonly panel: string;
+            readonly card: string;
+            readonly cardAlt: string;
+            readonly input: string;
+            readonly nav: string;
         };
         readonly alpha: {
             readonly green: {
-                readonly _08: "rgba(166, 226, 46, 0.08)";
-                readonly _12: "rgba(166, 226, 46, 0.12)";
-                readonly _14: "rgba(166, 226, 46, 0.14)";
-                readonly _15: "rgba(166, 226, 46, 0.15)";
-                readonly _16: "rgba(166, 226, 46, 0.16)";
-                readonly _25: "rgba(166, 226, 46, 0.25)";
-                readonly _28: "rgba(166, 226, 46, 0.28)";
-                readonly _30: "rgba(166, 226, 46, 0.30)";
-                readonly _35: "rgba(166, 226, 46, 0.35)";
-                readonly _38: "rgba(166, 226, 46, 0.38)";
-                readonly _40: "rgba(166, 226, 46, 0.40)";
-                readonly _45: "rgba(166, 226, 46, 0.45)";
-                readonly _50: "rgba(166, 226, 46, 0.50)";
-                readonly _55: "rgba(166, 226, 46, 0.55)";
-                readonly _60: "rgba(166, 226, 46, 0.60)";
-                readonly _80: "rgba(166, 226, 46, 0.80)";
+                readonly _08: string;
+                readonly _12: string;
+                readonly _14: string;
+                readonly _15: string;
+                readonly _16: string;
+                readonly _25: string;
+                readonly _28: string;
+                readonly _30: string;
+                readonly _35: string;
+                readonly _38: string;
+                readonly _40: string;
+                readonly _45: string;
+                readonly _50: string;
+                readonly _55: string;
+                readonly _60: string;
+                readonly _80: string;
             };
             readonly red: {
-                readonly _12: "rgba(249, 38, 114, 0.12)";
-                readonly _14: "rgba(249, 38, 114, 0.14)";
-                readonly _15: "rgba(249, 38, 114, 0.15)";
-                readonly _25: "rgba(249, 38, 114, 0.25)";
-                readonly _30: "rgba(249, 38, 114, 0.30)";
-                readonly _38: "rgba(249, 38, 114, 0.38)";
-                readonly _40: "rgba(249, 38, 114, 0.40)";
-                readonly _45: "rgba(249, 38, 114, 0.45)";
-                readonly _46: "rgba(249, 38, 114, 0.46)";
-                readonly _50: "rgba(249, 38, 114, 0.50)";
+                readonly _12: string;
+                readonly _14: string;
+                readonly _15: string;
+                readonly _25: string;
+                readonly _30: string;
+                readonly _38: string;
+                readonly _40: string;
+                readonly _45: string;
+                readonly _46: string;
+                readonly _50: string;
             };
             readonly orange: {
-                readonly _12: "rgba(253, 151, 31, 0.12)";
-                readonly _15: "rgba(253, 151, 31, 0.15)";
-                readonly _32: "rgba(253, 151, 31, 0.32)";
-                readonly _35: "rgba(253, 151, 31, 0.35)";
-                readonly _40: "rgba(253, 151, 31, 0.40)";
+                readonly _12: string;
+                readonly _15: string;
+                readonly _32: string;
+                readonly _35: string;
+                readonly _40: string;
             };
             readonly blue: {
-                readonly _15: "rgba(102, 217, 239, 0.15)";
-                readonly _20: "rgba(102, 217, 239, 0.20)";
-                readonly _35: "rgba(102, 217, 239, 0.35)";
-                readonly _45: "rgba(102, 217, 239, 0.45)";
-                readonly _80: "rgba(102, 217, 239, 0.80)";
-                readonly _95: "rgba(102, 217, 239, 0.95)";
+                readonly _15: string;
+                readonly _20: string;
+                readonly _35: string;
+                readonly _45: string;
+                readonly _80: string;
+                readonly _95: string;
             };
             readonly magenta: {
-                readonly _08: "rgba(174, 129, 255, 0.08)";
-                readonly _14: "rgba(174, 129, 255, 0.14)";
-                readonly _30: "rgba(174, 129, 255, 0.30)";
+                readonly _08: string;
+                readonly _14: string;
+                readonly _30: string;
             };
             readonly yellow: {
-                readonly _06: "rgba(230, 219, 116, 0.06)";
+                readonly _06: string;
             };
             readonly bg: {
-                readonly _08: "rgba(73, 72, 62, 0.08)";
-                readonly _10: "rgba(73, 72, 62, 0.10)";
-                readonly _12: "rgba(73, 72, 62, 0.12)";
-                readonly _14: "rgba(73, 72, 62, 0.14)";
-                readonly _16: "rgba(73, 72, 62, 0.16)";
-                readonly _18: "rgba(73, 72, 62, 0.18)";
-                readonly _24: "rgba(62, 61, 50, 0.24)";
-                readonly _25: "rgba(73, 72, 62, 0.25)";
-                readonly _28: "rgba(73, 72, 62, 0.28)";
-                readonly _30: "rgba(73, 72, 62, 0.30)";
-                readonly _46: "rgba(30, 31, 28, 0.46)";
-                readonly _55: "rgba(73, 72, 62, 0.55)";
-                readonly _60: "rgba(30, 31, 28, 0.60)";
-                readonly _62: "rgba(30, 31, 28, 0.62)";
-                readonly _68: "rgba(30, 31, 28, 0.68)";
-                readonly _70: "rgba(73, 72, 62, 0.70)";
-                readonly _72: "rgba(30, 31, 28, 0.72)";
-                readonly _80: "rgba(30, 31, 28, 0.80)";
-                readonly _85: "rgba(62, 61, 50, 0.85)";
-                readonly _88: "rgba(62, 61, 50, 0.88)";
-                readonly _88b: "rgba(39, 40, 34, 0.88)";
-                readonly _90: "rgba(30, 31, 28, 0.90)";
-                readonly _95: "rgba(30, 31, 28, 0.95)";
+                readonly _08: string;
+                readonly _10: string;
+                readonly _12: string;
+                readonly _14: string;
+                readonly _16: string;
+                readonly _18: string;
+                readonly _24: string;
+                readonly _25: string;
+                readonly _28: string;
+                readonly _30: string;
+                readonly _46: string;
+                readonly _55: string;
+                readonly _60: string;
+                readonly _62: string;
+                readonly _68: string;
+                readonly _70: string;
+                readonly _72: string;
+                readonly _80: string;
+                readonly _85: string;
+                readonly _88: string;
+                readonly _88b: string;
+                readonly _90: string;
+                readonly _95: string;
             };
-            readonly warningBg: "rgba(58, 41, 16, 0.88)";
-            readonly errorBg: "rgba(70, 24, 24, 0.42)";
-            readonly errorBgSolid: "rgba(70, 24, 24, 0.90)";
-            readonly federationError: "rgba(127, 29, 29, 0.22)";
+            readonly warningBg: string;
+            readonly errorBg: string;
+            readonly errorBgSolid: string;
+            readonly federationError: string;
             readonly white: {
                 readonly _08: "rgba(255, 255, 255, 0.08)";
             };
             readonly shadow: "rgba(0, 0, 0, 0.35)";
-            readonly shadowLight: "rgba(0, 0, 0, 0.30)";
+            readonly shadowLight: "rgba(0, 0, 0, 0.3)";
             readonly shadowDeep: "rgba(15, 23, 42, 0.22)";
         };
     };
@@ -288,6 +294,43 @@ export declare const tokens: {
             readonly success: "#a6e22e";
             readonly info: "#66d9ef";
         };
+    };
+    readonly nightOwl: {
+        readonly bg: {
+            readonly default: "#011627";
+            readonly darker: "#01111d";
+            readonly lighter: "#0b2942";
+            readonly selection: "#1d3b53";
+            readonly tabInactive: "#0b253a";
+            readonly groupBorder: "#5f7e97";
+        };
+        readonly fg: {
+            readonly default: "#d6deeb";
+            readonly bright: "#ffffff";
+            readonly panel: "#d2dee7";
+            readonly soft: "#89a4bb";
+            readonly muted: "#5f7e97";
+            readonly subtle: "#4b6479";
+        };
+        readonly accent: {
+            readonly yellow: "#ffeb95";
+            readonly orange: "#F78C6C";
+            readonly red: "#EF5350";
+            readonly magenta: "#c792ea";
+            readonly blue: "#82AAFF";
+            readonly cyan: "#80CBC4";
+            readonly green: "#c5e478";
+        };
+        readonly semantic: {
+            readonly error: "#EF5350";
+            readonly warning: "#FFCA28";
+            readonly success: "#c5e478";
+            readonly info: "#82AAFF";
+        };
+    };
+    readonly themes: {
+        readonly monokai: import("./colors.js").ThemeDefinition;
+        readonly 'night-owl': import("./colors.js").ThemeDefinition;
     };
     readonly spacing: {
         readonly 0: 0;

@@ -37,7 +37,7 @@ const sparkbarContainerStyles = {
 };
 const sparkbarBarStyles = {
     borderRadius: '9999px 9999px 3px 3px',
-    background: `linear-gradient(180deg, ${tokens.colors.accent.blue}, rgba(102, 217, 239, 0.35))`,
+    background: `linear-gradient(180deg, ${tokens.colors.accent.blue}, ${tokens.colors.alpha.blue._35})`,
 };
 export function MetricTile({ label, value, detail, loading = false, variant = 'default', sparkbar, }) {
     const max = sparkbar ? sparkbar.reduce((current, point) => Math.max(current, point.value), 0) : 0;

@@ -1,7 +1,8 @@
 import { jsx as _jsx } from "react/jsx-runtime";
 import { useMemo, useCallback } from 'react';
-import { tokens } from '@open-hax/uxx/tokens';
+import { withAlpha } from '@open-hax/uxx/tokens';
 import { CodeBlock } from './CodeBlock.js';
+import { useResolvedTheme } from '../theme.js';
 // Simple markdown parser (supports common subset)
 function parseMarkdown(markdown) {
     const lines = markdown.split('\n');
@@ -99,7 +100,7 @@ function parseMarkdown(markdown) {
     return nodes;
 }
 // Parse inline markdown (bold, italic, code, links)
-function parseInline(text) {
+function parseInline(text, themeColors) {
     const parts = [];
     let remaining = text;
     let key = 0;
@@ -113,7 +114,7 @@ function parseInline(text) {
                 key += 10;
             }
             parts.push(_jsx("code", { style: {
-                    background: 'rgba(255, 255, 255, 0.05)',
+                    background: withAlpha(themeColors.text.default, 0.05),
                     padding: '2px 6px',
                     borderRadius: 4,
                     fontFamily: 'JetBrains Mono, monospace',
@@ -131,7 +132,7 @@ function parseInline(text) {
                 key += 10;
             }
             parts.push(_jsx("a", { href: linkMatch[2], style: {
-                    color: tokens.monokai.accent.cyan,
+                    color: themeColors.accent.cyan,
                     textDecoration: 'none',
                 }, target: "_blank", rel: "noopener noreferrer", children: linkMatch[1] }, key++));
             remaining = remaining.slice((linkMatch.index || 0) + linkMatch[0].length);
@@ -176,6 +177,8 @@ function parseInlineSimple(text, startKey) {
 }
 export const Markdown = ({ content, variant = 'default', theme = 'dark', lineNumbers = true, copyButton = true, linkTarget = '_blank', maxLines, onLinkClick, onHeadingClick, className, }) => {
     const nodes = useMemo(() => parseMarkdown(content), [content]);
+    const resolvedTheme = useResolvedTheme(theme);
+    const themeColors = resolvedTheme.colors;
     const handleLinkClick = useCallback((href, e) => {
         if (onLinkClick) {
             e.preventDefault();
@@ -199,38 +202,38 @@ export const Markdown = ({ content, variant = 'default', theme = 'dark', lineNum
                         marginBottom: 16,
                         fontSize: headingSizes[node.level || 1],
                         fontWeight: node.level === 1 ? 700 : 600,
-                        color: tokens.colors.text.default,
+                        color: themeColors.text.default,
                         cursor: onHeadingClick ? 'pointer' : undefined,
-                    }, onClick: () => onHeadingClick?.(node.content?.toLowerCase().replace(/\s+/g, '-') || '', node.content || ''), children: parseInline(node.content || '') }, index));
+                    }, onClick: () => onHeadingClick?.(node.content?.toLowerCase().replace(/\s+/g, '-') || '', node.content || ''), children: parseInline(node.content || '', themeColors) }, index));
             case 'paragraph':
                 return (_jsx("p", { style: {
                         marginTop: 0,
                         marginBottom: 16,
                         lineHeight: 1.7,
-                        color: tokens.colors.text.default,
-                    }, children: parseInline(node.content || '') }, index));
+                        color: themeColors.text.default,
+                    }, children: parseInline(node.content || '', themeColors) }, index));
             case 'code':
-                return (_jsx(CodeBlock, { code: node.content || '', language: node.language, lineNumbers: lineNumbers, showCopy: copyButton, maxLines: maxLines, showLanguage: true }, index));
+                return (_jsx(CodeBlock, { code: node.content || '', language: node.language, lineNumbers: lineNumbers, showCopy: copyButton, maxLines: maxLines, theme: theme, showLanguage: true }, index));
             case 'blockquote':
                 return (_jsx("blockquote", { style: {
                         margin: '16px 0',
                         padding: '8px 16px',
-                        borderLeft: `4px solid ${tokens.monokai.accent.cyan}`,
-                        background: 'rgba(102, 217, 239, 0.05)',
-                        color: tokens.colors.text.muted,
-                    }, children: parseInline(node.content || '') }, index));
+                        borderLeft: `4px solid ${themeColors.accent.cyan}`,
+                        background: withAlpha(themeColors.accent.cyan, 0.05),
+                        color: themeColors.text.muted,
+                    }, children: parseInline(node.content || '', themeColors) }, index));
             case 'list':
                 return (_jsx("ul", { style: {
                         marginTop: 0,
                         marginBottom: 16,
                         paddingLeft: 24,
                         lineHeight: 1.7,
-                    }, children: node.items?.map((item, i) => (_jsx("li", { style: { marginBottom: 4 }, children: parseInline(item) }, i))) }, index));
+                    }, children: node.items?.map((item, i) => (_jsx("li", { style: { marginBottom: 4 }, children: parseInline(item, themeColors) }, i))) }, index));
             case 'hr':
                 return (_jsx("hr", { style: {
                         border: 'none',
                         height: 1,
-                        background: tokens.colors.border.default,
+                        background: themeColors.border.default,
                         margin: '24px 0',
                     } }, index));
             default:

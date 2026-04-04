@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { tokens } from '@open-hax/uxx/tokens';
+import { tokens, type ThemePreference } from '@open-hax/uxx/tokens';
 import { Markdown } from './Markdown.js';
+import { useResolvedTheme } from '../theme.js';
 
 export interface MarkdownEditorProps {
   value?: string;
@@ -11,7 +12,7 @@ export interface MarkdownEditorProps {
   statusBar?: boolean;
   lineNumbers?: boolean;
   wrap?: boolean;
-  theme?: 'dark' | 'light' | 'auto';
+  theme?: ThemePreference;
   highlightActiveLine?: boolean;
   matchBrackets?: boolean;
   spellcheck?: boolean;
@@ -53,6 +54,8 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const previewRef = useRef<HTMLDivElement>(null);
   
   const value = controlledValue !== undefined ? controlledValue : internalValue;
+  const resolvedTheme = useResolvedTheme(theme);
+  const themeColors = resolvedTheme.colors;
   
   // Calculate stats
   const stats = useMemo(() => {
@@ -267,7 +270,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         flex: previewMode === 'split' ? 1 - previewRatio : 1,
         display: 'flex',
         flexDirection: 'column',
-        background: tokens.colors.background.default,
+        background: themeColors.background.default,
         borderRadius: tokens.spacing[2],
         overflow: 'hidden',
       }}
@@ -280,8 +283,8 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             alignItems: 'center',
             gap: 4,
             padding: '8px 12px',
-            background: tokens.colors.background.surface,
-            borderBottom: `1px solid ${tokens.colors.border.subtle}`,
+            background: themeColors.background.surface,
+            borderBottom: `1px solid ${themeColors.border.subtle}`,
             flexWrap: 'wrap',
           }}
         >
@@ -293,7 +296,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                   style={{
                     width: 1,
                     height: 20,
-                    background: tokens.colors.border.default,
+                    background: themeColors.border.default,
                     margin: '0 4px',
                   }}
                 />
@@ -309,7 +312,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                   border: 'none',
                   padding: '4px 8px',
                   borderRadius: 4,
-                  color: tokens.colors.text.default,
+                  color: themeColors.text.default,
                   cursor: 'pointer',
                   fontFamily: 'inherit',
                   fontSize: 13,
@@ -336,8 +339,8 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           <div
             style={{
               padding: '12px 8px',
-              background: tokens.colors.background.elevated,
-              color: tokens.colors.text.subtle,
+              background: themeColors.background.elevated,
+              color: themeColors.text.subtle,
               fontFamily: 'JetBrains Mono, monospace',
               fontSize: 13,
               lineHeight: 1.6,
@@ -368,7 +371,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             background: 'transparent',
             border: 'none',
             outline: 'none',
-            color: tokens.colors.text.default,
+            color: themeColors.text.default,
             fontFamily: 'JetBrains Mono, monospace',
             fontSize: 14,
             lineHeight: 1.6,
@@ -387,10 +390,10 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             alignItems: 'center',
             gap: 16,
             padding: '4px 12px',
-            background: tokens.colors.background.surface,
-            borderTop: `1px solid ${tokens.colors.border.subtle}`,
+            background: themeColors.background.surface,
+            borderTop: `1px solid ${themeColors.border.subtle}`,
             fontSize: 12,
-            color: tokens.colors.text.muted,
+            color: themeColors.text.muted,
           }}
         >
           <span>Ln {cursorPosition.line}, Col {cursorPosition.column}</span>
@@ -410,17 +413,17 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       style={{
         flex: previewMode === 'split' ? previewRatio : 1,
         padding: 16,
-        background: tokens.colors.background.surface,
+        background: themeColors.background.surface,
         borderRadius: tokens.spacing[2],
         overflow: 'auto',
       }}
     >
       {value.trim() ? (
-        <Markdown content={value} />
+        <Markdown content={value} theme={theme} />
       ) : (
         <div
           style={{
-            color: tokens.colors.text.subtle,
+            color: themeColors.text.subtle,
             fontStyle: 'italic',
           }}
         >
@@ -441,7 +444,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           display: 'flex',
           flexDirection: 'column',
           height: '100%',
-          background: tokens.colors.background.default,
+          background: themeColors.background.default,
           borderRadius: tokens.spacing[2],
           overflow: 'hidden',
         }}
@@ -449,17 +452,17 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         <div
           style={{
             display: 'flex',
-            borderBottom: `1px solid ${tokens.colors.border.default}`,
+            borderBottom: `1px solid ${themeColors.border.default}`,
           }}
         >
           <button
             onClick={() => setActiveTab('editor')}
             style={{
               padding: '12px 24px',
-              background: activeTab === 'editor' ? tokens.colors.background.surface : 'transparent',
+              background: activeTab === 'editor' ? themeColors.background.surface : 'transparent',
               border: 'none',
-              borderBottom: activeTab === 'editor' ? `2px solid ${tokens.monokai.accent.cyan}` : 'none',
-              color: tokens.colors.text.default,
+              borderBottom: activeTab === 'editor' ? `2px solid ${themeColors.accent.cyan}` : 'none',
+              color: themeColors.text.default,
               cursor: 'pointer',
               fontFamily: 'inherit',
               fontSize: 14,
@@ -472,10 +475,10 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             onClick={() => setActiveTab('preview')}
             style={{
               padding: '12px 24px',
-              background: activeTab === 'preview' ? tokens.colors.background.surface : 'transparent',
+              background: activeTab === 'preview' ? themeColors.background.surface : 'transparent',
               border: 'none',
-              borderBottom: activeTab === 'preview' ? `2px solid ${tokens.monokai.accent.cyan}` : 'none',
-              color: tokens.colors.text.default,
+              borderBottom: activeTab === 'preview' ? `2px solid ${themeColors.accent.cyan}` : 'none',
+              color: themeColors.text.default,
               cursor: 'pointer',
               fontFamily: 'inherit',
               fontSize: 14,
@@ -502,7 +505,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         data-preview-mode={previewMode}
         style={{
           height: '100%',
-          background: tokens.colors.background.default,
+          background: themeColors.background.default,
           borderRadius: tokens.spacing[2],
           overflow: 'hidden',
         }}
@@ -521,7 +524,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         data-preview-mode={previewMode}
         style={{
           height: '100%',
-          background: tokens.colors.background.default,
+          background: themeColors.background.default,
           borderRadius: tokens.spacing[2],
           overflow: 'hidden',
         }}
@@ -541,7 +544,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         display: 'flex',
         gap: 1,
         height: '100%',
-        background: tokens.colors.border.default,
+        background: themeColors.border.default,
         borderRadius: tokens.spacing[2],
         overflow: 'hidden',
       }}

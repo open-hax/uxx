@@ -120,7 +120,7 @@ function ErrorState({ error, onRetry }: { error: ErrorState; onRetry?: () => voi
         padding: `${tokens.spacing[2]}px`,
         border: `1px solid ${tokens.colors.accent.red}`,
         borderRadius: `${tokens.spacing[1]}px`,
-        background: 'rgba(249, 38, 114, 0.1)',
+        background: tokens.colors.alpha.red._12,
         color: tokens.colors.text.default,
       }}
     >
@@ -376,7 +376,7 @@ function PinnedTab({
           ? tokens.colors.text.default
           : tokens.colors.text.secondary,
         border: `1px solid ${isActive
-          ? (tokens.colors.accent?.green || '#a6e22e')
+          ? tokens.colors.accent.green
           : tokens.colors.border.default}`,
       }}
     >

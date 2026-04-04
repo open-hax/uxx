@@ -1,6 +1,12 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Highlight, themes } from 'prism-react-renderer';
-import { tokens } from '@open-hax/uxx/tokens';
+import { tokens, type ThemePreference, withAlpha } from '@open-hax/uxx/tokens';
+import { useResolvedTheme } from '../theme.js';
+
+const PRISM_THEME_MAP = {
+  monokai: themes.vsDark,
+  'night-owl': themes.nightOwl,
+} as const;
 
 // Language detection from file extension
 const EXTENSION_MAP: Record<string, string> = {
@@ -124,7 +130,7 @@ export interface CodeBlockProps {
   code: string;
   language?: string;
   filename?: string;
-  theme?: 'dark' | 'light' | 'auto';
+  theme?: ThemePreference;
   lineNumbers?: boolean;
   highlightLines?: number[];
   startLine?: number;
@@ -171,6 +177,13 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
     () => PRISM_LANG_MAP[language] || language,
     [language]
   );
+
+  const resolvedTheme = useResolvedTheme(theme);
+  const themeColors = resolvedTheme.colors;
+  const prismTheme = useMemo(
+    () => PRISM_THEME_MAP[resolvedTheme.name as keyof typeof PRISM_THEME_MAP] ?? themes.vsDark,
+    [resolvedTheme.name]
+  );
   
   const lines = useMemo(() => code.split('\n'), [code]);
   
@@ -194,18 +207,18 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
   const diffStyle = useMemo((): React.CSSProperties => {
     if (diff === 'add') {
       return {
-        backgroundColor: 'rgba(102, 217, 239, 0.08)',
-        borderLeft: '3px solid rgb(102, 217, 239)',
+        backgroundColor: themeColors.alpha.blue._15,
+        borderLeft: `3px solid ${themeColors.accent.cyan}`,
       };
     }
     if (diff === 'remove') {
       return {
-        backgroundColor: 'rgba(249, 38, 114, 0.08)',
-        borderLeft: '3px solid rgb(249, 38, 114)',
+        backgroundColor: themeColors.alpha.red._15,
+        borderLeft: `3px solid ${themeColors.accent.red}`,
       };
     }
     return {};
-  }, [diff]);
+  }, [diff, themeColors]);
   
   if (collapsed) {
     return (
@@ -216,7 +229,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
         data-collapsed
         onClick={() => setCollapsed(false)}
         style={{
-          background: tokens.colors.background.elevated,
+          background: themeColors.background.elevated,
           padding: '8px 12px',
           borderRadius: tokens.spacing[2],
           cursor: 'pointer',
@@ -225,7 +238,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
           gap: '8px',
           fontFamily: 'JetBrains Mono, monospace',
           fontSize: 13,
-          color: tokens.colors.text.muted,
+          color: themeColors.text.muted,
           ...diffStyle,
         }}
       >
@@ -245,7 +258,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
       data-language={language}
       data-diff={diff}
       style={{
-        background: tokens.colors.background.elevated,
+        background: themeColors.background.elevated,
         borderRadius: tokens.spacing[2],
         overflow: 'hidden',
         position: 'relative',
@@ -260,8 +273,8 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: '8px 12px',
-            background: 'rgba(255, 255, 255, 0.02)',
-            borderBottom: `1px solid ${tokens.colors.border.subtle}`,
+            background: withAlpha(themeColors.text.default, 0.02),
+            borderBottom: `1px solid ${themeColors.border.subtle}`,
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -271,7 +284,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: tokens.colors.text.muted,
+                  color: themeColors.text.muted,
                   cursor: 'pointer',
                   padding: 0,
                   fontSize: 12,
@@ -284,7 +297,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
               <span
                 style={{
                   fontSize: 12,
-                  color: tokens.colors.text.muted,
+                  color: themeColors.text.muted,
                   textTransform: 'uppercase',
                   letterSpacing: '0.5px',
                 }}
@@ -300,7 +313,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
               style={{
                 background: 'none',
                 border: 'none',
-                color: copied ? tokens.monokai.accent.cyan : tokens.colors.text.muted,
+                color: copied ? themeColors.accent.cyan : themeColors.text.muted,
                 cursor: 'pointer',
                 fontSize: 12,
                 padding: '4px 8px',
@@ -316,7 +329,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
       
       {/* Code with syntax highlighting */}
       <Highlight
-        theme={themes.vsDark}
+        theme={prismTheme}
         code={visibleLines.join('\n')}
         language={prismLanguage}
       >
@@ -345,10 +358,10 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
                   style={{
                     display: 'flex',
                     backgroundColor: isHighlighted
-                      ? 'rgba(102, 217, 239, 0.1)'
+                      ? withAlpha(themeColors.accent.cyan, 0.1)
                       : 'transparent',
                     borderLeft: isHighlighted
-                      ? '2px solid rgb(102, 217, 239)'
+                      ? `2px solid ${themeColors.accent.cyan}`
                       : '2px solid transparent',
                   }}
                 >
@@ -359,7 +372,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
                         width: 40,
                         marginRight: 16,
                         textAlign: 'right',
-                        color: tokens.colors.text.subtle,
+                        color: themeColors.text.subtle,
                         userSelect: 'none',
                         opacity: 0.5,
                       }}
@@ -386,10 +399,10 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
           style={{
             width: '100%',
             padding: '8px',
-            background: 'rgba(255, 255, 255, 0.02)',
+            background: withAlpha(themeColors.text.default, 0.02),
             border: 'none',
-            borderTop: `1px solid ${tokens.colors.border.subtle}`,
-            color: tokens.colors.text.muted,
+            borderTop: `1px solid ${themeColors.border.subtle}`,
+            color: themeColors.text.muted,
             cursor: 'pointer',
             fontSize: 12,
           }}

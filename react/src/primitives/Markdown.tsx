@@ -1,11 +1,12 @@
 import React, { useMemo, useCallback } from 'react';
-import { tokens } from '@open-hax/uxx/tokens';
+import { tokens, type ThemeColors, type ThemePreference, withAlpha } from '@open-hax/uxx/tokens';
 import { CodeBlock } from './CodeBlock.js';
+import { useResolvedTheme } from '../theme.js';
 
 export interface MarkdownProps {
   content: string;
   variant?: 'default' | 'preview' | 'compact' | 'full';
-  theme?: 'dark' | 'light' | 'auto';
+  theme?: ThemePreference;
   lineNumbers?: boolean;
   copyButton?: boolean;
   linkTarget?: '_self' | '_blank';
@@ -136,7 +137,7 @@ function parseMarkdown(markdown: string): ParsedNode[] {
 }
 
 // Parse inline markdown (bold, italic, code, links)
-function parseInline(text: string): React.ReactNode[] {
+function parseInline(text: string, themeColors: ThemeColors): React.ReactNode[] {
   const parts: React.ReactNode[] = [];
   let remaining = text;
   let key = 0;
@@ -154,7 +155,7 @@ function parseInline(text: string): React.ReactNode[] {
         <code
           key={key++}
           style={{
-            background: 'rgba(255, 255, 255, 0.05)',
+            background: withAlpha(themeColors.text.default, 0.05),
             padding: '2px 6px',
             borderRadius: 4,
             fontFamily: 'JetBrains Mono, monospace',
@@ -181,7 +182,7 @@ function parseInline(text: string): React.ReactNode[] {
           key={key++}
           href={linkMatch[2]}
           style={{
-            color: tokens.monokai.accent.cyan,
+            color: themeColors.accent.cyan,
             textDecoration: 'none',
           }}
           target="_blank"
@@ -249,6 +250,8 @@ export const Markdown: React.FC<MarkdownProps> = ({
   className,
 }) => {
   const nodes = useMemo(() => parseMarkdown(content), [content]);
+  const resolvedTheme = useResolvedTheme(theme);
+  const themeColors = resolvedTheme.colors;
   
   const handleLinkClick = useCallback(
     (href: string, e: React.MouseEvent) => {
@@ -281,7 +284,7 @@ export const Markdown: React.FC<MarkdownProps> = ({
               marginBottom: 16,
               fontSize: headingSizes[node.level || 1],
               fontWeight: node.level === 1 ? 700 : 600,
-              color: tokens.colors.text.default,
+              color: themeColors.text.default,
               cursor: onHeadingClick ? 'pointer' : undefined,
             }}
             onClick={() => onHeadingClick?.(
@@ -289,7 +292,7 @@ export const Markdown: React.FC<MarkdownProps> = ({
               node.content || ''
             )}
           >
-            {parseInline(node.content || '')}
+            {parseInline(node.content || '', themeColors)}
           </HeadingTag>
         );
         
@@ -301,10 +304,10 @@ export const Markdown: React.FC<MarkdownProps> = ({
               marginTop: 0,
               marginBottom: 16,
               lineHeight: 1.7,
-              color: tokens.colors.text.default,
+              color: themeColors.text.default,
             }}
           >
-            {parseInline(node.content || '')}
+            {parseInline(node.content || '', themeColors)}
           </p>
         );
         
@@ -317,6 +320,7 @@ export const Markdown: React.FC<MarkdownProps> = ({
             lineNumbers={lineNumbers}
             showCopy={copyButton}
             maxLines={maxLines}
+            theme={theme}
             showLanguage
           />
         );
@@ -328,12 +332,12 @@ export const Markdown: React.FC<MarkdownProps> = ({
             style={{
               margin: '16px 0',
               padding: '8px 16px',
-              borderLeft: `4px solid ${tokens.monokai.accent.cyan}`,
-              background: 'rgba(102, 217, 239, 0.05)',
-              color: tokens.colors.text.muted,
+              borderLeft: `4px solid ${themeColors.accent.cyan}`,
+              background: withAlpha(themeColors.accent.cyan, 0.05),
+              color: themeColors.text.muted,
             }}
           >
-            {parseInline(node.content || '')}
+            {parseInline(node.content || '', themeColors)}
           </blockquote>
         );
         
@@ -350,7 +354,7 @@ export const Markdown: React.FC<MarkdownProps> = ({
           >
             {node.items?.map((item, i) => (
               <li key={i} style={{ marginBottom: 4 }}>
-                {parseInline(item)}
+                {parseInline(item, themeColors)}
               </li>
             ))}
           </ul>
@@ -363,7 +367,7 @@ export const Markdown: React.FC<MarkdownProps> = ({
             style={{
               border: 'none',
               height: 1,
-              background: tokens.colors.border.default,
+              background: themeColors.border.default,
               margin: '24px 0',
             }}
           />

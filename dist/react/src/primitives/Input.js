@@ -61,7 +61,7 @@ const disabledStyles = {
 // Focus styles
 const focusStyles = {
     borderColor: tokens.colors.border.focus,
-    boxShadow: `0 0 0 2px ${tokens.colors.border.focus}33`,
+    boxShadow: `0 0 0 2px ${tokens.colors.alpha.blue._35}`,
 };
 // Icon wrapper styles
 const iconWrapperStyles = {

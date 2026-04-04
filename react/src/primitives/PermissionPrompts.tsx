@@ -187,17 +187,17 @@ function PermissionCard({
             flex: 1,
             minWidth: '80px',
             padding: `${tokens.spacing[2]}px ${tokens.spacing[3]}px`,
-            border: `1px solid ${tokens.colors.accent?.green || '#a6e22e'}`,
+            border: `1px solid ${tokens.colors.accent.green}`,
             borderRadius: `${tokens.spacing[0.5]}px`,
             fontSize: tokens.typography.bodySm.fontSize,
             background:
               defaultResponse === 'always'
-                ? (tokens.colors.accent?.green || '#a6e22e')
+                ? tokens.colors.accent.green
                 : 'transparent',
             color:
               defaultResponse === 'always'
                 ? tokens.colors.background.default
-                : (tokens.colors.accent?.green || '#a6e22e'),
+                : tokens.colors.accent.green,
             cursor: 'pointer',
           }}
         >
@@ -368,12 +368,12 @@ function PromptCard({
           marginTop: `${tokens.spacing[2]}px`,
           width: '100%',
           padding: `${tokens.spacing[2]}px ${tokens.spacing[3]}px`,
-          border: `1px solid ${tokens.colors.accent?.green || '#a6e22e'}`,
+          border: `1px solid ${tokens.colors.accent.green}`,
           borderRadius: `${tokens.spacing[0.5]}px`,
           fontSize: tokens.typography.bodySm.fontSize,
           background: !inputValue.trim()
             ? tokens.colors.background.elevated
-            : (tokens.colors.accent?.green || '#a6e22e'),
+            : tokens.colors.accent.green,
           color: !inputValue.trim()
             ? tokens.colors.text.muted
             : tokens.colors.background.default,
@@ -448,9 +448,9 @@ export function PermissionPrompts({
           <span
             style={{
               fontSize: tokens.typography.bodySm.fontSize,
-              color: tokens.colors.accent?.green || '#a6e22e',
+              color: tokens.colors.accent.green,
               padding: `${tokens.spacing[1]}px ${tokens.spacing[2]}px`,
-              background: 'rgba(166, 226, 46, 0.1)',
+              background: tokens.colors.alpha.green._12,
               borderRadius: `${tokens.spacing[0.5]}px`,
             }}
           >

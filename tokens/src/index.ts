@@ -17,9 +17,31 @@
  * ```
  */
 
-// Core palette
-export { monokai, colors } from './colors.js';
-export type { ColorToken, MonokaiColor } from './colors.js';
+// Core palette + theme registry
+export {
+  monokai,
+  nightOwl,
+  themes,
+  colors,
+  withAlpha,
+  createThemeDefinition,
+  defaultThemeName,
+  getTheme,
+  getThemeCssVariables,
+  resolveTheme,
+  resolveThemeTokens,
+} from './colors.js';
+export type {
+  ColorToken,
+  MonokaiColor,
+  NightOwlColor,
+  ThemeColors,
+  ThemeCssVariables,
+  ThemeDefinition,
+  ThemeName,
+  ThemePalette,
+  ThemePreference,
+} from './colors.js';
 
 // Spacing
 export { spacing, space } from './spacing.js';
@@ -53,7 +75,7 @@ export { defaultChords, modeColors, leaderKey } from './keybindings.js';
 export type { ModalMode, ChordBinding } from './keybindings.js';
 
 // Re-export everything for convenience
-import { colors, monokai } from './colors.js';
+import { colors, monokai, nightOwl, themes } from './colors.js';
 import { spacing, space } from './spacing.js';
 import { fontFamily, fontSize, fontWeight, lineHeight, typography } from './typography.js';
 import { duration, easing, motion, transitions } from './motion.js';
@@ -66,6 +88,8 @@ import { defaultChords, modeColors, leaderKey } from './keybindings.js';
 export const tokens = {
   colors,
   monokai,
+  nightOwl,
+  themes,
   spacing,
   space,
   fontFamily,

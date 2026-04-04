@@ -31,7 +31,7 @@ function ErrorState({ error, onRetry }) {
             padding: `${tokens.spacing[2]}px`,
             border: `1px solid ${tokens.colors.accent.red}`,
             borderRadius: `${tokens.spacing[1]}px`,
-            background: 'rgba(249, 38, 114, 0.1)',
+            background: tokens.colors.alpha.red._12,
             color: tokens.colors.text.default,
         }, children: [_jsx("div", { "data-testid": "inspector-pane-error-message", style: {
                     fontSize: tokens.typography.bodySm.fontSize,
@@ -148,7 +148,7 @@ function PinnedTab({ entry, isActive, onSetActive, onUnpin, }) {
                 ? tokens.colors.text.default
                 : tokens.colors.text.secondary,
             border: `1px solid ${isActive
-                ? (tokens.colors.accent?.green || '#a6e22e')
+                ? tokens.colors.accent.green
                 : tokens.colors.border.default}`,
         }, children: [_jsx("span", { style: {
                     maxWidth: '100px',

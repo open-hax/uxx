@@ -62,7 +62,7 @@ const sparkbarContainerStyles: CSSProperties = {
 
 const sparkbarBarStyles: CSSProperties = {
   borderRadius: '9999px 9999px 3px 3px',
-  background: `linear-gradient(180deg, ${tokens.colors.accent.blue}, rgba(102, 217, 239, 0.35))`,
+  background: `linear-gradient(180deg, ${tokens.colors.accent.blue}, ${tokens.colors.alpha.blue._35})`,
 };
 
 export function MetricTile({
