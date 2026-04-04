@@ -4,6 +4,7 @@
 
 (def theme-provider interop/theme-provider)
 (def toast-provider interop/toast-provider)
+(def entity-card interop/entity-card)
 
 (def button interop/button)
 (def badge interop/badge)

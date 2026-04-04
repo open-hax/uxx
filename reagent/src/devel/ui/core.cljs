@@ -7,6 +7,7 @@
 
 (def theme-provider primitives/theme-provider)
 (def toast-provider primitives/toast-provider)
+(def entity-card primitives/entity-card)
 
 (def button primitives/button)
 (def badge primitives/badge)
