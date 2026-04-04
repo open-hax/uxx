@@ -176,6 +176,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     ? (format === 'html' ? controlledValue : markdownToHtml(controlledValue))
     : internalValue;
   const mentionTrigger = mentions?.trigger ?? '@';
+  const hasValidMentionTrigger = mentionTrigger.length === 1;
   
   // Execute formatting command
   const execCommand = useCallback((command: string, value?: string) => {
@@ -305,7 +306,15 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       }
 
       // Mentions trigger / navigation
-      if (mentions && e.key === mentionTrigger && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      if (
+        mentions &&
+        hasValidMentionTrigger &&
+        e.key === mentionTrigger &&
+        !e.ctrlKey &&
+        !e.metaKey &&
+        !e.altKey
+      ) {
+        e.preventDefault();
         setShowMentions(true);
         setMentionFilter('');
         setSelectedMentionIndex(0);
@@ -335,6 +344,12 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         }
 
         if (e.key === 'Backspace') {
+          e.preventDefault();
+          if (mentionFilter === '') {
+            setShowMentions(false);
+            setSelectedMentionIndex(0);
+            return;
+          }
           setMentionFilter((prev) => prev.slice(0, -1));
           setSelectedMentionIndex(0);
           return;
@@ -349,13 +364,26 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         }
 
         if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key.length === 1) {
+          e.preventDefault();
           setMentionFilter((prev) => prev + e.key);
           setSelectedMentionIndex(0);
           return;
         }
       }
     },
-    [execCommand, filteredMentions, format, insertMention, mentionTrigger, mentions, onSave, selectedMentionIndex, showMentions]
+    [
+      execCommand,
+      filteredMentions,
+      format,
+      hasValidMentionTrigger,
+      insertMention,
+      mentionFilter,
+      mentionTrigger,
+      mentions,
+      onSave,
+      selectedMentionIndex,
+      showMentions,
+    ]
   );
   
   // Toolbar items
@@ -470,6 +498,17 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   );
   
   // Focus on mount if autofocus
+  useEffect(() => {
+    if (mentions?.trigger && !hasValidMentionTrigger) {
+      console.error(
+        `RichTextEditor mentions.trigger must be a single character, received "${mentions.trigger}".`
+      );
+      setShowMentions(false);
+      setMentionFilter('');
+      setSelectedMentionIndex(0);
+    }
+  }, [hasValidMentionTrigger, mentions?.trigger]);
+
   useEffect(() => {
     if (autofocus && editorRef.current) {
       editorRef.current.focus();
