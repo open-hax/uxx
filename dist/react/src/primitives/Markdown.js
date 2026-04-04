@@ -1,6 +1,6 @@
 import { jsx as _jsx } from "react/jsx-runtime";
 import { useMemo, useCallback } from 'react';
-import { withAlpha } from '@open-hax/uxx/tokens';
+import { tokens, withAlpha } from '@open-hax/uxx/tokens';
 import { CodeBlock } from './CodeBlock.js';
 import { useResolvedTheme } from '../theme.js';
 // Simple markdown parser (supports common subset)
@@ -116,8 +116,8 @@ function parseInline(text, themeColors) {
             parts.push(_jsx("code", { style: {
                     background: withAlpha(themeColors.text.default, 0.05),
                     padding: '2px 6px',
-                    borderRadius: 4,
-                    fontFamily: 'JetBrains Mono, monospace',
+                    borderRadius: tokens.radius.xs,
+                    fontFamily: tokens.fontFamily.mono,
                     fontSize: '0.9em',
                 }, children: codeMatch[1] }, key++));
             remaining = remaining.slice((codeMatch.index || 0) + codeMatch[0].length);

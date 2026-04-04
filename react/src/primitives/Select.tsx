@@ -67,7 +67,7 @@ const variantStyles: Record<SelectVariant, CSSProperties> = {
 const baseStyles: CSSProperties = {
   display: 'inline-flex',
   alignItems: 'center',
-  borderRadius: `${tokens.spacing[2]}px`,
+  borderRadius: tokens.radius.md,
   border: `1px solid ${tokens.colors.border.default}`,
   color: tokens.colors.text.default,
   fontFamily: tokens.fontFamily.sans,

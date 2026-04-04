@@ -6,6 +6,7 @@ import { useResolvedTheme } from '../theme.js';
 const PRISM_THEME_MAP = {
     monokai: themes.vsDark,
     'night-owl': themes.nightOwl,
+    'proxy-console': themes.vsDark,
 };
 // Language detection from file extension
 const EXTENSION_MAP = {
@@ -166,12 +167,12 @@ export const CodeBlock = ({ code, language: explicitLanguage, filename, theme = 
         return (_jsxs("div", { className: className, "data-component": "code-block", "data-language": language, "data-collapsed": true, onClick: () => setCollapsed(false), style: {
                 background: themeColors.background.elevated,
                 padding: '8px 12px',
-                borderRadius: tokens.spacing[2],
+                borderRadius: tokens.radius.md,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                fontFamily: 'JetBrains Mono, monospace',
+                fontFamily: tokens.fontFamily.mono,
                 fontSize: 13,
                 color: themeColors.text.muted,
                 ...diffStyle,
@@ -179,7 +180,7 @@ export const CodeBlock = ({ code, language: explicitLanguage, filename, theme = 
     }
     return (_jsxs("div", { className: className, "data-component": "code-block", "data-language": language, "data-diff": diff, style: {
             background: themeColors.background.elevated,
-            borderRadius: tokens.spacing[2],
+            borderRadius: tokens.radius.md,
             overflow: 'hidden',
             position: 'relative',
             ...diffStyle,
@@ -209,7 +210,7 @@ export const CodeBlock = ({ code, language: explicitLanguage, filename, theme = 
                             cursor: 'pointer',
                             fontSize: 12,
                             padding: '4px 8px',
-                            borderRadius: 4,
+                            borderRadius: tokens.radius.xs,
                             transition: 'color 0.2s',
                         }, children: copied ? '✓ Copied' : 'Copy' }))] })), _jsx(Highlight, { theme: prismTheme, code: visibleLines.join('\n'), language: prismLanguage, children: ({ className: highlightClass, style, tokens: prismTokens, getLineProps, getTokenProps }) => (_jsx("pre", { className: highlightClass, style: {
                         ...style,

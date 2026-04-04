@@ -298,6 +298,41 @@
     }
   })
 
+(def proxy-console
+  {
+    :bg {
+      :default "#0A0C0F"
+      :darker "#0F1318"
+      :lighter "#1E2530"
+      :selection "#131820"
+      :tab-inactive "#131820"
+      :group-border "#1E2530"
+    }
+    :fg {
+      :default "#E8ECF1"
+      :bright "#F4F7FB"
+      :panel "#D6DCE6"
+      :soft "#A6B1C2"
+      :muted "#8A94A6"
+      :subtle "#5A6478"
+    }
+    :accent {
+      :yellow "#F5A623"
+      :orange "#F5A623"
+      :red "#FF4C4C"
+      :magenta "#9B8CFF"
+      :blue "#00D4FF"
+      :cyan "#00D4FF"
+      :green "#00E5A0"
+    }
+    :semantic {
+      :error "#FF4C4C"
+      :warning "#F5A623"
+      :success "#00E5A0"
+      :info "#00D4FF"
+    }
+  })
+
 (def themes
   {
     :monokai {
@@ -824,6 +859,268 @@
         }
       }
     }
+    :proxy-console {
+      :name "proxy-console"
+      :label "Proxy Console"
+      :appearance "dark"
+      :palette {
+        :bg {
+          :default "#0A0C0F"
+          :darker "#0F1318"
+          :lighter "#1E2530"
+          :selection "#131820"
+          :tab-inactive "#131820"
+          :group-border "#1E2530"
+        }
+        :fg {
+          :default "#E8ECF1"
+          :bright "#F4F7FB"
+          :panel "#D6DCE6"
+          :soft "#A6B1C2"
+          :muted "#8A94A6"
+          :subtle "#5A6478"
+        }
+        :accent {
+          :yellow "#F5A623"
+          :orange "#F5A623"
+          :red "#FF4C4C"
+          :magenta "#9B8CFF"
+          :blue "#00D4FF"
+          :cyan "#00D4FF"
+          :green "#00E5A0"
+        }
+        :semantic {
+          :error "#FF4C4C"
+          :warning "#F5A623"
+          :success "#00E5A0"
+          :info "#00D4FF"
+        }
+      }
+      :colors {
+        :background {
+          :default "#0A0C0F"
+          :surface "#0F1318"
+          :elevated "#131820"
+          :highlight "#1E2530"
+          :overlay "rgba(0, 0, 0, 0.6)"
+        }
+        :selection {:default "rgba(19, 24, 32, 0.5)"}
+        :text {
+          :default "#E8ECF1"
+          :bright "#F4F7FB"
+          :panel "#D6DCE6"
+          :soft "#A6B1C2"
+          :muted "#8A94A6"
+          :subtle "#5A6478"
+          :inverse "#0A0C0F"
+          :secondary "#8A94A6"
+        }
+        :interactive {
+          :default "#00D4FF"
+          :hover "#34DEFF"
+          :active "#00B8DE"
+          :disabled "#5A6478"
+        }
+        :button {
+          :primary {
+            :bg "#00D4FF"
+            :fg "#0A0C0F"
+            :hover "#34DEFF"
+            :active "#00B8DE"
+          }
+          :secondary {
+            :bg "#0F1318"
+            :fg "#E8ECF1"
+            :hover "#131820"
+            :active "#1A212C"
+          }
+          :ghost {
+            :bg "transparent"
+            :fg "#E8ECF1"
+            :hover "rgba(0, 212, 255, 0.12)"
+            :active "rgba(0, 212, 255, 0.18)"
+          }
+          :danger {
+            :bg "#FF4C4C"
+            :fg "#FDFEFF"
+            :hover "#FF6666"
+            :active "#E64545"
+          }
+        }
+        :badge {
+          :default {
+            :bg "rgba(90, 100, 120, 0.2)"
+            :fg "#E8ECF1"
+          }
+          :success {
+            :bg "rgba(0, 229, 160, 0.12)"
+            :fg "#00E5A0"
+          }
+          :warning {
+            :bg "rgba(245, 166, 35, 0.12)"
+            :fg "#F5A623"
+          }
+          :error {
+            :bg "rgba(255, 76, 76, 0.12)"
+            :fg "#FF4C4C"
+          }
+          :info {
+            :bg "rgba(0, 212, 255, 0.12)"
+            :fg "#00D4FF"
+          }
+        }
+        :border {
+          :default "#1E2530"
+          :subtle "#171C25"
+          :focus "#00D4FF"
+          :error "#FF4C4C"
+        }
+        :accent {
+          :yellow "#F5A623"
+          :orange "#F5A623"
+          :red "#FF4C4C"
+          :magenta "#9B8CFF"
+          :blue "#00D4FF"
+          :cyan "#00D4FF"
+          :green "#00E5A0"
+        }
+        :semantic {
+          :error "#FF4C4C"
+          :warning "#F5A623"
+          :success "#00E5A0"
+          :info "#00D4FF"
+        }
+        :status {
+          :alive "#00E5A0"
+          :dead "#FF4C4C"
+          :open "#00E5A0"
+          :closed "#8A94A6"
+          :merged "#9B8CFF"
+          :sleeping "#00D4FF"
+          :eating "#F5A623"
+          :working "#F5A623"
+        }
+        :chart {
+          :segment0 "#00D4FF"
+          :segment1 "#00E5A0"
+          :segment2 "#F5A623"
+          :segment3 "#FF4C4C"
+          :segment4 "#9B8CFF"
+          :segment5 "#7A90AA"
+        }
+        :fill {
+          :good {
+            :start "#00E5A0"
+            :end "#57F0C0"
+          }
+          :warn {
+            :start "#F5A623"
+            :end "#FFD07A"
+          }
+          :danger {
+            :start "#FF4C4C"
+            :end "#FF8C8C"
+          }
+          :neutral {
+            :start "#00D4FF"
+            :end "#8EEBFF"
+          }
+        }
+        :surface {
+          :panel "rgba(15, 19, 24, 0.92)"
+          :card "rgba(19, 24, 32, 0.82)"
+          :card-alt "rgba(30, 37, 48, 0.62)"
+          :input "rgba(10, 13, 17, 0.95)"
+          :nav "rgba(10, 12, 15, 0.88)"
+        }
+        :alpha {
+          :green {
+            :_08 "rgba(0, 229, 160, 0.08)"
+            :_12 "rgba(0, 229, 160, 0.12)"
+            :_14 "rgba(0, 229, 160, 0.14)"
+            :_15 "rgba(0, 229, 160, 0.15)"
+            :_16 "rgba(0, 229, 160, 0.16)"
+            :_25 "rgba(0, 229, 160, 0.25)"
+            :_28 "rgba(0, 229, 160, 0.28)"
+            :_30 "rgba(0, 229, 160, 0.30)"
+            :_35 "rgba(0, 229, 160, 0.35)"
+            :_38 "rgba(0, 229, 160, 0.38)"
+            :_40 "rgba(0, 229, 160, 0.40)"
+            :_45 "rgba(0, 229, 160, 0.45)"
+            :_50 "rgba(0, 229, 160, 0.50)"
+            :_55 "rgba(0, 229, 160, 0.55)"
+            :_60 "rgba(0, 229, 160, 0.60)"
+            :_80 "rgba(0, 229, 160, 0.80)"
+          }
+          :red {
+            :_12 "rgba(255, 76, 76, 0.12)"
+            :_14 "rgba(255, 76, 76, 0.14)"
+            :_15 "rgba(255, 76, 76, 0.15)"
+            :_25 "rgba(255, 76, 76, 0.25)"
+            :_30 "rgba(255, 76, 76, 0.30)"
+            :_38 "rgba(255, 76, 76, 0.38)"
+            :_40 "rgba(255, 76, 76, 0.40)"
+            :_45 "rgba(255, 76, 76, 0.45)"
+            :_46 "rgba(255, 76, 76, 0.46)"
+            :_50 "rgba(255, 76, 76, 0.50)"
+          }
+          :orange {
+            :_12 "rgba(245, 166, 35, 0.12)"
+            :_15 "rgba(245, 166, 35, 0.15)"
+            :_32 "rgba(245, 166, 35, 0.32)"
+            :_35 "rgba(245, 166, 35, 0.35)"
+            :_40 "rgba(245, 166, 35, 0.40)"
+          }
+          :blue {
+            :_15 "rgba(0, 212, 255, 0.15)"
+            :_20 "rgba(0, 212, 255, 0.20)"
+            :_35 "rgba(0, 212, 255, 0.35)"
+            :_45 "rgba(0, 212, 255, 0.45)"
+            :_80 "rgba(0, 212, 255, 0.80)"
+            :_95 "rgba(0, 212, 255, 0.95)"
+          }
+          :magenta {
+            :_08 "rgba(155, 140, 255, 0.08)"
+            :_14 "rgba(155, 140, 255, 0.14)"
+            :_30 "rgba(155, 140, 255, 0.30)"
+          }
+          :yellow {:_06 "rgba(245, 166, 35, 0.06)"}
+          :bg {
+            :_08 "rgba(19, 24, 32, 0.08)"
+            :_10 "rgba(19, 24, 32, 0.10)"
+            :_12 "rgba(19, 24, 32, 0.12)"
+            :_14 "rgba(19, 24, 32, 0.14)"
+            :_16 "rgba(19, 24, 32, 0.16)"
+            :_18 "rgba(19, 24, 32, 0.18)"
+            :_24 "rgba(19, 24, 32, 0.24)"
+            :_25 "rgba(19, 24, 32, 0.25)"
+            :_28 "rgba(19, 24, 32, 0.28)"
+            :_30 "rgba(19, 24, 32, 0.30)"
+            :_46 "rgba(10, 12, 15, 0.46)"
+            :_55 "rgba(19, 24, 32, 0.55)"
+            :_60 "rgba(10, 12, 15, 0.60)"
+            :_62 "rgba(10, 12, 15, 0.62)"
+            :_68 "rgba(10, 12, 15, 0.68)"
+            :_70 "rgba(19, 24, 32, 0.70)"
+            :_72 "rgba(10, 12, 15, 0.72)"
+            :_80 "rgba(10, 12, 15, 0.80)"
+            :_85 "rgba(19, 24, 32, 0.85)"
+            :_88 "rgba(19, 24, 32, 0.88)"
+            :_88b "rgba(10, 12, 15, 0.88)"
+            :_90 "rgba(10, 12, 15, 0.90)"
+            :_95 "rgba(10, 12, 15, 0.95)"
+          }
+          :warning-bg "rgba(68, 46, 12, 0.88)"
+          :error-bg "rgba(90, 28, 28, 0.42)"
+          :error-bg-solid "rgba(90, 28, 28, 0.90)"
+          :federation-error "rgba(127, 29, 29, 0.22)"
+          :white {:_08 "rgba(255, 255, 255, 0.08)"}
+          :shadow "rgba(0, 0, 0, 0.40)"
+          :shadow-light "rgba(0, 0, 0, 0.30)"
+          :shadow-deep "rgba(0, 0, 0, 0.50)"
+        }
+      }
+    }
   })
 
 (def spacing
@@ -1113,6 +1410,17 @@
     :tooltip 1600
     :toast 1700
     :top 9999
+  })
+
+(def radius
+  {
+    :none "0px"
+    :xs "2px"
+    :sm "4px"
+    :md "6px"
+    :lg "8px"
+    :xl "12px"
+    :full "9999px"
   })
 
 (def chords

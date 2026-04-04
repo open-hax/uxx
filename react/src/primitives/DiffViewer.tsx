@@ -229,7 +229,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
         onClick={() => handleLineClick(line, line.oldLine ? 'original' : 'modified')}
         style={{
           display: 'flex',
-          fontFamily: 'JetBrains Mono, monospace',
+          fontFamily: tokens.fontFamily.mono,
           fontSize: 13,
           lineHeight: 1.5,
           background: isHighlighted
@@ -319,7 +319,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
               key={index}
               style={{
                 display: 'flex',
-                fontFamily: 'JetBrains Mono, monospace',
+                fontFamily: tokens.fontFamily.mono,
                 fontSize: 13,
                 lineHeight: 1.5,
                 height: 20,
@@ -371,7 +371,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
               key={index}
               style={{
                 display: 'flex',
-                fontFamily: 'JetBrains Mono, monospace',
+                fontFamily: tokens.fontFamily.mono,
                 fontSize: 13,
                 lineHeight: 1.5,
                 height: 20,
@@ -414,7 +414,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
       aria-label="Diff viewer"
       style={{
         background: themeColors.background.default,
-        borderRadius: tokens.spacing[2],
+        borderRadius: tokens.radius.md,
         overflow: 'hidden',
         border: `1px solid ${themeColors.border.default}`,
       }}
@@ -470,7 +470,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
                     background: themeColors.background.elevated,
                     fontSize: 12,
                     color: themeColors.text.muted,
-                    fontFamily: 'JetBrains Mono, monospace',
+                    fontFamily: tokens.fontFamily.mono,
                     cursor: onHunkClick ? 'pointer' : 'default',
                   }}
                 >

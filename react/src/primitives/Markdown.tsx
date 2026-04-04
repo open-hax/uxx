@@ -157,8 +157,8 @@ function parseInline(text: string, themeColors: ThemeColors): React.ReactNode[] 
           style={{
             background: withAlpha(themeColors.text.default, 0.05),
             padding: '2px 6px',
-            borderRadius: 4,
-            fontFamily: 'JetBrains Mono, monospace',
+            borderRadius: tokens.radius.xs,
+            fontFamily: tokens.fontFamily.mono,
             fontSize: '0.9em',
           }}
         >

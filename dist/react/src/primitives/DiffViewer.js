@@ -157,7 +157,7 @@ export const DiffViewer = ({ original, modified, filename, language, mode = 'uni
             (line.type === 'added' && highlightLines?.modified?.includes(line.newLine || 0));
         return (_jsxs("div", { "data-line-type": line.type, onClick: () => handleLineClick(line, line.oldLine ? 'original' : 'modified'), style: {
                 display: 'flex',
-                fontFamily: 'JetBrains Mono, monospace',
+                fontFamily: tokens.fontFamily.mono,
                 fontSize: 13,
                 lineHeight: 1.5,
                 background: isHighlighted
@@ -202,7 +202,7 @@ export const DiffViewer = ({ original, modified, filename, language, mode = 'uni
                                 textAlign: 'center',
                             }, children: "Original" }), diff.map((line, index) => (_jsxs("div", { style: {
                                 display: 'flex',
-                                fontFamily: 'JetBrains Mono, monospace',
+                                fontFamily: tokens.fontFamily.mono,
                                 fontSize: 13,
                                 lineHeight: 1.5,
                                 height: 20,
@@ -227,7 +227,7 @@ export const DiffViewer = ({ original, modified, filename, language, mode = 'uni
                                 textAlign: 'center',
                             }, children: "Modified" }), diff.map((line, index) => (_jsxs("div", { style: {
                                 display: 'flex',
-                                fontFamily: 'JetBrains Mono, monospace',
+                                fontFamily: tokens.fontFamily.mono,
                                 fontSize: 13,
                                 lineHeight: 1.5,
                                 height: 20,
@@ -245,7 +245,7 @@ export const DiffViewer = ({ original, modified, filename, language, mode = 'uni
     };
     return (_jsxs("div", { className: className, "data-component": "diff-viewer", "data-mode": mode, role: "region", "aria-label": "Diff viewer", style: {
             background: themeColors.background.default,
-            borderRadius: tokens.spacing[2],
+            borderRadius: tokens.radius.md,
             overflow: 'hidden',
             border: `1px solid ${themeColors.border.default}`,
         }, children: [(showFilename || showStats) && (_jsxs("div", { style: {
@@ -264,7 +264,7 @@ export const DiffViewer = ({ original, modified, filename, language, mode = 'uni
                                 background: themeColors.background.elevated,
                                 fontSize: 12,
                                 color: themeColors.text.muted,
-                                fontFamily: 'JetBrains Mono, monospace',
+                                fontFamily: tokens.fontFamily.mono,
                                 cursor: onHunkClick ? 'pointer' : 'default',
                             }, children: hunk.header })), hunk.lines.map(renderUnifiedLine)] }, hunkIndex))) })) : (renderSplitView())] }));
 };

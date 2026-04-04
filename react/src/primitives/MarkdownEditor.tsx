@@ -271,7 +271,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         display: 'flex',
         flexDirection: 'column',
         background: themeColors.background.default,
-        borderRadius: tokens.spacing[2],
+        borderRadius: tokens.radius.md,
         overflow: 'hidden',
       }}
     >
@@ -341,7 +341,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
               padding: '12px 8px',
               background: themeColors.background.elevated,
               color: themeColors.text.subtle,
-              fontFamily: 'JetBrains Mono, monospace',
+              fontFamily: tokens.fontFamily.mono,
               fontSize: 13,
               lineHeight: 1.6,
               textAlign: 'right',
@@ -372,7 +372,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             border: 'none',
             outline: 'none',
             color: themeColors.text.default,
-            fontFamily: 'JetBrains Mono, monospace',
+            fontFamily: tokens.fontFamily.mono,
             fontSize: 14,
             lineHeight: 1.6,
             resize: 'none',
@@ -414,7 +414,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         flex: previewMode === 'split' ? previewRatio : 1,
         padding: 16,
         background: themeColors.background.surface,
-        borderRadius: tokens.spacing[2],
+        borderRadius: tokens.radius.md,
         overflow: 'auto',
       }}
     >
@@ -445,7 +445,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           flexDirection: 'column',
           height: '100%',
           background: themeColors.background.default,
-          borderRadius: tokens.spacing[2],
+          borderRadius: tokens.radius.md,
           overflow: 'hidden',
         }}
       >
@@ -506,7 +506,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         style={{
           height: '100%',
           background: themeColors.background.default,
-          borderRadius: tokens.spacing[2],
+          borderRadius: tokens.radius.md,
           overflow: 'hidden',
         }}
       >
@@ -525,7 +525,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         style={{
           height: '100%',
           background: themeColors.background.default,
-          borderRadius: tokens.spacing[2],
+          borderRadius: tokens.radius.md,
           overflow: 'hidden',
         }}
       >
@@ -545,7 +545,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         gap: 1,
         height: '100%',
         background: themeColors.border.default,
-        borderRadius: tokens.spacing[2],
+        borderRadius: tokens.radius.md,
         overflow: 'hidden',
       }}
     >

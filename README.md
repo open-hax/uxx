@@ -75,6 +75,8 @@ export function Example() {
 }
 ```
 
+Built-in themes now include `monokai`, `night-owl`, and `proxy-console`. The canonical provider is `ThemeProvider`; `UxxThemeProvider` is available as a backward-compatible alias for the collaborator-proposed theme-pack surface.
+
 ### Reagent
 
 ```bash

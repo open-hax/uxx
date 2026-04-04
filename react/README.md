@@ -9,6 +9,7 @@ This package is the source of truth for the framework-parity contract used by th
 ### Providers
 
 - `ThemeProvider`
+- `UxxThemeProvider` (backward-compatible alias)
 - `ToastProvider`
 
 ### Hooks
@@ -88,6 +89,32 @@ export function App() {
     </ThemeProvider>
   );
 }
+```
+
+## Themes
+
+Built-in themes currently include:
+
+- `monokai`
+- `night-owl`
+- `proxy-console`
+
+Use `ThemeProvider` for the canonical API, or `UxxThemeProvider` if you want the collaborator-proposed alias while keeping the same runtime behavior:
+
+```tsx
+<ThemeProvider theme="proxy-console">
+  <App />
+</ThemeProvider>
+
+<UxxThemeProvider
+  theme="proxy-console"
+  overrides={{
+    radius: { md: '4px' },
+    colors: { button: { primary: { bg: '#16E0FF' } } },
+  }}
+>
+  <App />
+</UxxThemeProvider>
 ```
 
 ## Development
