@@ -16,7 +16,7 @@ function normalizeHex(hex) {
 }
 function alphaToString(alpha) {
     const rounded = Number(alpha.toFixed(2));
-    return Number.isInteger(rounded) ? String(rounded) : String(rounded);
+    return String(rounded);
 }
 export function withAlpha(hex, alpha) {
     const normalized = normalizeHex(hex);

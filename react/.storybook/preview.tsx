@@ -39,18 +39,19 @@ const preview: Preview = {
   },
   decorators: [
     (Story, context) => {
-      const theme = (context.globals.theme ?? 'monokai') as keyof typeof themeBackgrounds;
+      const requestedTheme = context.args.theme ?? context.globals.theme ?? 'monokai';
+      const finalTheme = (requestedTheme in themeBackgrounds ? requestedTheme : 'monokai') as keyof typeof themeBackgrounds;
 
       return (
         <ThemeProvider
-          theme={theme}
+          theme={finalTheme}
           style={{
             padding: '1rem',
             minHeight: '100vh',
-            background: themeBackgrounds[theme],
+            background: themeBackgrounds[finalTheme],
           }}
         >
-          <Story args={{ ...context.args, theme: context.args.theme ?? theme }} />
+          <Story args={{ ...context.args, theme: finalTheme }} />
         </ThemeProvider>
       );
     },

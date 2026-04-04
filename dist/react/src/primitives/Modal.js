@@ -23,7 +23,7 @@ const sizeStyles = {
 const backdropStyles = {
     position: 'fixed',
     inset: 0,
-    backgroundColor: tokens.colors.background.overlay,
+    backgroundColor: 'var(--token-colors-background-overlay)',
     backdropFilter: 'blur(4px)',
     zIndex: tokens.zIndex.modal,
     display: 'flex',

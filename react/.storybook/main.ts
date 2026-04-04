@@ -35,6 +35,13 @@ const config: StorybookConfig = {
     },
   },
   viteFinal: async (config) => {
+    const existingAliases = Array.isArray(config.resolve?.alias)
+      ? config.resolve.alias
+      : Object.entries(config.resolve?.alias ?? {}).map(([find, replacement]) => ({
+          find,
+          replacement,
+        }));
+
     return {
       ...config,
       resolve: {
@@ -47,6 +54,7 @@ const config: StorybookConfig = {
           { find: 'react/jsx-dev-runtime', replacement: reactJsxDevRuntime },
           { find: 'react-dom', replacement: reactDomEntry },
           { find: 'react', replacement: reactEntry },
+          ...existingAliases,
         ],
       },
       define: {
