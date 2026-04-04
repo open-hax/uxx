@@ -1,33 +1,39 @@
-# Π Snapshot: UXX multi-theme rollout + consumer token bridge
+# Π Snapshot: inspector/editor shell extraction + CLJS parity
 
 - **Repo:** `open-hax/uxx`
-- **Branch:** `fork-tax/20260404-033121-theme-registry-night-owl-completion`
+- **Branch:** `feat/inspector-editor-shell-parity`
 - **Base branch:** `main`
-- **Previous tag:** `none`
-- **Intended Π tag:** `Π/20260404-033121-theme-registry-night-owl-completion`
-- **Generated:** `2026-04-04T03:31:21Z`
+- **Previous tag:** `Π/2026-04-04/194944-e9b0981`
+- **Intended Π tag:** `Π/2026-04-04/feat/inspector-editor-shell-parity`
+- **Generated:** `2026-04-04T22:16:25Z`
 
 ## What this snapshot preserves
 
-This Π handoff captures the multi-theme UXX rollout with Monokai retained as the default theme and Night Owl added as a built-in alternative. It also preserves the downstream token-bridge fix that lets consumer applications theme their own CSS surfaces, not only UXX primitives.
+This Π handoff captures the UXX parity and extraction wave that turns Reagent and Helix into React-backed parity wrappers, documents the public framework surface, adds interop/performance harnesses, and promotes reusable inspector/editor shell pieces into the public API.
 
-### Theme system
-- `tokens/src/colors.ts` — theme registry, theme resolution helpers, CSS-variable generation, and dual alias emission for `--uxx-*` plus `--token-*`
-- `tokens/src/index.ts` — exported theme APIs/types
-- `react/src/theme.tsx` and `react/src/index.ts` — runtime `ThemeProvider` surface
+### Framework parity and interop
+- React remains the canonical implementation surface.
+- Reagent and Helix now wrap built React exports instead of maintaining drifting independent implementations.
+- Framework docs and parity matrix explicitly track React/Reagent/Helix export alignment.
+- Interop benchmarks and browser harness docs/scripts were added to measure wrapper overhead.
 
-### Primitive alignment
-- Theme-aware updates across markdown/code/diff/editor primitives and token-driven UI primitives
-- Reduced direct Monokai coupling in tabs, toast, feed, badge, tooltip, modal, input, progress, metric tile, and related surfaces
+### Promoted public surfaces
+- Inspector shell: `InspectorHeader`, `InspectorDetailView`, `InspectorEmptyState`, `InspectorErrorState`, `ContextSection`, `PinnedTabsBar`
+- Editor shell: `EditorToolbar`, `EditorStatusBar`, `MentionSuggestions`
+- Workflow cards: `PermissionCard`, `PromptCard`
+- Composition parity: `EntityCard` is now exported across React, Reagent, and Helix.
 
-### Storybook/operator workflow
-- `react/.storybook/preview.tsx` — theme toolbar support
-- `react/.storybook/main.ts` — nested-package Storybook/Vite fixups
-- `scripts/storybook-server.sh` — PM2 launch target for persistent Storybook
+### CLJS parity bridge
+- Reagent/Helix wrapper exports, core namespaces, and Shadow ESM export maps were extended for all promoted surfaces.
+- Root/package docs were updated to describe the shared public surface and parity status.
 
 ## Verification
 
-- Typecheck: `npm run typecheck` ✅
-- Tests: `npm test` ✅
-- Build: `npm run build` ✅
-- Publish: `@open-hax/uxx@0.1.3` ✅
+- Targeted React tests: `npx vitest run --config react/vitest.config.ts react/src/primitives/MentionSuggestions.test.tsx react/src/primitives/InspectorHeader.test.tsx react/src/primitives/InspectorDetailView.test.tsx react/src/primitives/InspectorEmptyState.test.tsx react/src/primitives/InspectorErrorState.test.tsx react/src/primitives/EditorToolbar.test.tsx react/src/primitives/EditorStatusBar.test.tsx react/src/primitives/ContextSection.test.tsx react/src/primitives/PinnedTabsBar.test.tsx react/src/primitives/PermissionCard.test.tsx react/src/primitives/PromptCard.test.tsx` ✅
+- Root build: `npm run build` ✅
+- Reagent build: `cd reagent && npm run build` ✅
+- Helix build: `cd helix && npm run build` ✅
+
+## Concurrent dirt intentionally untouched
+
+- The parent workspace repo at `~/devel` has unrelated concurrent modifications outside `orgs/open-hax/uxx`; this Π only absorbs the `open-hax/uxx` submodule changes.

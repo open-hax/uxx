@@ -1,5 +1,8 @@
 import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { tokens } from '@open-hax/uxx/tokens';
+import { EditorToolbar, type EditorToolbarItem } from './EditorToolbar.js';
+import { MentionSuggestions } from './MentionSuggestions.js';
+import type { MentionItem, ToolbarConfig, ToolbarItem } from './RichTextEditor.types.js';
 
 export interface RichTextEditorProps {
   value?: string;
@@ -32,44 +35,12 @@ export interface RichTextEditorProps {
   className?: string;
 }
 
-export interface ToolbarConfig {
-  items?: ToolbarItem[];
-  groups?: ToolbarGroup[];
-}
-
-export interface ToolbarItem {
-  type:
-    | 'bold'
-    | 'italic'
-    | 'underline'
-    | 'strikethrough'
-    | 'code'
-    | 'heading'
-    | 'quote'
-    | 'list'
-    | 'link'
-    | 'image'
-    | 'code-block'
-    | 'divider'
-    | 'undo'
-    | 'redo'
-    | 'separator';
-  icon?: React.ReactNode;
-  label?: string;
-  shortcut?: string;
-}
-
 export interface ToolbarGroup {
   name: string;
   items: ToolbarItem[];
 }
 
-export interface MentionItem {
-  id: string;
-  name: string;
-  avatar?: string;
-  description?: string;
-}
+export type { MentionItem, ToolbarConfig, ToolbarItem } from './RichTextEditor.types.js';
 
 // Convert HTML to Markdown (basic)
 function htmlToMarkdown(html: string): string {
@@ -199,10 +170,13 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   });
   const [showMentions, setShowMentions] = useState(false);
   const [mentionFilter, setMentionFilter] = useState('');
+  const [selectedMentionIndex, setSelectedMentionIndex] = useState(0);
   
   const value = controlledValue !== undefined
     ? (format === 'html' ? controlledValue : markdownToHtml(controlledValue))
     : internalValue;
+  const mentionTrigger = mentions?.trigger ?? '@';
+  const hasValidMentionTrigger = mentionTrigger.length === 1;
   
   // Execute formatting command
   const execCommand = useCallback((command: string, value?: string) => {
@@ -229,53 +203,6 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       }
     }
   }, [controlledValue, format, onChange]);
-  
-  // Handle keyboard shortcuts
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      // Save
-      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-        e.preventDefault();
-        if (onSave && editorRef.current) {
-          const html = editorRef.current.innerHTML;
-          onSave(format === 'markdown' ? htmlToMarkdown(html) : html);
-        }
-        return;
-      }
-      
-      // Bold
-      if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
-        e.preventDefault();
-        execCommand('bold');
-        return;
-      }
-      
-      // Italic
-      if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
-        e.preventDefault();
-        execCommand('italic');
-        return;
-      }
-      
-      // Underline
-      if ((e.ctrlKey || e.metaKey) && e.key === 'u') {
-        e.preventDefault();
-        execCommand('underline');
-        return;
-      }
-      
-      // Mentions trigger
-      if (mentions && e.key === '@') {
-        setShowMentions(true);
-        setMentionFilter('');
-      } else if (showMentions && e.key.length === 1) {
-        setMentionFilter((prev) => prev + e.key);
-      } else if (showMentions && e.key === 'Escape') {
-        setShowMentions(false);
-      }
-    },
-    [execCommand, format, onSave, showMentions, mentions]
-  );
   
   // Handle image paste/upload
   const handlePaste = useCallback(
@@ -317,11 +244,13 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   // Insert mention
   const insertMention = useCallback(
     (item: MentionItem) => {
-      const mentionText = `@${item.name}`;
+      const mentionText = `${mentionTrigger}${item.name}`;
       execCommand('insertText', mentionText);
       setShowMentions(false);
+      setMentionFilter('');
+      setSelectedMentionIndex(0);
     },
-    [execCommand]
+    [execCommand, mentionTrigger]
   );
   
   // Filtered mentions
@@ -333,9 +262,132 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         item.id.toLowerCase().includes(mentionFilter.toLowerCase())
     );
   }, [mentions, mentionFilter]);
+
+  useEffect(() => {
+    if (!showMentions) {
+      return;
+    }
+
+    setSelectedMentionIndex((prev) => Math.min(prev, Math.max(filteredMentions.length - 1, 0)));
+  }, [filteredMentions.length, showMentions]);
+
+  // Handle keyboard shortcuts
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      // Save
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        if (onSave && editorRef.current) {
+          const html = editorRef.current.innerHTML;
+          onSave(format === 'markdown' ? htmlToMarkdown(html) : html);
+        }
+        return;
+      }
+
+      // Bold
+      if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+        e.preventDefault();
+        execCommand('bold');
+        return;
+      }
+
+      // Italic
+      if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
+        e.preventDefault();
+        execCommand('italic');
+        return;
+      }
+
+      // Underline
+      if ((e.ctrlKey || e.metaKey) && e.key === 'u') {
+        e.preventDefault();
+        execCommand('underline');
+        return;
+      }
+
+      // Mentions trigger / navigation
+      if (
+        mentions &&
+        hasValidMentionTrigger &&
+        e.key === mentionTrigger &&
+        !e.ctrlKey &&
+        !e.metaKey &&
+        !e.altKey
+      ) {
+        e.preventDefault();
+        setShowMentions(true);
+        setMentionFilter('');
+        setSelectedMentionIndex(0);
+        return;
+      }
+
+      if (showMentions) {
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          setSelectedMentionIndex((prev) => Math.min(prev + 1, Math.max(filteredMentions.length - 1, 0)));
+          return;
+        }
+
+        if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          setSelectedMentionIndex((prev) => Math.max(prev - 1, 0));
+          return;
+        }
+
+        if (e.key === 'Enter') {
+          const activeMention = filteredMentions[selectedMentionIndex];
+          if (activeMention) {
+            e.preventDefault();
+            insertMention(activeMention);
+            return;
+          }
+        }
+
+        if (e.key === 'Backspace') {
+          e.preventDefault();
+          if (mentionFilter === '') {
+            setShowMentions(false);
+            setSelectedMentionIndex(0);
+            return;
+          }
+          setMentionFilter((prev) => prev.slice(0, -1));
+          setSelectedMentionIndex(0);
+          return;
+        }
+
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          setShowMentions(false);
+          setMentionFilter('');
+          setSelectedMentionIndex(0);
+          return;
+        }
+
+        if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key.length === 1) {
+          e.preventDefault();
+          setMentionFilter((prev) => prev + e.key);
+          setSelectedMentionIndex(0);
+          return;
+        }
+      }
+    },
+    [
+      execCommand,
+      filteredMentions,
+      format,
+      hasValidMentionTrigger,
+      insertMention,
+      mentionFilter,
+      mentionTrigger,
+      mentions,
+      onSave,
+      selectedMentionIndex,
+      showMentions,
+    ]
+  );
   
   // Toolbar items
-  const toolbarItems: ToolbarItem[] = useMemo(
+  const defaultToolbarItems: ToolbarItem[] = useMemo(
     () => [
       { type: 'heading', label: 'H', shortcut: 'Ctrl+1' },
       { type: 'divider' },
@@ -354,7 +406,23 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     ],
     []
   );
-  
+
+  const toolbarItems = useMemo<ToolbarItem[]>(() => {
+    if (toolbar && typeof toolbar === 'object') {
+      if (toolbar.items && toolbar.items.length > 0) {
+        return toolbar.items;
+      }
+
+      if (toolbar.groups && toolbar.groups.length > 0) {
+        return toolbar.groups.flatMap((group, index) =>
+          index === 0 ? group.items : [{ type: 'divider' as const }, ...group.items]
+        );
+      }
+    }
+
+    return defaultToolbarItems;
+  }, [defaultToolbarItems, toolbar]);
+
   // Handle toolbar action
   const handleToolbarAction = useCallback(
     (item: ToolbarItem) => {
@@ -392,12 +460,55 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         case 'code-block':
           execCommand('insertHTML', '<pre><code>Code here</code></pre>');
           break;
+        case 'undo':
+          execCommand('undo');
+          break;
+        case 'redo':
+          execCommand('redo');
+          break;
+        case 'divider':
+          break;
+        default:
+          break;
       }
     },
     [execCommand, insertLink, insertImage]
   );
+
+  const toolbarChromeItems = useMemo<EditorToolbarItem[]>(
+    () =>
+      toolbarItems.map((item, index) => {
+        if (item.type === 'divider') {
+          return { type: 'divider', key: `divider-${index}` };
+        }
+
+        return {
+          key: `${item.type}-${index}`,
+          label: item.icon || item.label || item.type,
+          title: item.shortcut ? `${item.label ?? item.type} (${item.shortcut})` : item.label,
+          disabled,
+          onClick: () => handleToolbarAction(item),
+          buttonStyle: {
+            fontWeight: item.type === 'bold' ? 'bold' : 'normal',
+            fontStyle: item.type === 'italic' ? 'italic' : 'normal',
+          },
+        };
+      }),
+    [disabled, handleToolbarAction, toolbarItems]
+  );
   
   // Focus on mount if autofocus
+  useEffect(() => {
+    if (mentions?.trigger && !hasValidMentionTrigger) {
+      console.error(
+        `RichTextEditor mentions.trigger must be a single character, received "${mentions.trigger}".`
+      );
+      setShowMentions(false);
+      setMentionFilter('');
+      setSelectedMentionIndex(0);
+    }
+  }, [hasValidMentionTrigger, mentions?.trigger]);
+
   useEffect(() => {
     if (autofocus && editorRef.current) {
       editorRef.current.focus();
@@ -427,57 +538,13 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     >
       {/* Toolbar */}
       {toolbar && !readonly && (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 2,
-            padding: '8px 12px',
-            background: tokens.colors.background.surface,
-            borderBottom: `1px solid ${tokens.colors.border.subtle}`,
-            flexWrap: 'wrap',
-          }}
-        >
-          {toolbarItems.map((item, index) => {
-            if (item.type === 'divider') {
-              return (
-                <div
-                  key={index}
-                  style={{
-                    width: 1,
-                    height: 20,
-                    background: tokens.colors.border.default,
-                    margin: '0 4px',
-                  }}
-                />
-              );
-            }
-            
-            return (
-              <button
-                key={index}
-                onClick={() => handleToolbarAction(item)}
-                disabled={disabled}
-                title={item.shortcut ? `${item.label} (${item.shortcut})` : item.label}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  padding: '4px 8px',
-                  borderRadius: 4,
-                  color: tokens.colors.text.default,
-                  cursor: disabled ? 'not-allowed' : 'pointer',
-                  fontFamily: 'inherit',
-                  fontSize: 13,
-                  fontWeight: item.type === 'bold' ? 'bold' : 'normal',
-                  fontStyle: item.type === 'italic' ? 'italic' : 'normal',
-                  opacity: disabled ? 0.5 : 1,
-                }}
-              >
-                {item.icon || item.label}
-              </button>
-            );
-          })}
-        </div>
+        <EditorToolbar
+          items={toolbarChromeItems}
+          background={tokens.colors.background.surface}
+          borderColor={tokens.colors.border.subtle}
+          textColor={tokens.colors.text.default}
+          gap={2}
+        />
       )}
       
       {/* Editor */}
@@ -524,55 +591,13 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         
         {/* Mentions dropdown */}
         {showMentions && filteredMentions.length > 0 && (
-          <div
-            style={{
-              position: 'absolute',
-              top: '100%',
-              left: 0,
-              right: 0,
-              background: tokens.colors.background.elevated,
-              border: `1px solid ${tokens.colors.border.default}`,
-              borderRadius: tokens.spacing[2],
-              maxHeight: 200,
-              overflow: 'auto',
-              zIndex: 1000,
-            }}
-          >
-            {filteredMentions.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => insertMention(item)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  width: '100%',
-                  padding: '8px 12px',
-                  background: 'transparent',
-                  border: 'none',
-                  textAlign: 'left',
-                  cursor: 'pointer',
-                  color: tokens.colors.text.default,
-                }}
-              >
-                {item.avatar && (
-                  <img
-                    src={item.avatar}
-                    alt={item.name}
-                    style={{ width: 24, height: 24, borderRadius: '50%' }}
-                  />
-                )}
-                <div>
-                  <div style={{ fontWeight: 500 }}>{item.name}</div>
-                  {item.description && (
-                    <div style={{ fontSize: 12, color: tokens.colors.text.muted }}>
-                      {item.description}
-                    </div>
-                  )}
-                </div>
-              </button>
-            ))}
-          </div>
+          <MentionSuggestions
+            items={filteredMentions}
+            onSelect={insertMention}
+            renderItem={mentions?.render}
+            selectedIndex={selectedMentionIndex}
+            onSelectedIndexChange={setSelectedMentionIndex}
+          />
         )}
       </div>
       

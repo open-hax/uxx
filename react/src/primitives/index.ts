@@ -17,6 +17,10 @@ export { Progress, type ProgressProps, type ProgressVariant, type ProgressSize }
 export { ResizablePane, type ResizablePaneProps, type ResizeDirection } from './ResizablePane.js';
 export { WhichKeyPopup, type WhichKeyPopupProps, type BindingEntry, type WhichKeyPosition, type WhichKeySortKey } from './WhichKeyPopup.js';
 export { InspectorPane, type InspectorPaneProps, type Entity, type PinnedEntry, type ErrorState } from './InspectorPane.js';
+export { InspectorHeader, type InspectorHeaderProps } from './InspectorHeader.js';
+export { InspectorDetailView, type InspectorDetailViewProps } from './InspectorDetailView.js';
+export { InspectorEmptyState, type InspectorEmptyStateProps } from './InspectorEmptyState.js';
+export { InspectorErrorState, type InspectorErrorStateProps } from './InspectorErrorState.js';
 export { ContextSection, type ContextSectionProps } from './ContextSection.js';
 export { PinnedTabsBar, type PinnedTabsBarProps } from './PinnedTabsBar.js';
 export { PermissionCard, type PermissionCardProps } from './PermissionCard.js';
@@ -48,7 +52,11 @@ export { Feed, type FeedProps, type FeedItem } from './Feed.js';
 export { Markdown, type MarkdownProps } from './Markdown.js';
 export { CodeBlock, type CodeBlockProps } from './CodeBlock.js';
 export { DiffViewer, type DiffViewerProps } from './DiffViewer.js';
+export { MentionSuggestions, type MentionSuggestionsProps } from './MentionSuggestions.js';
+export { EditorToolbar, type EditorToolbarProps, type EditorToolbarItem, type EditorToolbarButtonItem, type EditorToolbarDividerItem } from './EditorToolbar.js';
+export { EditorStatusBar, type EditorStatusBarProps, type EditorStatusBarItem } from './EditorStatusBar.js';
 
 // Text Editors
 export { MarkdownEditor, type MarkdownEditorProps } from './MarkdownEditor.js';
-export { RichTextEditor, type RichTextEditorProps, type ToolbarConfig, type ToolbarItem, type MentionItem } from './RichTextEditor.js';
+export { RichTextEditor, type RichTextEditorProps, type ToolbarGroup } from './RichTextEditor.js';
+export type { ToolbarConfig, ToolbarItem, MentionItem } from './RichTextEditor.types.js';
