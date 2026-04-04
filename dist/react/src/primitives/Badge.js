@@ -32,20 +32,20 @@ const variantStyles = {
         fg: tokens.colors.badge.default.fg,
     },
     merged: {
-        bg: 'rgba(174, 129, 255, 0.15)',
+        bg: tokens.colors.alpha.magenta._14,
         fg: tokens.colors.accent.magenta,
     },
     alive: {
-        bg: 'rgba(166, 226, 46, 0.1)',
-        fg: '#2e7d32',
+        bg: tokens.colors.badge.success.bg,
+        fg: tokens.colors.badge.success.fg,
     },
     dead: {
-        bg: 'rgba(249, 38, 114, 0.1)',
-        fg: '#c62828',
+        bg: tokens.colors.badge.error.bg,
+        fg: tokens.colors.badge.error.fg,
     },
     running: {
-        bg: 'rgba(102, 217, 239, 0.15)',
-        fg: tokens.colors.accent.blue,
+        bg: tokens.colors.badge.info.bg,
+        fg: tokens.colors.badge.info.fg,
     },
     stopped: {
         bg: tokens.colors.badge.default.bg,
@@ -82,7 +82,7 @@ const baseStyles = {
     justifyContent: 'center',
     fontWeight: tokens.fontWeight.medium,
     lineHeight: tokens.lineHeight.none,
-    borderRadius: `${tokens.spacing[1]}px`,
+    borderRadius: tokens.radius.sm,
     fontFamily: tokens.fontFamily.sans,
     whiteSpace: 'nowrap',
 };
@@ -150,7 +150,7 @@ export function Badge({ variant = 'default', size = 'md', dot = false, pulse = f
         backgroundColor: outline ? 'transparent' : bg,
         color: outline ? bg : fg,
         border: outline ? `1px solid ${bg}` : 'none',
-        borderRadius: rounded ? '9999px' : `${tokens.spacing[1]}px`,
+        borderRadius: rounded ? tokens.radius.full : tokens.radius.sm,
     };
     const dotFg = dotColor || (outline ? bg : fg);
     return (_jsxs("span", { "data-component": "badge", "data-variant": variant, "data-size": size, "data-dot": dot || undefined, "data-pulse": pulse || undefined, "data-rounded": rounded || undefined, "data-outline": outline || undefined, role: "status", "aria-label": variant, style: styles, className: className, children: [dot && _jsx(StatusDot, { color: dotFg, size: size, pulse: pulse }), iconStart, children, iconEnd] }));

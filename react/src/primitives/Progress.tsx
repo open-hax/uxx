@@ -96,7 +96,7 @@ const variantGradients: Record<ProgressVariant, string> = {
 // Track styles
 const trackStyles: CSSProperties = {
   backgroundColor: tokens.colors.background.surface,
-  borderRadius: `${tokens.spacing[1]}px`,
+  borderRadius: tokens.radius.sm,
   overflow: 'hidden',
   width: '100%',
   position: 'relative',
@@ -105,7 +105,7 @@ const trackStyles: CSSProperties = {
 // Bar styles
 const baseBarStyles: CSSProperties = {
   height: '100%',
-  borderRadius: `${tokens.spacing[1]}px`,
+  borderRadius: tokens.radius.sm,
 };
 
 // Value label styles

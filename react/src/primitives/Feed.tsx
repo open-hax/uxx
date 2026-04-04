@@ -122,9 +122,9 @@ function getFileStatusIcon(status?: string): string {
 // Get file status color
 function getFileStatusColor(status?: string): string {
   switch (status) {
-    case 'added': return tokens.monokai.accent.cyan;
-    case 'modified': return tokens.monokai.accent.orange;
-    case 'deleted': return tokens.monokai.accent.red;
+    case 'added': return tokens.colors.accent.cyan;
+    case 'modified': return tokens.colors.accent.orange;
+    case 'deleted': return tokens.colors.accent.red;
     default: return tokens.colors.text.muted;
   }
 }
@@ -215,7 +215,7 @@ export const Feed: React.FC<FeedProps> = ({
               top: 0,
               bottom: 0,
               width: 3,
-              background: tokens.monokai.accent.cyan,
+              background: tokens.colors.accent.cyan,
               borderRadius: '0 2px 2px 0',
             }}
           />
@@ -410,10 +410,10 @@ export const Feed: React.FC<FeedProps> = ({
                 fontSize: 12,
               }}
             >
-              <span style={{ color: tokens.monokai.accent.cyan }}>
+              <span style={{ color: tokens.colors.accent.cyan }}>
                 +{item.diff.additions}
               </span>
-              <span style={{ color: tokens.monokai.accent.red }}>
+              <span style={{ color: tokens.colors.accent.red }}>
                 -{item.diff.deletions}
               </span>
             </div>

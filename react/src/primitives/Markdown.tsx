@@ -181,7 +181,7 @@ function parseInline(text: string): React.ReactNode[] {
           key={key++}
           href={linkMatch[2]}
           style={{
-            color: tokens.monokai.accent.cyan,
+            color: tokens.colors.accent.cyan,
             textDecoration: 'none',
           }}
           target="_blank"
@@ -328,7 +328,7 @@ export const Markdown: React.FC<MarkdownProps> = ({
             style={{
               margin: '16px 0',
               padding: '8px 16px',
-              borderLeft: `4px solid ${tokens.monokai.accent.cyan}`,
+              borderLeft: `4px solid ${tokens.colors.accent.cyan}`,
               background: 'rgba(102, 217, 239, 0.05)',
               color: tokens.colors.text.muted,
             }}

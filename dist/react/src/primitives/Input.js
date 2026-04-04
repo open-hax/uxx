@@ -43,7 +43,7 @@ const baseStyles = {
     width: '100%',
     fontFamily: tokens.fontFamily.sans,
     color: tokens.colors.text.default,
-    borderRadius: `${tokens.spacing[1]}px`,
+    borderRadius: tokens.radius.sm,
     outline: 'none',
     transition: tokens.transitions.colors,
 };

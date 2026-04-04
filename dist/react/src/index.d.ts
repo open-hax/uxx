@@ -18,5 +18,6 @@
  * }
  * ```
  */
+export { UxxThemeProvider, type UxxThemeProviderProps } from './UxxThemeProvider.js';
 export * from './primitives/index.js';
 //# sourceMappingURL=index.d.ts.map

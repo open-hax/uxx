@@ -11,12 +11,12 @@ import { tokens } from '@open-hax/uxx/tokens';
 // Tooltip container styles
 const tooltipStyles = {
     position: 'fixed',
-    backgroundColor: '#1e1f1c',
-    color: '#f8f8f2',
+    backgroundColor: tokens.colors.background.surface,
+    color: tokens.colors.text.default,
     fontSize: tokens.fontSize.xs,
     lineHeight: 1.4,
     padding: `${tokens.spacing[1]}px ${tokens.spacing[2]}px`,
-    borderRadius: `${tokens.spacing[1]}px`,
+    borderRadius: tokens.radius.sm,
     boxShadow: tokens.shadow.md,
     zIndex: tokens.zIndex.tooltip,
     pointerEvents: 'none',
@@ -42,7 +42,7 @@ const calculatePosition = (placement, triggerRect, tooltipRect, offset) => {
             arrowStyle.top = '100%';
             arrowStyle.left = '50%';
             arrowStyle.marginLeft = '-4px';
-            arrowStyle.borderTopColor = '#1e1f1c';
+            arrowStyle.borderTopColor = tokens.colors.background.surface;
             break;
         case 'bottom':
             top = triggerRect.bottom + offset;
@@ -50,7 +50,7 @@ const calculatePosition = (placement, triggerRect, tooltipRect, offset) => {
             arrowStyle.bottom = '100%';
             arrowStyle.left = '50%';
             arrowStyle.marginLeft = '-4px';
-            arrowStyle.borderBottomColor = '#1e1f1c';
+            arrowStyle.borderBottomColor = tokens.colors.background.surface;
             break;
         case 'left':
             top = triggerRect.top + (triggerRect.height - tooltipRect.height) / 2;
@@ -58,7 +58,7 @@ const calculatePosition = (placement, triggerRect, tooltipRect, offset) => {
             arrowStyle.left = '100%';
             arrowStyle.top = '50%';
             arrowStyle.marginTop = '-4px';
-            arrowStyle.borderLeftColor = '#1e1f1c';
+            arrowStyle.borderLeftColor = tokens.colors.background.surface;
             break;
         case 'right':
             top = triggerRect.top + (triggerRect.height - tooltipRect.height) / 2;
@@ -66,35 +66,35 @@ const calculatePosition = (placement, triggerRect, tooltipRect, offset) => {
             arrowStyle.right = '100%';
             arrowStyle.top = '50%';
             arrowStyle.marginTop = '-4px';
-            arrowStyle.borderRightColor = '#1e1f1c';
+            arrowStyle.borderRightColor = tokens.colors.background.surface;
             break;
         case 'top-start':
             top = triggerRect.top - tooltipRect.height - offset;
             left = triggerRect.left;
             arrowStyle.top = '100%';
             arrowStyle.left = '8px';
-            arrowStyle.borderTopColor = '#1e1f1c';
+            arrowStyle.borderTopColor = tokens.colors.background.surface;
             break;
         case 'top-end':
             top = triggerRect.top - tooltipRect.height - offset;
             left = triggerRect.right - tooltipRect.width;
             arrowStyle.top = '100%';
             arrowStyle.right = '8px';
-            arrowStyle.borderTopColor = '#1e1f1c';
+            arrowStyle.borderTopColor = tokens.colors.background.surface;
             break;
         case 'bottom-start':
             top = triggerRect.bottom + offset;
             left = triggerRect.left;
             arrowStyle.bottom = '100%';
             arrowStyle.left = '8px';
-            arrowStyle.borderBottomColor = '#1e1f1c';
+            arrowStyle.borderBottomColor = tokens.colors.background.surface;
             break;
         case 'bottom-end':
             top = triggerRect.bottom + offset;
             left = triggerRect.right - tooltipRect.width;
             arrowStyle.bottom = '100%';
             arrowStyle.right = '8px';
-            arrowStyle.borderBottomColor = '#1e1f1c';
+            arrowStyle.borderBottomColor = tokens.colors.background.surface;
             break;
     }
     return { top, left, arrowStyle };

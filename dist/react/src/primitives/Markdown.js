@@ -131,7 +131,7 @@ function parseInline(text) {
                 key += 10;
             }
             parts.push(_jsx("a", { href: linkMatch[2], style: {
-                    color: tokens.monokai.accent.cyan,
+                    color: tokens.colors.accent.cyan,
                     textDecoration: 'none',
                 }, target: "_blank", rel: "noopener noreferrer", children: linkMatch[1] }, key++));
             remaining = remaining.slice((linkMatch.index || 0) + linkMatch[0].length);
@@ -215,7 +215,7 @@ export const Markdown = ({ content, variant = 'default', theme = 'dark', lineNum
                 return (_jsx("blockquote", { style: {
                         margin: '16px 0',
                         padding: '8px 16px',
-                        borderLeft: `4px solid ${tokens.monokai.accent.cyan}`,
+                        borderLeft: `4px solid ${tokens.colors.accent.cyan}`,
                         background: 'rgba(102, 217, 239, 0.05)',
                         color: tokens.colors.text.muted,
                     }, children: parseInline(node.content || '') }, index));

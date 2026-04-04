@@ -82,7 +82,7 @@ const baseStyles: React.CSSProperties = {
   justifyContent: 'center',
   fontWeight: tokens.fontWeight.medium,
   lineHeight: tokens.lineHeight.none,
-  borderRadius: `${tokens.spacing[1.5]}px`,
+  borderRadius: tokens.radius.md,
   cursor: 'pointer',
   transition: tokens.transitions.colors,
   outline: 'none',

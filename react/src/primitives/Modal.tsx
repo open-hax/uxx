@@ -75,7 +75,7 @@ const backdropStyles: React.CSSProperties = {
 // Modal container styles
 const modalStyles: React.CSSProperties = {
   backgroundColor: tokens.colors.background.elevated,
-  borderRadius: `${tokens.spacing[3]}px`,
+  borderRadius: tokens.radius.lg,
   boxShadow: tokens.shadow['2xl'],
   border: `1px solid ${tokens.colors.border.subtle}`,
   display: 'flex',

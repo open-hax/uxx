@@ -168,7 +168,7 @@ export const DiffViewer = ({ original, modified, filename, language, mode = 'uni
             }, children: [_jsx("div", { style: {
                         width: 20,
                         textAlign: 'center',
-                        color: line.type === 'added' ? tokens.monokai.accent.cyan : line.type === 'removed' ? tokens.monokai.accent.red : 'transparent',
+                        color: line.type === 'added' ? tokens.colors.accent.cyan : line.type === 'removed' ? tokens.colors.accent.red : 'transparent',
                         userSelect: 'none',
                         flexShrink: 0,
                     }, children: line.type === 'added' ? '+' : line.type === 'removed' ? '-' : ' ' }), lineNumbers && (_jsx("div", { style: {
@@ -256,7 +256,7 @@ export const DiffViewer = ({ original, modified, filename, language, mode = 'uni
                             fontSize: 14,
                             fontWeight: 500,
                             color: tokens.colors.text.default,
-                        }, children: filename || 'File diff' })), showStats && (_jsxs("div", { style: { display: 'flex', gap: 16, fontSize: 13 }, children: [_jsxs("span", { style: { color: tokens.monokai.accent.cyan }, children: ["+", stats.additions] }), _jsxs("span", { style: { color: tokens.monokai.accent.red }, children: ["-", stats.deletions] })] }))] })), mode === 'unified' ? (_jsx("div", { style: { overflow: 'auto' }, children: hunks.map((hunk, hunkIndex) => (_jsxs("div", { children: [hunks.length > 1 && (_jsx("div", { onClick: () => handleHunkClick(hunk), style: {
+                        }, children: filename || 'File diff' })), showStats && (_jsxs("div", { style: { display: 'flex', gap: 16, fontSize: 13 }, children: [_jsxs("span", { style: { color: tokens.colors.accent.cyan }, children: ["+", stats.additions] }), _jsxs("span", { style: { color: tokens.colors.accent.red }, children: ["-", stats.deletions] })] }))] })), mode === 'unified' ? (_jsx("div", { style: { overflow: 'auto' }, children: hunks.map((hunk, hunkIndex) => (_jsxs("div", { children: [hunks.length > 1 && (_jsx("div", { onClick: () => handleHunkClick(hunk), style: {
                                 padding: '4px 12px',
                                 background: tokens.colors.background.elevated,
                                 fontSize: 12,

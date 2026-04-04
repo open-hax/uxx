@@ -197,7 +197,7 @@ export const CodeBlock = ({ code, language: explicitLanguage, filename, theme = 
                                 }, children: filename || language }))] }), showCopy && (_jsx("button", { onClick: handleCopy, style: {
                             background: 'none',
                             border: 'none',
-                            color: copied ? tokens.monokai.accent.cyan : tokens.colors.text.muted,
+                            color: copied ? tokens.colors.accent.cyan : tokens.colors.text.muted,
                             cursor: 'pointer',
                             fontSize: 12,
                             padding: '4px 8px',

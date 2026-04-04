@@ -216,7 +216,7 @@ export function WhichKeyPopup({
   onSelect,
 }: WhichKeyPopupProps) {
   // Auto-dismiss timer
-  const [timerId, setTimerId] = useState<NodeJS.Timeout | null>(null);
+  const [timerId, setTimerId] = useState<ReturnType<typeof setTimeout> | null>(null);
 
   // Handle auto-dismiss timeout
   useEffect(() => {

@@ -244,7 +244,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
           style={{
             width: 20,
             textAlign: 'center',
-            color: line.type === 'added' ? tokens.monokai.accent.cyan : line.type === 'removed' ? tokens.monokai.accent.red : 'transparent',
+            color: line.type === 'added' ? tokens.colors.accent.cyan : line.type === 'removed' ? tokens.colors.accent.red : 'transparent',
             userSelect: 'none',
             flexShrink: 0,
           }}
@@ -442,10 +442,10 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
           
           {showStats && (
             <div style={{ display: 'flex', gap: 16, fontSize: 13 }}>
-              <span style={{ color: tokens.monokai.accent.cyan }}>
+              <span style={{ color: tokens.colors.accent.cyan }}>
                 +{stats.additions}
               </span>
-              <span style={{ color: tokens.monokai.accent.red }}>
+              <span style={{ color: tokens.colors.accent.red }}>
                 -{stats.deletions}
               </span>
             </div>

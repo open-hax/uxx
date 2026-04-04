@@ -18,6 +18,7 @@
  * }
  * ```
  */
+export { UxxThemeProvider } from './UxxThemeProvider.js';
 // Primitives
 export * from './primitives/index.js';
 // Composites (to be added)

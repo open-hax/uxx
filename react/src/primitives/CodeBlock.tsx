@@ -300,7 +300,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
               style={{
                 background: 'none',
                 border: 'none',
-                color: copied ? tokens.monokai.accent.cyan : tokens.colors.text.muted,
+                color: copied ? tokens.colors.accent.cyan : tokens.colors.text.muted,
                 cursor: 'pointer',
                 fontSize: 12,
                 padding: '4px 8px',

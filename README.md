@@ -38,6 +38,59 @@ const buttonStyle = {
 };
 ```
 
+### Theme packs
+
+`uxx` now includes configurable theme packs with runtime CSS variable support.
+
+Built-in presets:
+
+- `monokai` — the original UXX default
+- `proxyConsole` — a darker, sharper preset inspired by the Proxx proxy console
+
+```tsx
+import { UxxThemeProvider } from '@open-hax/uxx';
+
+<UxxThemeProvider theme="proxyConsole">
+  <App />
+</UxxThemeProvider>
+```
+
+Override selected visual tokens without forking the library:
+
+```tsx
+import { UxxThemeProvider } from '@open-hax/uxx';
+
+<UxxThemeProvider
+  theme="proxyConsole"
+  overrides={{
+    colors: {
+      button: {
+        primary: {
+          bg: '#16E0FF',
+        },
+      },
+    },
+    radius: {
+      md: '8px',
+    },
+  }}
+>
+  <App />
+</UxxThemeProvider>
+```
+
+You can also work directly with presets and CSS vars:
+
+```ts
+import { themePacks, createThemePack, getThemeCssVars } from '@open-hax/uxx/tokens';
+
+const customTheme = createThemePack(themePacks.proxyConsole, {
+  radius: { md: '8px' },
+});
+
+const cssVars = getThemeCssVars(customTheme);
+```
+
 ### @open-hax/uxx
 
 React components implementing the contracts.

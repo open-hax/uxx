@@ -19,6 +19,8 @@
  * ```
  */
 
+export { UxxThemeProvider, type UxxThemeProviderProps } from './UxxThemeProvider.js';
+
 // Primitives
 export * from './primitives/index.js';
 

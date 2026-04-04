@@ -26,7 +26,7 @@ const variantGradients = {
 // Track styles
 const trackStyles = {
     backgroundColor: tokens.colors.background.surface,
-    borderRadius: `${tokens.spacing[1]}px`,
+    borderRadius: tokens.radius.sm,
     overflow: 'hidden',
     width: '100%',
     position: 'relative',
@@ -34,7 +34,7 @@ const trackStyles = {
 // Bar styles
 const baseBarStyles = {
     height: '100%',
-    borderRadius: `${tokens.spacing[1]}px`,
+    borderRadius: tokens.radius.sm,
 };
 // Value label styles
 const valueLabelStyles = {
