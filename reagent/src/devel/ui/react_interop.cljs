@@ -134,6 +134,7 @@
 
 (def theme-provider (wrap-react-component uxx/ThemeProvider))
 (def toast-provider (wrap-react-component primitives/ToastProvider))
+(def entity-card (wrap-react-component uxx/EntityCard))
 
 (def button (wrap-react-component primitives/Button))
 (def badge (wrap-react-component primitives/Badge))
@@ -193,7 +194,8 @@
 (def use-theme-name uxx/useThemeName)
 
 (def components
-  {:button button
+  {:entity-card entity-card
+   :button button
    :badge badge
    :spinner spinner
    :card card
