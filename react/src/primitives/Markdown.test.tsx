@@ -88,9 +88,15 @@ Paragraph after.`}
     expect(onLinkClick).toHaveBeenCalledWith('https://example.com/docs', expect.any(Object));
   });
 
-  it('supports bold text containing nested asterisks', () => {
+  it('renders nested emphasis inside strong text using a standards-based parser', () => {
     render(<Markdown content={'This is **bold*with*asterisks** text.'} />);
 
-    expect(screen.getByText('bold*with*asterisks', { selector: 'strong' })).toBeInTheDocument();
+    expect(
+      screen.getByText((_, element) => (
+        element?.tagName.toLowerCase() === 'strong'
+        && element.textContent === 'boldwithasterisks'
+      )),
+    ).toBeInTheDocument();
+    expect(screen.getByText('with', { selector: 'em' })).toBeInTheDocument();
   });
 });
