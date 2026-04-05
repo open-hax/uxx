@@ -11,54 +11,48 @@ import {
   type ThemeDefinition,
   type ThemeName,
   type ThemeOverride,
+  type ThemePack,
   type ThemePackName,
   type ThemePreference,
 } from '@open-hax/uxx/tokens';
 
+export type ResolvedTheme = Omit<ThemeDefinition, 'palette' | 'colors'>
+  & Pick<ThemePack, 'fontFamily' | 'fontSize' | 'shadow' | 'radius'>
+  & {
+    palette: ThemeDefinition['palette'];
+    colors: ThemeDefinition['colors'];
+  };
+
 interface UxxThemeContextValue {
   theme: ThemePreference;
   themeName: ThemeName;
-  resolvedTheme: ThemeDefinition;
-}
-
-const UxxThemeContext = createContext<UxxThemeContextValue>({
-  theme: defaultThemeName,
-  themeName: defaultThemeName,
-  resolvedTheme: resolveThemeTokens(defaultThemeName),
-});
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-function deepMerge<T extends Record<string, unknown>>(base: T, override?: Record<string, unknown>): T {
-  if (!override) {
-    return structuredClone(base);
-  }
-
-  const output: Record<string, unknown> = structuredClone(base);
-
-  for (const [key, value] of Object.entries(override)) {
-    if (value === undefined) {
-      continue;
-    }
-
-    const current = output[key];
-
-    if (isRecord(current) && isRecord(value)) {
-      output[key] = deepMerge(current, value);
-      continue;
-    }
-
-    output[key] = value;
-  }
-
-  return output as T;
+  resolvedTheme: ResolvedTheme;
 }
 
 function themePackForName(themeName: ThemeName) {
   return themePacks[themeName as ThemePackName] ?? themePacks[defaultThemeName as ThemePackName];
 }
+
+function createResolvedTheme(themeName: ThemeName, overrides?: ThemeOverride): ResolvedTheme {
+  const baseResolvedTheme = resolveThemeTokens(themeName);
+  const resolvedThemePack = createThemePack(themePackForName(themeName), overrides);
+
+  return {
+    ...baseResolvedTheme,
+    palette: resolvedThemePack.palette as ThemeDefinition['palette'],
+    colors: resolvedThemePack.colors as ThemeDefinition['colors'],
+    fontFamily: resolvedThemePack.fontFamily,
+    fontSize: resolvedThemePack.fontSize,
+    shadow: resolvedThemePack.shadow,
+    radius: resolvedThemePack.radius,
+  };
+}
+
+const UxxThemeContext = createContext<UxxThemeContextValue>({
+  theme: defaultThemeName,
+  themeName: defaultThemeName,
+  resolvedTheme: createResolvedTheme(defaultThemeName),
+});
 
 export interface ThemeProviderProps extends HTMLAttributes<HTMLElement> {
   theme?: ThemePreference;
@@ -78,21 +72,11 @@ export function ThemeProvider({
   ...props
 }: ThemeProviderProps) {
   const themeName = useMemo(() => resolveTheme(theme), [theme]);
-  const baseResolvedTheme = useMemo(() => resolveThemeTokens(themeName), [themeName]);
+  const resolvedTheme = useMemo(() => createResolvedTheme(themeName, overrides), [themeName, overrides]);
   const resolvedThemePack = useMemo(
     () => createThemePack(themePackForName(themeName), overrides),
     [themeName, overrides],
   );
-  const resolvedTheme = useMemo<ThemeDefinition>(() => {
-    if (!overrides?.colors) {
-      return baseResolvedTheme;
-    }
-
-    return {
-      ...baseResolvedTheme,
-      colors: deepMerge(baseResolvedTheme.colors, overrides.colors as Record<string, unknown>),
-    };
-  }, [baseResolvedTheme, overrides?.colors]);
   const cssVariables = useMemo(
     () => ({
       ...getThemeCssVars(resolvedThemePack),
@@ -124,20 +108,17 @@ export function ThemeProvider({
   );
 }
 
-export type UxxThemeProviderProps = ThemeProviderProps;
-export const UxxThemeProvider = ThemeProvider;
-
 export function useUxxTheme(): UxxThemeContextValue {
   return useContext(UxxThemeContext);
 }
 
-export function useResolvedTheme(theme?: ThemePreference): ThemeDefinition {
+export function useResolvedTheme(theme?: ThemePreference): ResolvedTheme {
   const context = useUxxTheme();
   return useMemo(() => {
     if (theme === undefined) {
       return context.resolvedTheme;
     }
-    return resolveThemeTokens(theme);
+    return createResolvedTheme(resolveTheme(theme));
   }, [context.resolvedTheme, theme]);
 }
 

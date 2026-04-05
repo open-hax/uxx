@@ -20,6 +20,7 @@
  */
 
 // Theme runtime
+export * from './UxxThemeProvider.js';
 export * from './theme.js';
 
 // Primitives

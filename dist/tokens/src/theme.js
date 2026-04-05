@@ -1,4 +1,4 @@
-import { monokai, nightOwl, proxyConsole, themes } from './colors.js';
+import { monokai, nightOwl, proxyConsole, themes, toKebabCase } from './colors.js';
 import { radius } from './radius.js';
 import { shadow } from './shadows.js';
 import { fontFamily, fontSize } from './typography.js';
@@ -8,7 +8,7 @@ function clone(value) {
 function isRecord(value) {
     return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
-function deepMerge(base, override) {
+export function deepMerge(base, override) {
     if (!override) {
         return clone(base);
     }
@@ -31,7 +31,7 @@ export function createThemePack(base, override) {
 }
 export const defaultThemePack = {
     colors: clone(themes.monokai.colors),
-    monokai: clone(monokai),
+    palette: clone(monokai),
     fontFamily,
     fontSize,
     shadow,
@@ -41,7 +41,7 @@ export const themePacks = {
     monokai: defaultThemePack,
     'night-owl': createThemePack(defaultThemePack, {
         colors: clone(themes['night-owl'].colors),
-        monokai: clone(nightOwl),
+        palette: clone(nightOwl),
         shadow: {
             focus: '0 0 0 2px rgba(130, 170, 255, 0.35)',
             focusError: '0 0 0 2px rgba(239, 83, 80, 0.35)',
@@ -49,7 +49,7 @@ export const themePacks = {
     }),
     'proxy-console': createThemePack(defaultThemePack, {
         colors: clone(themes['proxy-console'].colors),
-        monokai: clone(proxyConsole),
+        palette: clone(proxyConsole),
         fontFamily: {
             sans: [
                 'IBM Plex Sans',
@@ -87,7 +87,7 @@ export const themePacks = {
     }),
 };
 export function getThemeCssVarName(path) {
-    return `--uxx-${path.join('-')}`;
+    return `--uxx-${path.map(toKebabCase).join('-')}`;
 }
 function flattenThemeObject(value, path = []) {
     const flattened = {};

@@ -16,7 +16,7 @@ export { shadow, elevation, zIndex } from './shadows.js';
 // Radius
 export { radius } from './radius.js';
 // Themes
-export { createThemeCssVarRefs, createThemePack, defaultThemePack, getThemeCssVarName, getThemeCssVars, themePacks, } from './theme.js';
+export { createThemeCssVarRefs, createThemePack, defaultThemePack, deepMerge, getThemeCssVarName, getThemeCssVars, themePacks, } from './theme.js';
 // Keybindings
 export { defaultChords, modeColors, leaderKey } from './keybindings.js';
 // Re-export everything for convenience
@@ -29,7 +29,7 @@ import { radius } from './radius.js';
 import { createThemeCssVarRefs, themePacks } from './theme.js';
 import { defaultChords, modeColors, leaderKey } from './keybindings.js';
 const runtimeColors = createThemeCssVarRefs(themePacks.monokai.colors, ['colors']);
-const runtimeMonokai = createThemeCssVarRefs(themePacks.monokai.monokai, ['monokai']);
+const runtimePalette = createThemeCssVarRefs(themePacks.monokai.palette, ['palette']);
 const runtimeFontFamily = createThemeCssVarRefs(themePacks.monokai.fontFamily, ['fontFamily']);
 const runtimeFontSize = createThemeCssVarRefs(themePacks.monokai.fontSize, ['fontSize']);
 const runtimeShadow = createThemeCssVarRefs(themePacks.monokai.shadow, ['shadow']);
@@ -93,7 +93,7 @@ const runtimeTypography = {
     },
     codeInline: {
         fontFamily: runtimeFontFamily.mono,
-        fontSize: '0.875em',
+        fontSize: runtimeFontSize.inlineCode,
         fontWeight: fontWeight.normal,
     },
 };
@@ -131,7 +131,8 @@ export const tokenValues = {
  */
 export const tokens = {
     colors: runtimeColors,
-    monokai: runtimeMonokai,
+    palette: runtimePalette,
+    monokai: runtimePalette,
     spacing,
     space,
     fontFamily: runtimeFontFamily,

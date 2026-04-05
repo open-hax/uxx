@@ -15,7 +15,7 @@ export { shadow, elevation, zIndex } from './shadows.js';
 export type { ShadowToken, ElevationLevel, ZIndexToken } from './shadows.js';
 export { radius } from './radius.js';
 export type { RadiusToken } from './radius.js';
-export { createThemeCssVarRefs, createThemePack, defaultThemePack, getThemeCssVarName, getThemeCssVars, themePacks, } from './theme.js';
+export { createThemeCssVarRefs, createThemePack, defaultThemePack, deepMerge, getThemeCssVarName, getThemeCssVars, themePacks, } from './theme.js';
 export type { DeepPartial, ThemePack, ThemeOverride, ThemePackName } from './theme.js';
 export { defaultChords, modeColors, leaderKey } from './keybindings.js';
 export type { ModalMode, ChordBinding } from './keybindings.js';
@@ -426,6 +426,7 @@ export declare const tokenValues: {
         readonly '3xl': "1.875rem";
         readonly '4xl': "2.25rem";
         readonly '5xl': "3rem";
+        readonly inlineCode: "0.875em";
     };
     readonly fontWeight: {
         readonly normal: 400;
@@ -878,6 +879,39 @@ export declare const tokens: {
             readonly shadowDeep: string;
         };
     };
+    readonly palette: {
+        readonly bg: {
+            readonly default: string;
+            readonly darker: string;
+            readonly lighter: string;
+            readonly selection: string;
+            readonly tabInactive: string;
+            readonly groupBorder: string;
+        };
+        readonly fg: {
+            readonly default: string;
+            readonly bright: string;
+            readonly panel: string;
+            readonly soft: string;
+            readonly muted: string;
+            readonly subtle: string;
+        };
+        readonly accent: {
+            readonly yellow: string;
+            readonly orange: string;
+            readonly red: string;
+            readonly magenta: string;
+            readonly blue: string;
+            readonly cyan: string;
+            readonly green: string;
+        };
+        readonly semantic: {
+            readonly error: string;
+            readonly warning: string;
+            readonly success: string;
+            readonly info: string;
+        };
+    };
     readonly monokai: {
         readonly bg: {
             readonly default: string;
@@ -980,6 +1014,7 @@ export declare const tokens: {
         readonly '3xl': string;
         readonly '4xl': string;
         readonly '5xl': string;
+        readonly inlineCode: string;
     };
     readonly fontWeight: {
         readonly normal: 400;
@@ -1054,7 +1089,7 @@ export declare const tokens: {
         };
         readonly codeInline: {
             readonly fontFamily: string;
-            readonly fontSize: "0.875em";
+            readonly fontSize: string;
             readonly fontWeight: 400;
         };
     };

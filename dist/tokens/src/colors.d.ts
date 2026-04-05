@@ -274,6 +274,7 @@ declare function createThemeColors(palette: ThemePalette, overrides?: Record<str
 };
 export type ThemeColors = ReturnType<typeof createThemeColors>;
 export type ThemeCssVariables = Record<string, string>;
+export declare function toKebabCase(value: string): string;
 export interface ThemeDefinition {
     name: string;
     label: string;

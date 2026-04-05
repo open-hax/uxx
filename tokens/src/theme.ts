@@ -1,4 +1,4 @@
-import { monokai, nightOwl, proxyConsole, themes } from './colors.js';
+import { monokai, nightOwl, proxyConsole, themes, toKebabCase } from './colors.js';
 import { radius } from './radius.js';
 import { shadow } from './shadows.js';
 import { fontFamily, fontSize } from './typography.js';
@@ -17,7 +17,7 @@ type WidenLiterals<T> = T extends string
 
 export type ThemePack = {
   colors: WidenLiterals<typeof themes.monokai.colors>;
-  monokai: WidenLiterals<typeof monokai>;
+  palette: WidenLiterals<typeof monokai>;
   fontFamily: WidenLiterals<typeof fontFamily>;
   fontSize: WidenLiterals<typeof fontSize>;
   shadow: WidenLiterals<typeof shadow>;
@@ -34,7 +34,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function deepMerge<T extends Record<string, unknown>>(base: T, override?: DeepPartial<T>): T {
+export function deepMerge<T extends Record<string, unknown>>(base: T, override?: DeepPartial<T>): T {
   if (!override) {
     return clone(base);
   }
@@ -67,7 +67,7 @@ export type ThemePackName = 'monokai' | 'night-owl' | 'proxy-console';
 
 export const defaultThemePack: ThemePack = {
   colors: clone(themes.monokai.colors),
-  monokai: clone(monokai),
+  palette: clone(monokai),
   fontFamily,
   fontSize,
   shadow,
@@ -78,7 +78,7 @@ export const themePacks: Record<ThemePackName, ThemePack> = {
   monokai: defaultThemePack,
   'night-owl': createThemePack(defaultThemePack, {
     colors: clone(themes['night-owl'].colors),
-    monokai: clone(nightOwl),
+    palette: clone(nightOwl),
     shadow: {
       focus: '0 0 0 2px rgba(130, 170, 255, 0.35)',
       focusError: '0 0 0 2px rgba(239, 83, 80, 0.35)',
@@ -86,7 +86,7 @@ export const themePacks: Record<ThemePackName, ThemePack> = {
   }),
   'proxy-console': createThemePack(defaultThemePack, {
     colors: clone(themes['proxy-console'].colors),
-    monokai: clone(proxyConsole),
+    palette: clone(proxyConsole),
     fontFamily: {
       sans: [
         'IBM Plex Sans',
@@ -125,7 +125,7 @@ export const themePacks: Record<ThemePackName, ThemePack> = {
 };
 
 export function getThemeCssVarName(path: ReadonlyArray<string>): `--uxx-${string}` {
-  return `--uxx-${path.join('-')}`;
+  return `--uxx-${path.map(toKebabCase).join('-')}`;
 }
 
 function flattenThemeObject(

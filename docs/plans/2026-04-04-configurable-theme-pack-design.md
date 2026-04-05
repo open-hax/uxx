@@ -11,12 +11,12 @@ Add a theme-pack system to `@open-hax/uxx` so consumers can:
 1. select a named preset theme pack
 2. apply that pack through React via a provider
 3. override selected visual tokens without forking the library
-4. use a new `proxyConsole` preset aligned with the styling language from the `proxx` proxy console
+4. use a new `proxy-console` preset aligned with the styling language from the `proxx` proxy console
 
 ## Requirements
 
 - Preserve existing Monokai-oriented defaults
-- Add a `proxyConsole` preset with:
+- Add a `proxy-console` preset with:
   - deeper charcoal backgrounds
   - cyan primary accent
   - muted cool text scale
@@ -34,7 +34,7 @@ Introduce **theme packs as concrete token values** and keep the current token mo
 Add:
 
 - `themePacks.monokai`
-- `themePacks.proxyConsole`
+- `themePacks['proxy-console']`
 - `createThemePack(base, overrides)`
 - `getThemeCssVars(theme)`
 - `UxxThemeProvider`
@@ -75,12 +75,12 @@ import {
 ```tsx
 import { UxxThemeProvider } from '@open-hax/uxx';
 
-<UxxThemeProvider theme="proxyConsole">
+<UxxThemeProvider theme="proxy-console">
   <App />
 </UxxThemeProvider>
 
 <UxxThemeProvider
-  theme="proxyConsole"
+  theme="proxy-console"
   overrides={{
     colors: {
       accent: { cyan: '#16e0ff' },
@@ -194,7 +194,7 @@ Update README with:
 
 ## Success criteria
 
-- `uxx` exports named theme packs including `proxyConsole`
+- `uxx` exports named theme packs including `proxy-console`
 - React consumers can switch packs with `UxxThemeProvider`
 - Consumers can override selected tokens without editing library code
 - Storybook can preview both packs

@@ -17,6 +17,7 @@ export declare const fontSize: {
     readonly '3xl': "1.875rem";
     readonly '4xl': "2.25rem";
     readonly '5xl': "3rem";
+    readonly inlineCode: "0.875em";
 };
 export declare const fontWeight: {
     readonly normal: 400;

@@ -1,48 +1,31 @@
 import { jsx as _jsx } from "react/jsx-runtime";
 import { createContext, useContext, useMemo } from 'react';
 import { createThemePack, defaultThemeName, getThemeCssVariables, getThemeCssVars, resolveTheme, resolveThemeTokens, themePacks, } from '@open-hax/uxx/tokens';
-const UxxThemeContext = createContext({
-    theme: defaultThemeName,
-    themeName: defaultThemeName,
-    resolvedTheme: resolveThemeTokens(defaultThemeName),
-});
-function isRecord(value) {
-    return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-function deepMerge(base, override) {
-    if (!override) {
-        return structuredClone(base);
-    }
-    const output = structuredClone(base);
-    for (const [key, value] of Object.entries(override)) {
-        if (value === undefined) {
-            continue;
-        }
-        const current = output[key];
-        if (isRecord(current) && isRecord(value)) {
-            output[key] = deepMerge(current, value);
-            continue;
-        }
-        output[key] = value;
-    }
-    return output;
-}
 function themePackForName(themeName) {
     return themePacks[themeName] ?? themePacks[defaultThemeName];
 }
+function createResolvedTheme(themeName, overrides) {
+    const baseResolvedTheme = resolveThemeTokens(themeName);
+    const resolvedThemePack = createThemePack(themePackForName(themeName), overrides);
+    return {
+        ...baseResolvedTheme,
+        palette: resolvedThemePack.palette,
+        colors: resolvedThemePack.colors,
+        fontFamily: resolvedThemePack.fontFamily,
+        fontSize: resolvedThemePack.fontSize,
+        shadow: resolvedThemePack.shadow,
+        radius: resolvedThemePack.radius,
+    };
+}
+const UxxThemeContext = createContext({
+    theme: defaultThemeName,
+    themeName: defaultThemeName,
+    resolvedTheme: createResolvedTheme(defaultThemeName),
+});
 export function ThemeProvider({ theme = defaultThemeName, overrides, children, className, style, as: Component = 'div', ...props }) {
     const themeName = useMemo(() => resolveTheme(theme), [theme]);
-    const baseResolvedTheme = useMemo(() => resolveThemeTokens(themeName), [themeName]);
+    const resolvedTheme = useMemo(() => createResolvedTheme(themeName, overrides), [themeName, overrides]);
     const resolvedThemePack = useMemo(() => createThemePack(themePackForName(themeName), overrides), [themeName, overrides]);
-    const resolvedTheme = useMemo(() => {
-        if (!overrides?.colors) {
-            return baseResolvedTheme;
-        }
-        return {
-            ...baseResolvedTheme,
-            colors: deepMerge(baseResolvedTheme.colors, overrides.colors),
-        };
-    }, [baseResolvedTheme, overrides?.colors]);
     const cssVariables = useMemo(() => ({
         ...getThemeCssVars(resolvedThemePack),
         ...getThemeCssVariables(resolvedTheme),
@@ -53,7 +36,6 @@ export function ThemeProvider({ theme = defaultThemeName, overrides, children, c
                 ...style,
             }, children: children }) }));
 }
-export const UxxThemeProvider = ThemeProvider;
 export function useUxxTheme() {
     return useContext(UxxThemeContext);
 }
@@ -63,7 +45,7 @@ export function useResolvedTheme(theme) {
         if (theme === undefined) {
             return context.resolvedTheme;
         }
-        return resolveThemeTokens(theme);
+        return createResolvedTheme(resolveTheme(theme));
     }, [context.resolvedTheme, theme]);
 }
 export function useThemeName(theme) {

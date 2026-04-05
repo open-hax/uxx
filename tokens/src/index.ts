@@ -68,6 +68,7 @@ export {
   createThemeCssVarRefs,
   createThemePack,
   defaultThemePack,
+  deepMerge,
   getThemeCssVarName,
   getThemeCssVars,
   themePacks,
@@ -89,7 +90,7 @@ import { createThemeCssVarRefs, themePacks } from './theme.js';
 import { defaultChords, modeColors, leaderKey } from './keybindings.js';
 
 const runtimeColors = createThemeCssVarRefs(themePacks.monokai.colors, ['colors']);
-const runtimeMonokai = createThemeCssVarRefs(themePacks.monokai.monokai, ['monokai']);
+const runtimePalette = createThemeCssVarRefs(themePacks.monokai.palette, ['palette']);
 const runtimeFontFamily = createThemeCssVarRefs(themePacks.monokai.fontFamily, ['fontFamily']);
 const runtimeFontSize = createThemeCssVarRefs(themePacks.monokai.fontSize, ['fontSize']);
 const runtimeShadow = createThemeCssVarRefs(themePacks.monokai.shadow, ['shadow']);
@@ -154,7 +155,7 @@ const runtimeTypography = {
   },
   codeInline: {
     fontFamily: runtimeFontFamily.mono,
-    fontSize: '0.875em',
+    fontSize: runtimeFontSize.inlineCode,
     fontWeight: fontWeight.normal,
   },
 } as const;
@@ -194,7 +195,8 @@ export const tokenValues = {
  */
 export const tokens = {
   colors: runtimeColors,
-  monokai: runtimeMonokai,
+  palette: runtimePalette,
+  monokai: runtimePalette,
   spacing,
   space,
   fontFamily: runtimeFontFamily,

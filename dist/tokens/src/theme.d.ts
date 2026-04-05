@@ -10,13 +10,14 @@ type WidenLiterals<T> = T extends string ? string : T extends number ? number : 
 } : T;
 export type ThemePack = {
     colors: WidenLiterals<typeof themes.monokai.colors>;
-    monokai: WidenLiterals<typeof monokai>;
+    palette: WidenLiterals<typeof monokai>;
     fontFamily: WidenLiterals<typeof fontFamily>;
     fontSize: WidenLiterals<typeof fontSize>;
     shadow: WidenLiterals<typeof shadow>;
     radius: WidenLiterals<typeof radius>;
 };
 export type ThemeOverride = DeepPartial<ThemePack>;
+export declare function deepMerge<T extends Record<string, unknown>>(base: T, override?: DeepPartial<T>): T;
 export declare function createThemePack(base: ThemePack, override?: ThemeOverride): ThemePack;
 export type ThemePackName = 'monokai' | 'night-owl' | 'proxy-console';
 export declare const defaultThemePack: ThemePack;
