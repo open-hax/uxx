@@ -33,6 +33,7 @@
   },
   "scripts": {
     "build": "rm -rf dist && tsc -p tsconfig.json && node scripts/generate-css.mjs && node scripts/generate-cljs.mjs",
+    "prepack": "npm run build",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run --config react/vitest.config.ts",
     "test:watch": "vitest --config react/vitest.config.ts",

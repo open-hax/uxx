@@ -18,32 +18,42 @@ export interface MarkdownProps {
 }
 
 interface ParsedNode {
-  type: 'heading' | 'paragraph' | 'code' | 'list' | 'blockquote' | 'hr' | 'image' | 'link' | 'text';
+  type: 'heading' | 'paragraph' | 'code' | 'list' | 'blockquote' | 'hr' | 'image' | 'link' | 'text' | 'table';
   content?: string;
   level?: number;
   language?: string;
   items?: string[];
+  ordered?: boolean;
   href?: string;
   src?: string;
   alt?: string;
   children?: ParsedNode[];
+  // Table-specific
+  headers?: string[];
+  rows?: string[][];
 }
 
-// Simple markdown parser (supports common subset)
+interface InlineRenderOptions {
+  themeColors: ThemeColors;
+  linkTarget: '_self' | '_blank';
+  onLinkClick?: (href: string, e: React.MouseEvent) => void;
+}
+
+// Improved markdown parser
 function parseMarkdown(markdown: string): ParsedNode[] {
   const lines = markdown.split('\n');
   const nodes: ParsedNode[] = [];
   let i = 0;
-  
+
   while (i < lines.length) {
     const line = lines[i];
-    
+
     // Empty line
     if (!line.trim()) {
       i++;
       continue;
     }
-    
+
     // Heading
     const headingMatch = line.match(/^(#{1,6})\s+(.+)$/);
     if (headingMatch) {
@@ -55,17 +65,24 @@ function parseMarkdown(markdown: string): ParsedNode[] {
       i++;
       continue;
     }
-    
-    // Code block
+
+    // Code block (fenced)
     if (line.startsWith('```')) {
       const language = line.slice(3).trim();
       const codeLines: string[] = [];
       i++;
+
+      // Find closing fence
       while (i < lines.length && !lines[i].startsWith('```')) {
         codeLines.push(lines[i]);
         i++;
       }
-      i++; // Skip closing ```
+      
+      // Only skip closing fence if we found one
+      if (i < lines.length && lines[i].startsWith('```')) {
+        i++; // Skip closing ```
+      }
+      
       nodes.push({
         type: 'code',
         language: language || 'text',
@@ -73,14 +90,39 @@ function parseMarkdown(markdown: string): ParsedNode[] {
       });
       continue;
     }
-    
+
+    // Table detection (GFM style)
+    if (line.includes('|') && i + 1 < lines.length && /^\|?[\s-:|]+\|?$/.test(lines[i + 1])) {
+      const headerLine = line;
+      i += 2;
+      
+      // Parse headers
+      const headers = parseTableRow(headerLine);
+      
+      // Parse rows
+      const rows: string[][] = [];
+      while (i < lines.length && lines[i].includes('|')) {
+        // Stop if it looks like another block
+        if (/^(#{1,6}|```|> |[-*+]\s)/.test(lines[i].trim())) break;
+        rows.push(parseTableRow(lines[i]));
+        i++;
+      }
+      
+      nodes.push({
+        type: 'table',
+        headers,
+        rows,
+      });
+      continue;
+    }
+
     // Horizontal rule
     if (/^(-{3,}|\*{3,}|_{3,})$/.test(line.trim())) {
       nodes.push({ type: 'hr' });
       i++;
       continue;
     }
-    
+
     // Blockquote
     if (line.startsWith('> ')) {
       const quoteLines: string[] = [line.slice(2)];
@@ -95,7 +137,7 @@ function parseMarkdown(markdown: string): ParsedNode[] {
       });
       continue;
     }
-    
+
     // Unordered list
     if (/^[-*+]\s+/.test(line)) {
       const items: string[] = [line.replace(/^[-*+]\s+/, '')];
@@ -104,10 +146,10 @@ function parseMarkdown(markdown: string): ParsedNode[] {
         items.push(lines[i].replace(/^[-*+]\s+/, ''));
         i++;
       }
-      nodes.push({ type: 'list', items });
+      nodes.push({ type: 'list', items, ordered: false });
       continue;
     }
-    
+
     // Ordered list
     if (/^\d+\.\s+/.test(line)) {
       const items: string[] = [line.replace(/^\d+\.\s+/, '')];
@@ -116,14 +158,30 @@ function parseMarkdown(markdown: string): ParsedNode[] {
         items.push(lines[i].replace(/^\d+\.\s+/, ''));
         i++;
       }
-      nodes.push({ type: 'list', items });
+      nodes.push({ type: 'list', items, ordered: true });
       continue;
     }
-    
+
+    // Image
+    const imageMatch = line.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+    if (imageMatch) {
+      nodes.push({
+        type: 'image',
+        alt: imageMatch[1],
+        src: imageMatch[2],
+      });
+      i++;
+      continue;
+    }
+
     // Paragraph
     const paragraphLines: string[] = [line];
     i++;
     while (i < lines.length && lines[i].trim() && !/^(#{1,6}|```|> |[-*+]|\d+\.)\s*$/.test(lines[i])) {
+      // Don't include table separators or content in paragraphs
+      if (lines[i].includes('|') && i + 1 < lines.length && /^\|?[\s-:|]+\|?$/.test(lines[i + 1])) {
+        break;
+      }
       paragraphLines.push(lines[i]);
       i++;
     }
@@ -132,23 +190,31 @@ function parseMarkdown(markdown: string): ParsedNode[] {
       content: paragraphLines.join('\n'),
     });
   }
-  
+
   return nodes;
 }
 
-// Parse inline markdown (bold, italic, code, links)
-function parseInline(text: string, themeColors: ThemeColors): React.ReactNode[] {
+// Parse a table row
+function parseTableRow(line: string): string[] {
+  // Remove leading/trailing pipes and split
+  const trimmed = line.trim().replace(/^\|/, '').replace(/\|$/, '');
+  return trimmed.split('|').map(cell => cell.trim());
+}
+
+// Parse inline markdown (bold, italic, code, links, strikethrough)
+function parseInline(text: string, options: InlineRenderOptions): React.ReactNode[] {
+  const { themeColors, linkTarget, onLinkClick } = options;
   const parts: React.ReactNode[] = [];
   let remaining = text;
   let key = 0;
-  
+
   while (remaining) {
-    // Code (backticks)
+    // Inline code (backticks) - check first to avoid conflicts
     const codeMatch = remaining.match(/`([^`]+)`/);
     if (codeMatch) {
       const before = remaining.slice(0, codeMatch.index);
       if (before) {
-        parts.push(...parseInlineSimple(before, key));
+        parts.push(...parseInlineFormatting(before, key));
         key += 10;
       }
       parts.push(
@@ -168,13 +234,33 @@ function parseInline(text: string, themeColors: ThemeColors): React.ReactNode[] 
       remaining = remaining.slice((codeMatch.index || 0) + codeMatch[0].length);
       continue;
     }
-    
-    // Link
+
+    // Image ![alt](src) - inline version
+    const imageMatch = remaining.match(/!\[([^\]]*)\]\(([^)]+)\)/);
+    if (imageMatch) {
+      const before = remaining.slice(0, imageMatch.index);
+      if (before) {
+        parts.push(...parseInlineFormatting(before, key));
+        key += 10;
+      }
+      parts.push(
+        <img
+          key={key++}
+          src={imageMatch[2]}
+          alt={imageMatch[1]}
+          style={{ maxWidth: '100%', height: 'auto' }}
+        />
+      );
+      remaining = remaining.slice((imageMatch.index || 0) + imageMatch[0].length);
+      continue;
+    }
+
+    // Link [text](url)
     const linkMatch = remaining.match(/\[([^\]]+)\]\(([^)]+)\)/);
     if (linkMatch) {
       const before = remaining.slice(0, linkMatch.index);
       if (before) {
-        parts.push(...parseInlineSimple(before, key));
+        parts.push(...parseInlineFormatting(before, key));
         key += 10;
       }
       parts.push(
@@ -185,8 +271,9 @@ function parseInline(text: string, themeColors: ThemeColors): React.ReactNode[] 
             color: themeColors.accent.cyan,
             textDecoration: 'none',
           }}
-          target="_blank"
-          rel="noopener noreferrer"
+          target={linkTarget}
+          rel={linkTarget === '_blank' ? 'noopener noreferrer' : undefined}
+          onClick={(e) => onLinkClick?.(linkMatch[2], e)}
         >
           {linkMatch[1]}
         </a>
@@ -194,23 +281,38 @@ function parseInline(text: string, themeColors: ThemeColors): React.ReactNode[] 
       remaining = remaining.slice((linkMatch.index || 0) + linkMatch[0].length);
       continue;
     }
-    
-    // No more special patterns
-    parts.push(...parseInlineSimple(remaining, key));
+
+    // No more special patterns - handle formatting
+    parts.push(...parseInlineFormatting(remaining, key));
     break;
   }
-  
+
   return parts;
 }
 
-function parseInlineSimple(text: string, startKey: number): React.ReactNode[] {
+// Parse inline formatting (bold, italic, strikethrough)
+function parseInlineFormatting(text: string, startKey: number): React.ReactNode[] {
   const parts: React.ReactNode[] = [];
   let remaining = text;
   let key = startKey;
-  
+
   while (remaining) {
-    // Bold
-    const boldMatch = remaining.match(/\*\*([^*]+)\*\*/);
+    // Strikethrough ~~text~~
+    const strikeMatch = remaining.match(/~~(.+?)~~/);
+    if (strikeMatch) {
+      const before = remaining.slice(0, strikeMatch.index);
+      if (before) parts.push(<span key={key++}>{before}</span>);
+      parts.push(
+        <del key={key++} style={{ textDecoration: 'line-through', opacity: 0.7 }}>
+          {strikeMatch[1]}
+        </del>
+      );
+      remaining = remaining.slice((strikeMatch.index || 0) + strikeMatch[0].length);
+      continue;
+    }
+
+    // Bold **text** (non-greedy, allows asterisks inside)
+    const boldMatch = remaining.match(/\*\*(.+?)\*\*/);
     if (boldMatch) {
       const before = remaining.slice(0, boldMatch.index);
       if (before) parts.push(<span key={key++}>{before}</span>);
@@ -218,9 +320,19 @@ function parseInlineSimple(text: string, startKey: number): React.ReactNode[] {
       remaining = remaining.slice((boldMatch.index || 0) + boldMatch[0].length);
       continue;
     }
-    
-    // Italic
-    const italicMatch = remaining.match(/\*([^*]+)\*/);
+
+    // Bold __text__
+    const boldMatch2 = remaining.match(/__(.+?)__/);
+    if (boldMatch2) {
+      const before = remaining.slice(0, boldMatch2.index);
+      if (before) parts.push(<span key={key++}>{before}</span>);
+      parts.push(<strong key={key++}>{boldMatch2[1]}</strong>);
+      remaining = remaining.slice((boldMatch2.index || 0) + boldMatch2[0].length);
+      continue;
+    }
+
+    // Italic *text* (non-greedy)
+    const italicMatch = remaining.match(/\*(.+?)\*/);
     if (italicMatch) {
       const before = remaining.slice(0, italicMatch.index);
       if (before) parts.push(<span key={key++}>{before}</span>);
@@ -228,12 +340,22 @@ function parseInlineSimple(text: string, startKey: number): React.ReactNode[] {
       remaining = remaining.slice((italicMatch.index || 0) + italicMatch[0].length);
       continue;
     }
-    
+
+    // Italic _text_
+    const italicMatch2 = remaining.match(/_(.+?)_/);
+    if (italicMatch2) {
+      const before = remaining.slice(0, italicMatch2.index);
+      if (before) parts.push(<span key={key++}>{before}</span>);
+      parts.push(<em key={key++}>{italicMatch2[1]}</em>);
+      remaining = remaining.slice((italicMatch2.index || 0) + italicMatch2[0].length);
+      continue;
+    }
+
     // No more patterns
     parts.push(<span key={key++}>{remaining}</span>);
     break;
   }
-  
+
   return parts;
 }
 
@@ -252,7 +374,7 @@ export const Markdown: React.FC<MarkdownProps> = ({
   const nodes = useMemo(() => parseMarkdown(content), [content]);
   const resolvedTheme = useResolvedTheme(theme);
   const themeColors = resolvedTheme.colors;
-  
+
   const handleLinkClick = useCallback(
     (href: string, e: React.MouseEvent) => {
       if (onLinkClick) {
@@ -262,7 +384,16 @@ export const Markdown: React.FC<MarkdownProps> = ({
     },
     [onLinkClick]
   );
-  
+
+  const inlineRenderOptions = useMemo<InlineRenderOptions>(
+    () => ({
+      themeColors,
+      linkTarget,
+      onLinkClick: onLinkClick ? handleLinkClick : undefined,
+    }),
+    [themeColors, linkTarget, onLinkClick, handleLinkClick],
+  );
+
   const renderNode = (node: ParsedNode, index: number): React.ReactNode => {
     switch (node.type) {
       case 'heading':
@@ -292,10 +423,10 @@ export const Markdown: React.FC<MarkdownProps> = ({
               node.content || ''
             )}
           >
-            {parseInline(node.content || '', themeColors)}
+            {parseInline(node.content || '', inlineRenderOptions)}
           </HeadingTag>
         );
-        
+
       case 'paragraph':
         return (
           <p
@@ -307,10 +438,10 @@ export const Markdown: React.FC<MarkdownProps> = ({
               color: themeColors.text.default,
             }}
           >
-            {parseInline(node.content || '', themeColors)}
+            {parseInline(node.content || '', inlineRenderOptions)}
           </p>
         );
-        
+
       case 'code':
         return (
           <CodeBlock
@@ -324,7 +455,7 @@ export const Markdown: React.FC<MarkdownProps> = ({
             showLanguage
           />
         );
-        
+
       case 'blockquote':
         return (
           <blockquote
@@ -337,13 +468,14 @@ export const Markdown: React.FC<MarkdownProps> = ({
               color: themeColors.text.muted,
             }}
           >
-            {parseInline(node.content || '', themeColors)}
+            {parseInline(node.content || '', inlineRenderOptions)}
           </blockquote>
         );
-        
+
       case 'list':
+        const ListTag = node.ordered ? 'ol' : 'ul';
         return (
-          <ul
+          <ListTag
             key={index}
             style={{
               marginTop: 0,
@@ -354,12 +486,12 @@ export const Markdown: React.FC<MarkdownProps> = ({
           >
             {node.items?.map((item, i) => (
               <li key={i} style={{ marginBottom: 4 }}>
-                {parseInline(item, themeColors)}
+                {parseInline(item, inlineRenderOptions)}
               </li>
             ))}
-          </ul>
+          </ListTag>
         );
-        
+
       case 'hr':
         return (
           <hr
@@ -372,12 +504,95 @@ export const Markdown: React.FC<MarkdownProps> = ({
             }}
           />
         );
-        
+
+      case 'image':
+        return (
+          <figure key={index} style={{ margin: '16px 0' }}>
+            <img
+              src={node.src}
+              alt={node.alt || ''}
+              style={{
+                maxWidth: '100%',
+                height: 'auto',
+                borderRadius: tokens.radius.md,
+              }}
+            />
+            {node.alt && (
+              <figcaption
+                style={{
+                  marginTop: 8,
+                  fontSize: 12,
+                  color: themeColors.text.muted,
+                  textAlign: 'center',
+                }}
+              >
+                {node.alt}
+              </figcaption>
+            )}
+          </figure>
+        );
+
+      case 'table':
+        return (
+          <div
+            key={index}
+            style={{
+              overflowX: 'auto',
+              margin: '16px 0',
+            }}
+          >
+            <table
+              style={{
+                width: '100%',
+                borderCollapse: 'collapse',
+                fontSize: variant === 'compact' ? 13 : 14,
+              }}
+            >
+              <thead>
+                <tr>
+                  {node.headers?.map((header, i) => (
+                    <th
+                      key={i}
+                      style={{
+                        padding: '8px 12px',
+                        textAlign: 'left',
+                        borderBottom: `2px solid ${themeColors.border.default}`,
+                        color: themeColors.text.default,
+                        fontWeight: 600,
+                      }}
+                    >
+                      {parseInline(header, inlineRenderOptions)}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {node.rows?.map((row, rowIndex) => (
+                  <tr key={rowIndex}>
+                    {row.map((cell, cellIndex) => (
+                      <td
+                        key={cellIndex}
+                        style={{
+                          padding: '8px 12px',
+                          borderBottom: `1px solid ${themeColors.border.subtle}`,
+                          color: themeColors.text.default,
+                        }}
+                      >
+                        {parseInline(cell, inlineRenderOptions)}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        );
+
       default:
         return null;
     }
   };
-  
+
   return (
     <div
       className={className}

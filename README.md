@@ -117,7 +117,7 @@ npm run build
 ## Architecture
 
 - `react/` contains the canonical TypeScript + React implementation.
-- `dist/` is the stable build artifact consumed by the ClojureScript bindings.
+- `dist/` is the generated build artifact consumed by the ClojureScript bindings.
 - `reagent/` and `helix/` translate idiomatic CLJS props into the React prop surface.
 - `tokens/` remains the shared design-token source.
 
