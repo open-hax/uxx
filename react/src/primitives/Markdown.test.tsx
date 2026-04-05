@@ -24,6 +24,22 @@ Paragraph after.`}
     expect(container.textContent).toContain('const x = 1;');
   });
 
+  it('renders fenced code blocks immediately after a paragraph without requiring a blank line', () => {
+    const { container } = render(
+      <Markdown
+        content={`Paragraph before.
+\`\`\`javascript
+const x = 1;
+\`\`\`
+Paragraph after.`}
+      />,
+    );
+
+    expect(container.querySelector('[data-component="code-block"]')).not.toBeNull();
+    expect(container.textContent).toContain('const x = 1;');
+    expect(screen.getByText('Paragraph after.')).toBeInTheDocument();
+  });
+
   it('renders ordered lists and tables', () => {
     const { container } = render(
       <Markdown

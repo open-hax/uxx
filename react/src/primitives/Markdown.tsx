@@ -39,6 +39,45 @@ interface InlineRenderOptions {
   onLinkClick?: (href: string, e: React.MouseEvent) => void;
 }
 
+const HEADING_RE = /^(#{1,6})\s+(.+)$/;
+const HORIZONTAL_RULE_RE = /^(-{3,}|\*{3,}|_{3,})$/;
+const BLOCKQUOTE_RE = /^>\s+/;
+const UNORDERED_LIST_RE = /^[-*+]\s+/;
+const ORDERED_LIST_RE = /^\d+\.\s+/;
+const IMAGE_RE = /^!\[([^\]]*)\]\(([^)]+)\)$/;
+const TABLE_SEPARATOR_RE = /^\|?[\s:|\-]+\|?$/;
+
+function isFenceLine(line: string): boolean {
+  return line.trimStart().startsWith('```');
+}
+
+function isTableStart(line: string, nextLine?: string): boolean {
+  if (!nextLine) {
+    return false;
+  }
+
+  return line.includes('|') && TABLE_SEPARATOR_RE.test(nextLine.trim());
+}
+
+function startsBlockNode(line: string, nextLine?: string): boolean {
+  const trimmed = line.trim();
+
+  if (!trimmed) {
+    return false;
+  }
+
+  return (
+    HEADING_RE.test(trimmed)
+    || isFenceLine(line)
+    || isTableStart(line, nextLine)
+    || HORIZONTAL_RULE_RE.test(trimmed)
+    || BLOCKQUOTE_RE.test(trimmed)
+    || UNORDERED_LIST_RE.test(trimmed)
+    || ORDERED_LIST_RE.test(trimmed)
+    || IMAGE_RE.test(trimmed)
+  );
+}
+
 // Improved markdown parser
 function parseMarkdown(markdown: string): ParsedNode[] {
   const lines = markdown.split('\n');
@@ -55,7 +94,7 @@ function parseMarkdown(markdown: string): ParsedNode[] {
     }
 
     // Heading
-    const headingMatch = line.match(/^(#{1,6})\s+(.+)$/);
+    const headingMatch = line.trim().match(HEADING_RE);
     if (headingMatch) {
       nodes.push({
         type: 'heading',
@@ -67,19 +106,19 @@ function parseMarkdown(markdown: string): ParsedNode[] {
     }
 
     // Code block (fenced)
-    if (line.startsWith('```')) {
-      const language = line.slice(3).trim();
+    if (isFenceLine(line)) {
+      const language = line.trimStart().slice(3).trim();
       const codeLines: string[] = [];
       i++;
 
       // Find closing fence
-      while (i < lines.length && !lines[i].startsWith('```')) {
+      while (i < lines.length && !isFenceLine(lines[i])) {
         codeLines.push(lines[i]);
         i++;
       }
       
       // Only skip closing fence if we found one
-      if (i < lines.length && lines[i].startsWith('```')) {
+      if (i < lines.length && isFenceLine(lines[i])) {
         i++; // Skip closing ```
       }
       
@@ -92,7 +131,7 @@ function parseMarkdown(markdown: string): ParsedNode[] {
     }
 
     // Table detection (GFM style)
-    if (line.includes('|') && i + 1 < lines.length && /^\|?[\s-:|]+\|?$/.test(lines[i + 1])) {
+    if (isTableStart(line, lines[i + 1])) {
       const headerLine = line;
       i += 2;
       
@@ -103,7 +142,17 @@ function parseMarkdown(markdown: string): ParsedNode[] {
       const rows: string[][] = [];
       while (i < lines.length && lines[i].includes('|')) {
         // Stop if it looks like another block
-        if (/^(#{1,6}|```|> |[-*+]\s)/.test(lines[i].trim())) break;
+        if (
+          isFenceLine(lines[i])
+          || HEADING_RE.test(lines[i].trim())
+          || HORIZONTAL_RULE_RE.test(lines[i].trim())
+          || BLOCKQUOTE_RE.test(lines[i].trim())
+          || UNORDERED_LIST_RE.test(lines[i].trim())
+          || ORDERED_LIST_RE.test(lines[i].trim())
+          || IMAGE_RE.test(lines[i].trim())
+        ) {
+          break;
+        }
         rows.push(parseTableRow(lines[i]));
         i++;
       }
@@ -117,17 +166,17 @@ function parseMarkdown(markdown: string): ParsedNode[] {
     }
 
     // Horizontal rule
-    if (/^(-{3,}|\*{3,}|_{3,})$/.test(line.trim())) {
+    if (HORIZONTAL_RULE_RE.test(line.trim())) {
       nodes.push({ type: 'hr' });
       i++;
       continue;
     }
 
     // Blockquote
-    if (line.startsWith('> ')) {
+    if (BLOCKQUOTE_RE.test(line.trim())) {
       const quoteLines: string[] = [line.slice(2)];
       i++;
-      while (i < lines.length && lines[i].startsWith('> ')) {
+      while (i < lines.length && BLOCKQUOTE_RE.test(lines[i].trim())) {
         quoteLines.push(lines[i].slice(2));
         i++;
       }
@@ -139,10 +188,10 @@ function parseMarkdown(markdown: string): ParsedNode[] {
     }
 
     // Unordered list
-    if (/^[-*+]\s+/.test(line)) {
+    if (UNORDERED_LIST_RE.test(line.trim())) {
       const items: string[] = [line.replace(/^[-*+]\s+/, '')];
       i++;
-      while (i < lines.length && /^[-*+]\s+/.test(lines[i])) {
+      while (i < lines.length && UNORDERED_LIST_RE.test(lines[i].trim())) {
         items.push(lines[i].replace(/^[-*+]\s+/, ''));
         i++;
       }
@@ -151,10 +200,10 @@ function parseMarkdown(markdown: string): ParsedNode[] {
     }
 
     // Ordered list
-    if (/^\d+\.\s+/.test(line)) {
+    if (ORDERED_LIST_RE.test(line.trim())) {
       const items: string[] = [line.replace(/^\d+\.\s+/, '')];
       i++;
-      while (i < lines.length && /^\d+\.\s+/.test(lines[i])) {
+      while (i < lines.length && ORDERED_LIST_RE.test(lines[i].trim())) {
         items.push(lines[i].replace(/^\d+\.\s+/, ''));
         i++;
       }
@@ -163,7 +212,7 @@ function parseMarkdown(markdown: string): ParsedNode[] {
     }
 
     // Image
-    const imageMatch = line.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+    const imageMatch = line.trim().match(IMAGE_RE);
     if (imageMatch) {
       nodes.push({
         type: 'image',
@@ -177,9 +226,8 @@ function parseMarkdown(markdown: string): ParsedNode[] {
     // Paragraph
     const paragraphLines: string[] = [line];
     i++;
-    while (i < lines.length && lines[i].trim() && !/^(#{1,6}|```|> |[-*+]|\d+\.)\s*$/.test(lines[i])) {
-      // Don't include table separators or content in paragraphs
-      if (lines[i].includes('|') && i + 1 < lines.length && /^\|?[\s-:|]+\|?$/.test(lines[i + 1])) {
+    while (i < lines.length && lines[i].trim()) {
+      if (startsBlockNode(lines[i], lines[i + 1])) {
         break;
       }
       paragraphLines.push(lines[i]);
