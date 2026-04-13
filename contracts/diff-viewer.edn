@@ -36,9 +36,9 @@
   
   :theme
   {:type :enum
-   :values [:dark :light :auto]
+   :values [:monokai :night-owl :dark :light :auto]
    :default :dark
-   :description "Color theme"}
+   :description "Color theme or theme preference"}
   
   :line-numbers
   {:type :boolean

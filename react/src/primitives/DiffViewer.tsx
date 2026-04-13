@@ -1,5 +1,6 @@
 import React, { useMemo, useCallback } from 'react';
-import { tokens } from '@open-hax/uxx/tokens';
+import { tokens, type ThemePreference, withAlpha } from '@open-hax/uxx/tokens';
+import { useResolvedTheme } from '../theme.js';
 
 interface DiffLine {
   type: 'unchanged' | 'added' | 'removed';
@@ -23,7 +24,7 @@ export interface DiffViewerProps {
   filename?: string;
   language?: string;
   mode?: 'unified' | 'split';
-  theme?: 'dark' | 'light' | 'auto';
+  theme?: ThemePreference;
   lineNumbers?: boolean;
   showStats?: boolean;
   showFilename?: boolean;
@@ -189,6 +190,8 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
 }) => {
   const diff = useMemo(() => computeDiff(original, modified), [original, modified]);
   const hunks = useMemo(() => groupIntoHunks(diff), [diff]);
+  const resolvedTheme = useResolvedTheme(theme);
+  const themeColors = resolvedTheme.colors;
   
   const stats = useMemo(() => {
     let additions = 0;
@@ -226,15 +229,15 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
         onClick={() => handleLineClick(line, line.oldLine ? 'original' : 'modified')}
         style={{
           display: 'flex',
-          fontFamily: 'JetBrains Mono, monospace',
+          fontFamily: tokens.fontFamily.mono,
           fontSize: 13,
           lineHeight: 1.5,
           background: isHighlighted
-            ? 'rgba(255, 255, 255, 0.05)'
+            ? withAlpha(themeColors.text.default, 0.05)
             : line.type === 'added'
-            ? 'rgba(102, 217, 239, 0.15)'
+            ? themeColors.badge.info.bg
             : line.type === 'removed'
-            ? 'rgba(249, 38, 114, 0.15)'
+            ? themeColors.badge.error.bg
             : 'transparent',
           cursor: onLineClick ? 'pointer' : 'default',
         }}
@@ -244,7 +247,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
           style={{
             width: 20,
             textAlign: 'center',
-            color: line.type === 'added' ? tokens.monokai.accent.cyan : line.type === 'removed' ? tokens.monokai.accent.red : 'transparent',
+            color: line.type === 'added' ? themeColors.accent.cyan : line.type === 'removed' ? themeColors.accent.red : 'transparent',
             userSelect: 'none',
             flexShrink: 0,
           }}
@@ -259,7 +262,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
               width: 40,
               textAlign: 'right',
               paddingRight: 12,
-              color: tokens.colors.text.subtle,
+              color: themeColors.text.subtle,
               userSelect: 'none',
               opacity: 0.5,
               flexShrink: 0,
@@ -276,7 +279,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
               width: 40,
               textAlign: 'right',
               paddingRight: 12,
-              color: tokens.colors.text.subtle,
+              color: themeColors.text.subtle,
               userSelect: 'none',
               opacity: 0.5,
               flexShrink: 0,
@@ -296,16 +299,16 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
   
   const renderSplitView = () => {
     return (
-      <div style={{ display: 'flex', gap: 1, background: tokens.colors.border.default }}>
+      <div style={{ display: 'flex', gap: 1, background: themeColors.border.default }}>
         {/* Original */}
-        <div style={{ flex: 1, background: tokens.colors.background.default, overflow: 'auto' }}>
+        <div style={{ flex: 1, background: themeColors.background.default, overflow: 'auto' }}>
           <div
             style={{
               padding: '4px 8px',
-              background: tokens.colors.background.surface,
-              borderBottom: `1px solid ${tokens.colors.border.default}`,
+              background: themeColors.background.surface,
+              borderBottom: `1px solid ${themeColors.border.default}`,
               fontSize: 12,
-              color: tokens.colors.text.muted,
+              color: themeColors.text.muted,
               textAlign: 'center',
             }}
           >
@@ -316,13 +319,13 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
               key={index}
               style={{
                 display: 'flex',
-                fontFamily: 'JetBrains Mono, monospace',
+                fontFamily: tokens.fontFamily.mono,
                 fontSize: 13,
                 lineHeight: 1.5,
                 height: 20,
                 background:
                   line.type === 'removed'
-                    ? 'rgba(249, 38, 114, 0.15)'
+                    ? themeColors.badge.error.bg
                     : line.type === 'added'
                     ? 'transparent'
                     : 'transparent',
@@ -334,7 +337,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
                     width: 40,
                     textAlign: 'right',
                     paddingRight: 12,
-                    color: tokens.colors.text.subtle,
+                    color: themeColors.text.subtle,
                     userSelect: 'none',
                     opacity: 0.5,
                   }}
@@ -350,14 +353,14 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
         </div>
         
         {/* Modified */}
-        <div style={{ flex: 1, background: tokens.colors.background.default, overflow: 'auto' }}>
+        <div style={{ flex: 1, background: themeColors.background.default, overflow: 'auto' }}>
           <div
             style={{
               padding: '4px 8px',
-              background: tokens.colors.background.surface,
-              borderBottom: `1px solid ${tokens.colors.border.default}`,
+              background: themeColors.background.surface,
+              borderBottom: `1px solid ${themeColors.border.default}`,
               fontSize: 12,
-              color: tokens.colors.text.muted,
+              color: themeColors.text.muted,
               textAlign: 'center',
             }}
           >
@@ -368,13 +371,13 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
               key={index}
               style={{
                 display: 'flex',
-                fontFamily: 'JetBrains Mono, monospace',
+                fontFamily: tokens.fontFamily.mono,
                 fontSize: 13,
                 lineHeight: 1.5,
                 height: 20,
                 background:
                   line.type === 'added'
-                    ? 'rgba(102, 217, 239, 0.15)'
+                    ? themeColors.badge.info.bg
                     : 'transparent',
               }}
             >
@@ -384,7 +387,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
                     width: 40,
                     textAlign: 'right',
                     paddingRight: 12,
-                    color: tokens.colors.text.subtle,
+                    color: themeColors.text.subtle,
                     userSelect: 'none',
                     opacity: 0.5,
                   }}
@@ -410,10 +413,10 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
       role="region"
       aria-label="Diff viewer"
       style={{
-        background: tokens.colors.background.default,
-        borderRadius: tokens.spacing[2],
+        background: themeColors.background.default,
+        borderRadius: tokens.radius.md,
         overflow: 'hidden',
-        border: `1px solid ${tokens.colors.border.default}`,
+        border: `1px solid ${themeColors.border.default}`,
       }}
     >
       {/* Header */}
@@ -424,8 +427,8 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: '8px 12px',
-            background: tokens.colors.background.surface,
-            borderBottom: `1px solid ${tokens.colors.border.default}`,
+            background: themeColors.background.surface,
+            borderBottom: `1px solid ${themeColors.border.default}`,
           }}
         >
           {showFilename && (
@@ -433,7 +436,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
               style={{
                 fontSize: 14,
                 fontWeight: 500,
-                color: tokens.colors.text.default,
+                color: themeColors.text.default,
               }}
             >
               {filename || 'File diff'}
@@ -442,10 +445,10 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
           
           {showStats && (
             <div style={{ display: 'flex', gap: 16, fontSize: 13 }}>
-              <span style={{ color: tokens.monokai.accent.cyan }}>
+              <span style={{ color: themeColors.accent.cyan }}>
                 +{stats.additions}
               </span>
-              <span style={{ color: tokens.monokai.accent.red }}>
+              <span style={{ color: themeColors.accent.red }}>
                 -{stats.deletions}
               </span>
             </div>
@@ -464,10 +467,10 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
                   onClick={() => handleHunkClick(hunk)}
                   style={{
                     padding: '4px 12px',
-                    background: tokens.colors.background.elevated,
+                    background: themeColors.background.elevated,
                     fontSize: 12,
-                    color: tokens.colors.text.muted,
-                    fontFamily: 'JetBrains Mono, monospace',
+                    color: themeColors.text.muted,
+                    fontFamily: tokens.fontFamily.mono,
                     cursor: onHunkClick ? 'pointer' : 'default',
                   }}
                 >

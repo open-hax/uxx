@@ -26,5 +26,5 @@
   "devDependencies": {
     "@open-hax/uxx/tokens": "workspace:*"
   },
-  "license": "GPL-3.0-or-later"
+  "license": "LGPL-3.0-or-later"
 }

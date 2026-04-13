@@ -1,161 +1,101 @@
 # @open-hax/uxx-helix
 
-Helix component library implementing @open-hax/uxx contracts.
+Helix binding for the Open Hax UI kit.
 
-## About
+## Status
 
-This package provides a set of UI components built with [Helix](https://github.com/lilactown/helix), a modern ClojureScript interface to React. Helix offers:
+This package now mirrors the public React component surface by wrapping the canonical React build in `../dist/`.
 
-- Direct React interop with minimal overhead
-- Modern React hooks support
-- No Hiccup syntax (uses `$` macro and `helix.dom`)
-- Better performance than Reagent for complex UIs
+That gives Helix consumers the same component inventory, providers, and helper utilities as the React package, while keeping the authoring experience idiomatic for ClojureScript.
 
-## Installation
-
-```bash
-pnpm add @open-hax/uxx-helix
-```
-
-## Usage
+## Import
 
 ```clojure
-(ns my-app.core
+(ns app.ui
   (:require [helix.core :refer [$]]
-            ["@open-hax/uxx-helix" :as ui]))
-
-;; Use components
-($ ui/Button {:variant :primary :on-click #(js/alert "Clicked!")}
-   "Click me")
-
-($ ui/Card {:variant :elevated}
-   ($ ui/CardHeader {} "Card Title")
-   ($ ui/CardBody {} "Card content")
-   ($ ui/CardFooter {}
-      ($ ui/Button {} "Action")))
-
-;; Badge for status
-($ ui/Badge {:variant :success} "Active")
-
-;; Progress bar
-($ ui/Progress {:value 75 :variant :default})
-
-;; Modal dialog
-($ ui/Modal {:open? open? :on-close #(set-open? false)}
-   ($ ui/ModalHeader {:on-close #(set-open? false)} "Dialog Title")
-   ($ ui/ModalBody {} "Dialog content")
-   ($ ui/ModalFooter {}
-      ($ ui/Button {:variant :ghost :on-click #(set-open? false)} "Cancel")
-      ($ ui/Button {:variant :primary} "Confirm")))
-
-;; Input field
-($ ui/Input {:type :email
-             :placeholder "Enter email"
-             :value @email
-             :on-change #(reset! email (.. % -target -value))})
-
-;; Tooltip
-($ ui/Tooltip {:text "Helpful info" :position :top}
-   ($ ui/Button {} "Hover me"))
-
-;; Spinner
-($ ui/Spinner {:size :lg :color "#a6e22e"})
+            [devel.ui.helix.core :as ui]))
 ```
 
-## Components
+## Props and children
 
-### Button
+The wrapper layer normalizes idiomatic CLJS input to React props:
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `:variant` | `:primary \| :secondary \| :ghost \| :danger` | `:secondary` | Visual style |
-| `:size` | `:sm \| :md \| :lg` | `:md` | Button size |
-| `:disabled` | `boolean` | `false` | Disabled state |
-| `:loading` | `boolean` | `false` | Shows spinner |
-| `:full-width` | `boolean` | `false` | Full width |
-| `:icon-start` | `Helix element` | - | Icon before text |
-| `:icon-end` | `Helix element` | - | Icon after text |
-| `:on-click` | `function` | - | Click handler |
-| `:type` | `:button \| :submit \| :reset` | `:button` | Button type |
+- kebab-case prop keys become camelCase where React expects it
+- `:class` becomes `className`
+- `data-*` and `aria-*` props stay dashed
+- keyword enum values become strings
+- Helix children pass through as React children
 
-### Badge
+## Example
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `:variant` | `:default \| :success \| :warning \| :error \| :info` | `:default` | Color variant |
+```clojure
+(ns app.core
+  (:require [helix.core :refer [$]]
+            [devel.ui.helix.core :as ui]))
 
-### Card
+(defn shell []
+  ($ ui/theme-provider {:theme :night-owl}
+     ($ ui/toast-provider {:position :top-right}
+        ($ ui/card {:title "Agent console"}
+           ($ ui/status-chip-stack
+              {:items [{:label "ready" :tone :success}
+                       {:label "synced" :tone :info}]})
+           ($ ui/button {:variant :primary} "Launch")
+           ($ ui/markdown {:content "# Hello from Helix"})))))
+```
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `:variant` | `:flat \| :elevated \| :outlined` | `:flat` | Visual style |
-| `:padding` | `boolean \| number` | `true` | Padding |
+## Public surface
 
-### Input
+### Providers
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `:type` | `:text \| :password \| :email \| :number` | `:text` | Input type |
-| `:size` | `:sm \| :md \| :lg` | `:md` | Input size |
-| `:disabled` | `boolean` | `false` | Disabled state |
-| `:error` | `boolean` | `false` | Error state |
-| `:placeholder` | `string` | - | Placeholder text |
+- `theme-provider`
+- `toast-provider`
 
-### Modal
+### Hooks and helpers
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `:open?` | `boolean` | `false` | Visibility |
-| `:on-close` | `function` | - | Close callback |
-| `:size` | `:sm \| :md \| :lg \| :full` | `:md` | Modal width |
+Advanced consumers can also reach through to the React hooks and helpers:
 
-### Progress
+- `use-toast`
+- `use-adapter`
+- `use-uxx-theme`
+- `use-resolved-theme`
+- `use-theme-name`
+- `paginate-items`
+- `calculate-total-pages`
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `:value` | `number` | `0` | Current value |
-| `:max` | `number` | `100` | Maximum value |
-| `:variant` | `:default \| :success \| :warning \| :error` | `:default` | Color |
-| `:size` | `:sm \| :md \| :lg` | `:md` | Bar height |
-| `:show-label` | `boolean` | `false` | Show percentage |
+Normal React hook rules still apply.
 
-### Spinner
+### Components
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `:size` | `:sm \| :md \| :lg` | `:md` | Spinner size |
-| `:color` | `string` | `"currentColor"` | CSS color |
+- `button`, `badge`, `spinner`, `card`, `card-header`, `card-body`, `card-footer`, `modal`, `modal-header`, `modal-body`, `modal-footer`, `tooltip`, `input`, `select`, `textarea`, `progress`
+- `resizable-pane`, `which-key-popup`, `inspector-pane`, `context-section`, `pinned-tabs-bar`, `permission-card`, `prompt-card`, `permission-prompts`, `react-reagent-seam`, `command-palette`, `chat`, `toast`, `file-tree`, `tabs`
+- `searchable-select`, `collapsible-panel`, `key-value-section`, `surface-hero`, `panel-header`, `metric-tile`, `metric-tile-grid`, `filter-toolbar`, `action-strip`, `status-chip-stack`, `data-table-shell`, `pagination`
+- `feed`, `markdown`, `code-block`, `diff-viewer`, `markdown-editor`, `rich-text-editor`
 
-### Tooltip
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `:text` | `string` | - | Tooltip content |
-| `:position` | `:top \| :bottom \| :left \| :right` | `:top` | Position |
-
-## Design Tokens
-
-All components use consistent design tokens defined in `devel.ui.helix.tokens`:
-
-- **Colors**: Monokai-based palette with semantic aliases
-- **Typography**: Font sizes, weights, line heights
-- **Spacing**: 4px base unit scale
-- **Shadows**: Box shadow utilities
-- **Motion**: Transitions and durations
-
-## Development
+## Build
 
 ```bash
-# Build
-pnpm build
-
-# Watch mode
-pnpm watch
-
-# Production release (optimized)
-pnpm release
+cd orgs/open-hax/uxx
+npm run build
+cd helix
+npm run build
 ```
+
+## Watch
+
+```bash
+cd orgs/open-hax/uxx/helix
+npm run watch
+```
+
+## Notes
+
+- The React package remains the canonical implementation.
+- This package intentionally prioritizes parity and documentation clarity over divergent custom rendering.
+- React-only compositions like `EntityCard` are still not exposed here until explicit wrapper support is added.
+
+See [`../docs/framework-parity.md`](../docs/framework-parity.md) for the detailed matrix.
 
 ## License
 
-GPL-3.0-or-later
+LGPL-3.0-or-later

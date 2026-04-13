@@ -88,7 +88,7 @@ const inputStyles: CSSProperties = {
   color: tokens.colors.text.default,
   backgroundColor: tokens.colors.background.surface,
   border: `1px solid ${tokens.colors.border.default}`,
-  borderRadius: `${tokens.spacing[1.5]}px`,
+  borderRadius: tokens.radius.md,
   outline: 'none',
   transition: tokens.transitions.colors,
   cursor: 'text',
@@ -96,7 +96,7 @@ const inputStyles: CSSProperties = {
 
 const inputFocusStyles: CSSProperties = {
   borderColor: tokens.colors.border.focus,
-  boxShadow: `0 0 0 2px ${tokens.colors.border.focus}33`,
+  boxShadow: `0 0 0 2px ${tokens.colors.alpha.blue._35}`,
 };
 
 const inputDisabledStyles: CSSProperties = {
@@ -114,7 +114,7 @@ const dropdownStyles: CSSProperties = {
   marginTop: `${tokens.spacing[1]}px`,
   backgroundColor: tokens.colors.background.elevated,
   border: `1px solid ${tokens.colors.border.default}`,
-  borderRadius: `${tokens.spacing[1.5]}px`,
+  borderRadius: tokens.radius.md,
   boxShadow: tokens.shadow.lg,
   zIndex: tokens.zIndex.dropdown,
   maxHeight: '240px',

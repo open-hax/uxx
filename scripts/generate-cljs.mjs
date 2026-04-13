@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(__dirname, '..');
 const distDir = join(repoRoot, 'dist');
-const { tokens } = await import('../dist/tokens/src/index.js');
+const { tokenValues } = await import('../dist/tokens/src/index.js');
 
 function toCljValue(value, indent = 0) {
   const pad = '  '.repeat(indent);
@@ -32,7 +32,7 @@ const lines = [
   '  "Design tokens for Open Hax UXX components")',
   ''
 ];
-for (const [name, value] of Object.entries(tokens)) {
+for (const [name, value] of Object.entries(tokenValues)) {
   const cljName = name.replace(/([A-Z])/g, '-$1').toLowerCase();
   lines.push(`(def ${cljName}`);
   lines.push(`  ${toCljValue(value, 1)})`);

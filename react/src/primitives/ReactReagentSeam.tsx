@@ -89,7 +89,7 @@ function getScopeStyles(scopeClass: string): string {
 }
 .${scopeClass} button {
   margin-top: ${tokens.spacing[2]}px;
-  background: ${tokens.colors.accent?.cyan || '#66d9ef'};
+  background: ${tokens.colors.accent.cyan};
   color: ${tokens.colors.background.default};
   border: 0;
   border-radius: ${tokens.spacing[0.5]}px;
@@ -104,8 +104,8 @@ function getScopeStyles(scopeClass: string): string {
   display: inline-block;
   padding: ${tokens.spacing[1]}px ${tokens.spacing[2]}px;
   border-radius: ${tokens.spacing[0.5]}px;
-  background: rgba(166, 226, 46, 0.2);
-  color: ${tokens.colors.accent?.green || '#a6e22e'};
+  background: ${tokens.colors.alpha.green._25};
+  color: ${tokens.colors.accent.green};
   font-size: ${tokens.typography.bodySm.fontSize};
 }
 .${scopeClass} strong {

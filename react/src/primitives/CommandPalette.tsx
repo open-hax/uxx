@@ -65,7 +65,7 @@ export interface CommandPaletteProps {
 const backdropStyles: CSSProperties = {
   position: 'fixed',
   inset: 0,
-  backgroundColor: 'rgba(0, 0, 0, 0.6)',
+  backgroundColor: tokens.colors.background.overlay,
   backdropFilter: 'blur(4px)',
   zIndex: tokens.zIndex.modal,
   display: 'flex',
