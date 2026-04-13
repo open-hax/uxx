@@ -28,9 +28,9 @@ This package is the source of truth for the framework-parity contract used by th
 ### Components
 
 - `Button`, `Badge`, `Spinner`, `Card`, `CardHeader`, `CardBody`, `CardFooter`, `Modal`, `ModalHeader`, `ModalBody`, `ModalFooter`, `Tooltip`, `Input`, `Select`, `Textarea`, `Progress`
-- `ResizablePane`, `WhichKeyPopup`, `InspectorPane`, `ContextSection`, `PinnedTabsBar`, `PermissionCard`, `PromptCard`, `PermissionPrompts`, `ReactReagentSeam`, `CommandPalette`, `Chat`, `Toast`, `FileTree`, `Tabs`
+- `ResizablePane`, `WhichKeyPopup`, `InspectorPane`, `InspectorHeader`, `InspectorDetailView`, `InspectorEmptyState`, `InspectorErrorState`, `ContextSection`, `PinnedTabsBar`, `PermissionCard`, `PromptCard`, `PermissionPrompts`, `ReactReagentSeam`, `CommandPalette`, `Chat`, `Toast`, `FileTree`, `Tabs`
 - `SearchableSelect`, `CollapsiblePanel`, `KeyValueSection`, `SurfaceHero`, `PanelHeader`, `MetricTile`, `MetricTileGrid`, `FilterToolbar`, `ActionStrip`, `StatusChipStack`, `DataTableShell`, `Pagination`
-- `Feed`, `Markdown`, `CodeBlock`, `DiffViewer`, `MarkdownEditor`, `RichTextEditor`
+- `Feed`, `Markdown`, `CodeBlock`, `DiffViewer`, `MentionSuggestions`, `EditorToolbar`, `EditorStatusBar`, `MarkdownEditor`, `RichTextEditor`
 
 ### Compositions
 
@@ -147,9 +147,9 @@ When you add or change a public component here, parity work for the ClojureScrip
 
 See [`../docs/framework-parity.md`](../docs/framework-parity.md).
 
-## React-only composition status
+## Composition status
 
-`src/compositions/EntityCard.tsx` is now exported from the published root React API. Reagent and Helix parity for it is still pending.
+`src/compositions/EntityCard.tsx` is now part of the shared public parity surface across React, Reagent, and Helix.
 
 ## License
 

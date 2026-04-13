@@ -10,7 +10,7 @@ This document tracks the public API contract across the three framework bindings
 
 Parity here means **public exported surface**, not every source file in `react/`.
 
-`react/src/compositions/EntityCard.tsx` is now public in the React root package, but it remains outside CLJS parity until explicit Reagent and Helix wrappers are added.
+`react/src/compositions/EntityCard.tsx` is now public across React, Reagent, and Helix through the wrapper/export layers.
 
 ## Providers
 
@@ -61,6 +61,10 @@ Parity here means **public exported surface**, not every source file in `react/`
 | `ResizablePane` | `resizable-pane` | `resizable-pane` | ✅ |
 | `WhichKeyPopup` | `which-key-popup` | `which-key-popup` | ✅ |
 | `InspectorPane` | `inspector-pane` | `inspector-pane` | ✅ |
+| `InspectorHeader` | `inspector-header` | `inspector-header` | ✅ |
+| `InspectorDetailView` | `inspector-detail-view` | `inspector-detail-view` | ✅ |
+| `InspectorEmptyState` | `inspector-empty-state` | `inspector-empty-state` | ✅ |
+| `InspectorErrorState` | `inspector-error-state` | `inspector-error-state` | ✅ |
 | `ContextSection` | `context-section` | `context-section` | ✅ |
 | `PinnedTabsBar` | `pinned-tabs-bar` | `pinned-tabs-bar` | ✅ |
 | `PermissionCard` | `permission-card` | `permission-card` | ✅ |
@@ -98,6 +102,9 @@ Parity here means **public exported surface**, not every source file in `react/`
 | `Markdown` | `markdown` | `markdown` | ✅ |
 | `CodeBlock` | `code-block` | `code-block` | ✅ |
 | `DiffViewer` | `diff-viewer` | `diff-viewer` | ✅ |
+| `MentionSuggestions` | `mention-suggestions` | `mention-suggestions` | ✅ |
+| `EditorToolbar` | `editor-toolbar` | `editor-toolbar` | ✅ |
+| `EditorStatusBar` | `editor-status-bar` | `editor-status-bar` | ✅ |
 | `MarkdownEditor` | `markdown-editor` | `markdown-editor` | ✅ |
 | `RichTextEditor` | `rich-text-editor` | `rich-text-editor` | ✅ |
 
@@ -105,7 +112,7 @@ Parity here means **public exported surface**, not every source file in `react/`
 
 | React export | Reagent var | Helix var | Status |
 | --- | --- | --- | --- |
-| `EntityCard` | — | — | React public; CLJS parity pending |
+| `EntityCard` | `entity-card` | `entity-card` | ✅ |
 
 ## Implementation strategy
 
