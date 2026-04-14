@@ -1,6 +1,6 @@
 {
   "name": "@open-hax/uxx",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Open Hax UI component library with React primitives and shared design tokens.",
   "type": "module",
   "license": "LGPL-3.0-or-later",
