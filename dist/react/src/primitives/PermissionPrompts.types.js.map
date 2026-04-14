@@ -1,1 +1,0 @@
-{"version":3,"file":"PermissionPrompts.types.js","sourceRoot":"","sources":["../../../../react/src/primitives/PermissionPrompts.types.ts"],"names":[],"mappings":"AAgCA,MAAM,UAAU,aAAa,CAAC,IAAkC;IAC9D,IAAI,CAAC,IAAI;QAAE,OAAO,aAAa,CAAC;IAChC,IAAI,OAAO,IAAI,KAAK,QAAQ;QAAE,OAAO,IAAI,CAAC;IAC1C,OAAO,IAAI,CAAC,MAAM,IAAI,aAAa,CAAC;AACtC,CAAC"}
