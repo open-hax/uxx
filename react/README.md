@@ -9,6 +9,7 @@ This package is the source of truth for the framework-parity contract used by th
 ### Providers
 
 - `ThemeProvider`
+- `UxxThemeProvider` (backward-compatible alias)
 - `ToastProvider`
 
 ### Hooks
@@ -27,9 +28,9 @@ This package is the source of truth for the framework-parity contract used by th
 ### Components
 
 - `Button`, `Badge`, `Spinner`, `Card`, `CardHeader`, `CardBody`, `CardFooter`, `Modal`, `ModalHeader`, `ModalBody`, `ModalFooter`, `Tooltip`, `Input`, `Select`, `Textarea`, `Progress`
-- `ResizablePane`, `WhichKeyPopup`, `InspectorPane`, `InspectorHeader`, `InspectorDetailView`, `InspectorEmptyState`, `InspectorErrorState`, `ContextSection`, `PinnedTabsBar`, `PermissionCard`, `PromptCard`, `PermissionPrompts`, `ReactReagentSeam`, `CommandPalette`, `Chat`, `Toast`, `FileTree`, `Tabs`
+- `ResizablePane`, `WhichKeyPopup`, `InspectorPane`, `ContextSection`, `PinnedTabsBar`, `PermissionCard`, `PromptCard`, `PermissionPrompts`, `ReactReagentSeam`, `CommandPalette`, `Chat`, `Toast`, `FileTree`, `Tabs`
 - `SearchableSelect`, `CollapsiblePanel`, `KeyValueSection`, `SurfaceHero`, `PanelHeader`, `MetricTile`, `MetricTileGrid`, `FilterToolbar`, `ActionStrip`, `StatusChipStack`, `DataTableShell`, `Pagination`
-- `Feed`, `Markdown`, `CodeBlock`, `DiffViewer`, `MentionSuggestions`, `EditorToolbar`, `EditorStatusBar`, `MarkdownEditor`, `RichTextEditor`
+- `Feed`, `Markdown`, `CodeBlock`, `DiffViewer`, `MarkdownEditor`, `RichTextEditor`
 
 ### Compositions
 
@@ -90,6 +91,32 @@ export function App() {
 }
 ```
 
+## Themes
+
+Built-in themes currently include:
+
+- `monokai`
+- `night-owl`
+- `proxy-console`
+
+Use `ThemeProvider` for the canonical API, or `UxxThemeProvider` if you want the collaborator-proposed alias while keeping the same runtime behavior:
+
+```tsx
+<ThemeProvider theme="proxy-console">
+  <App />
+</ThemeProvider>
+
+<UxxThemeProvider
+  theme="proxy-console"
+  overrides={{
+    radius: { md: '4px' },
+    colors: { button: { primary: { bg: '#16E0FF' } } },
+  }}
+>
+  <App />
+</UxxThemeProvider>
+```
+
 ## Development
 
 ```bash
@@ -120,9 +147,9 @@ When you add or change a public component here, parity work for the ClojureScrip
 
 See [`../docs/framework-parity.md`](../docs/framework-parity.md).
 
-## Composition status
+## React-only composition status
 
-`src/compositions/EntityCard.tsx` is now part of the shared public parity surface across React, Reagent, and Helix.
+`src/compositions/EntityCard.tsx` is now exported from the published root React API. Reagent and Helix parity for it is still pending.
 
 ## License
 

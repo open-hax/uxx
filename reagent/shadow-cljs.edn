@@ -13,7 +13,6 @@
    :modules {:index {:entries [devel.ui.core]
                      :exports {:ThemeProvider devel.ui.core/theme-provider
                                :ToastProvider devel.ui.core/toast-provider
-                               :EntityCard devel.ui.core/entity-card
                                :Button devel.ui.core/button
                                :Badge devel.ui.core/badge
                                :Spinner devel.ui.core/spinner
@@ -33,10 +32,6 @@
                                :ResizablePane devel.ui.core/resizable-pane
                                :WhichKeyPopup devel.ui.core/which-key-popup
                                :InspectorPane devel.ui.core/inspector-pane
-                               :InspectorHeader devel.ui.core/inspector-header
-                               :InspectorDetailView devel.ui.core/inspector-detail-view
-                               :InspectorEmptyState devel.ui.core/inspector-empty-state
-                               :InspectorErrorState devel.ui.core/inspector-error-state
                                :ContextSection devel.ui.core/context-section
                                :PinnedTabsBar devel.ui.core/pinned-tabs-bar
                                :PermissionCard devel.ui.core/permission-card
@@ -64,9 +59,6 @@
                                :Markdown devel.ui.core/markdown
                                :CodeBlock devel.ui.core/code-block
                                :DiffViewer devel.ui.core/diff-viewer
-                               :MentionSuggestions devel.ui.core/mention-suggestions
-                               :EditorToolbar devel.ui.core/editor-toolbar
-                               :EditorStatusBar devel.ui.core/editor-status-bar
                                :MarkdownEditor devel.ui.core/markdown-editor
                                :RichTextEditor devel.ui.core/rich-text-editor
                                :useToast devel.ui.core/use-toast

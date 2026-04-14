@@ -38,6 +38,7 @@ export const fontSize = {
   '3xl': '1.875rem',  // 30px
   '4xl': '2.25rem',   // 36px
   '5xl': '3rem',      // 48px
+  inlineCode: '0.875em',
 } as const;
 
 export const fontWeight = {
@@ -123,7 +124,7 @@ export const typography = {
   },
   codeInline: {
     fontFamily: fontFamily.mono,
-    fontSize: '0.875em', // Relative to parent
+    fontSize: fontSize.inlineCode,
     fontWeight: fontWeight.normal,
   },
 } as const;

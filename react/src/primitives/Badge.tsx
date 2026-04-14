@@ -134,7 +134,7 @@ const baseStyles: CSSProperties = {
   justifyContent: 'center',
   fontWeight: tokens.fontWeight.medium,
   lineHeight: tokens.lineHeight.none,
-  borderRadius: `${tokens.spacing[1]}px`,
+  borderRadius: tokens.radius.sm,
   fontFamily: tokens.fontFamily.sans,
   whiteSpace: 'nowrap',
 };
@@ -232,7 +232,7 @@ export function Badge({
     backgroundColor: outline ? 'transparent' : bg,
     color: outline ? bg : fg,
     border: outline ? `1px solid ${bg}` : 'none',
-    borderRadius: rounded ? '9999px' : `${tokens.spacing[1]}px`,
+    borderRadius: rounded ? tokens.radius.full : tokens.radius.sm,
   };
 
   const dotFg = dotColor || (outline ? bg : fg);

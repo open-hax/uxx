@@ -1,17 +1,37 @@
 import { jsx as _jsx } from "react/jsx-runtime";
 import { createContext, useContext, useMemo } from 'react';
-import { defaultThemeName, getThemeCssVariables, resolveTheme, resolveThemeTokens, } from '@open-hax/uxx/tokens';
+import { createThemePack, defaultThemeName, getThemeCssVariables, getThemeCssVars, resolveTheme, resolveThemeTokens, themePacks, } from '@open-hax/uxx/tokens';
+function themePackForName(themeName) {
+    return themePacks[themeName] ?? themePacks[defaultThemeName];
+}
+function createResolvedTheme(themeName, overrides) {
+    const baseResolvedTheme = resolveThemeTokens(themeName);
+    const resolvedThemePack = createThemePack(themePackForName(themeName), overrides);
+    return {
+        ...baseResolvedTheme,
+        palette: resolvedThemePack.palette,
+        colors: resolvedThemePack.colors,
+        fontFamily: resolvedThemePack.fontFamily,
+        fontSize: resolvedThemePack.fontSize,
+        shadow: resolvedThemePack.shadow,
+        radius: resolvedThemePack.radius,
+    };
+}
 const UxxThemeContext = createContext({
     theme: defaultThemeName,
     themeName: defaultThemeName,
-    resolvedTheme: resolveThemeTokens(defaultThemeName),
+    resolvedTheme: createResolvedTheme(defaultThemeName),
 });
-export function ThemeProvider({ theme = defaultThemeName, children, className, style, as: Component = 'div', }) {
+export function ThemeProvider({ theme = defaultThemeName, overrides, children, className, style, as: Component = 'div', ...props }) {
     const themeName = useMemo(() => resolveTheme(theme), [theme]);
-    const resolvedTheme = useMemo(() => resolveThemeTokens(themeName), [themeName]);
-    const cssVariables = useMemo(() => getThemeCssVariables(resolvedTheme), [resolvedTheme]);
+    const resolvedTheme = useMemo(() => createResolvedTheme(themeName, overrides), [themeName, overrides]);
+    const resolvedThemePack = useMemo(() => createThemePack(themePackForName(themeName), overrides), [themeName, overrides]);
+    const cssVariables = useMemo(() => ({
+        ...getThemeCssVars(resolvedThemePack),
+        ...getThemeCssVariables(resolvedTheme),
+    }), [resolvedThemePack, resolvedTheme]);
     const value = useMemo(() => ({ theme, themeName, resolvedTheme }), [theme, themeName, resolvedTheme]);
-    return (_jsx(UxxThemeContext.Provider, { value: value, children: _jsx(Component, { "data-theme": themeName, className: className ? `theme-${themeName} ${className}` : `theme-${themeName}`, style: {
+    return (_jsx(UxxThemeContext.Provider, { value: value, children: _jsx(Component, { ...props, "data-theme": themeName, "data-uxx-theme": themeName, className: className ? `theme-${themeName} ${className}` : `theme-${themeName}`, style: {
                 ...cssVariables,
                 ...style,
             }, children: children }) }));
@@ -21,8 +41,12 @@ export function useUxxTheme() {
 }
 export function useResolvedTheme(theme) {
     const context = useUxxTheme();
-    const preference = theme ?? context.themeName;
-    return useMemo(() => resolveThemeTokens(preference), [preference]);
+    return useMemo(() => {
+        if (theme === undefined) {
+            return context.resolvedTheme;
+        }
+        return createResolvedTheme(resolveTheme(theme));
+    }, [context.resolvedTheme, theme]);
 }
 export function useThemeName(theme) {
     return useResolvedTheme(theme).name;

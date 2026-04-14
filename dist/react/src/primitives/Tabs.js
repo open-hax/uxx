@@ -55,7 +55,7 @@ const getTabStyles = (variant, size, isActive, disabled) => {
     if (variant === 'pills') {
         return {
             ...base,
-            borderRadius: '9999px',
+            borderRadius: tokens.radius.full,
             backgroundColor: isActive ? tokens.colors.accent.cyan : 'transparent',
             color: isActive ? tokens.colors.background.default : tokens.colors.text.muted,
         };
@@ -71,7 +71,7 @@ const getTabStyles = (variant, size, isActive, disabled) => {
     if (variant === 'enclosed') {
         return {
             ...base,
-            borderRadius: `${tokens.spacing[1]}px ${tokens.spacing[1]}px 0 0`,
+            borderRadius: `${tokens.radius.sm} ${tokens.radius.sm} 0 0`,
             backgroundColor: isActive ? tokens.colors.background.elevated : 'transparent',
             border: `1px solid ${tokens.colors.border.default}`,
             borderBottom: isActive ? 'none' : `1px solid ${tokens.colors.border.default}`,
@@ -82,7 +82,7 @@ const getTabStyles = (variant, size, isActive, disabled) => {
     // default variant
     return {
         ...base,
-        borderRadius: `${tokens.spacing[1]}px`,
+        borderRadius: tokens.radius.sm,
         backgroundColor: isActive ? tokens.colors.background.elevated : 'transparent',
         color: isActive ? tokens.colors.text.default : tokens.colors.text.muted,
     };
@@ -102,7 +102,7 @@ const closeButtonStyles = {
     fontSize: '14px',
     lineHeight: 1,
     color: tokens.colors.text.muted,
-    borderRadius: '3px',
+    borderRadius: tokens.radius.xs,
 };
 // Add button styles
 const addButtonStyles = {
@@ -112,7 +112,7 @@ const addButtonStyles = {
     padding: `${tokens.spacing[1]}px ${tokens.spacing[3]}px`,
     background: 'none',
     border: `1px dashed ${tokens.colors.border.default}`,
-    borderRadius: `${tokens.spacing[1]}px`,
+    borderRadius: tokens.radius.sm,
     cursor: 'pointer',
     color: tokens.colors.text.muted,
     fontFamily: tokens.fontFamily.sans,
@@ -176,7 +176,7 @@ export function Tabs({ value: controlledValue, defaultValue, onChange, items, va
         return (_jsxs("button", { "data-tab-id": item.id, role: "tab", "aria-selected": isActive, "aria-controls": `panel-${item.id}`, "aria-disabled": isDisabled, tabIndex: isActive ? 0 : -1, "data-component": "tab", "data-active": isActive || undefined, "data-disabled": isDisabled || undefined, style: getTabStyles(variant, size, isActive, isDisabled), onClick: () => handleTabClick(item.id, isDisabled), onKeyDown: handleKeyDown, children: [item.icon && _jsx("span", { children: item.icon }), _jsx("span", { children: item.label }), item.badge && (_jsx("span", { style: {
                         padding: '1px 6px',
                         backgroundColor: tokens.colors.background.surface,
-                        borderRadius: '9999px',
+                        borderRadius: tokens.radius.full,
                         fontSize: tokens.fontSize.xs,
                     }, children: item.badge })), isClosable && (_jsx("span", { role: "button", "aria-label": "Close tab", style: closeButtonStyles, onClick: (e) => {
                         e.stopPropagation();

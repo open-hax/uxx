@@ -112,7 +112,7 @@ const getTabStyles = (variant: TabsVariant, size: TabsSize, isActive: boolean, d
   if (variant === 'pills') {
     return {
       ...base,
-      borderRadius: '9999px',
+      borderRadius: tokens.radius.full,
       backgroundColor: isActive ? tokens.colors.accent.cyan : 'transparent',
       color: isActive ? tokens.colors.background.default : tokens.colors.text.muted,
     };
@@ -130,7 +130,7 @@ const getTabStyles = (variant: TabsVariant, size: TabsSize, isActive: boolean, d
   if (variant === 'enclosed') {
     return {
       ...base,
-      borderRadius: `${tokens.spacing[1]}px ${tokens.spacing[1]}px 0 0`,
+      borderRadius: `${tokens.radius.sm} ${tokens.radius.sm} 0 0`,
       backgroundColor: isActive ? tokens.colors.background.elevated : 'transparent',
       border: `1px solid ${tokens.colors.border.default}`,
       borderBottom: isActive ? 'none' : `1px solid ${tokens.colors.border.default}`,
@@ -142,7 +142,7 @@ const getTabStyles = (variant: TabsVariant, size: TabsSize, isActive: boolean, d
   // default variant
   return {
     ...base,
-    borderRadius: `${tokens.spacing[1]}px`,
+    borderRadius: tokens.radius.sm,
     backgroundColor: isActive ? tokens.colors.background.elevated : 'transparent',
     color: isActive ? tokens.colors.text.default : tokens.colors.text.muted,
   };
@@ -164,7 +164,7 @@ const closeButtonStyles: CSSProperties = {
   fontSize: '14px',
   lineHeight: 1,
   color: tokens.colors.text.muted,
-  borderRadius: '3px',
+  borderRadius: tokens.radius.xs,
 };
 
 // Add button styles
@@ -175,7 +175,7 @@ const addButtonStyles: CSSProperties = {
   padding: `${tokens.spacing[1]}px ${tokens.spacing[3]}px`,
   background: 'none',
   border: `1px dashed ${tokens.colors.border.default}`,
-  borderRadius: `${tokens.spacing[1]}px`,
+  borderRadius: tokens.radius.sm,
   cursor: 'pointer',
   color: tokens.colors.text.muted,
   fontFamily: tokens.fontFamily.sans,
@@ -280,7 +280,7 @@ export function Tabs({
           <span style={{
             padding: '1px 6px',
             backgroundColor: tokens.colors.background.surface,
-            borderRadius: '9999px',
+            borderRadius: tokens.radius.full,
             fontSize: tokens.fontSize.xs,
           }}>
             {item.badge}

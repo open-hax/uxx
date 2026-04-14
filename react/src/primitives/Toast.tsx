@@ -111,7 +111,7 @@ const toastStyles: CSSProperties = {
   alignItems: 'flex-start',
   gap: `${tokens.spacing[3]}px`,
   padding: `${tokens.spacing[4]}px`,
-  borderRadius: `${tokens.spacing[2]}px`,
+  borderRadius: tokens.radius.md,
   boxShadow: tokens.shadow.lg,
   borderLeft: '4px solid',
   fontFamily: tokens.fontFamily.sans,

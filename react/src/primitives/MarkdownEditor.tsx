@@ -1,8 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { tokens, type ThemePreference } from '@open-hax/uxx/tokens';
 import { Markdown } from './Markdown.js';
-import { EditorStatusBar, type EditorStatusBarItem } from './EditorStatusBar.js';
-import { EditorToolbar, type EditorToolbarItem } from './EditorToolbar.js';
 import { useResolvedTheme } from '../theme.js';
 
 export interface MarkdownEditorProps {
@@ -90,6 +88,40 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     setCursorPosition({ line, column });
   }, []);
   
+  // Keyboard shortcuts
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      // Save: Ctrl+S or Cmd+S
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        onSave?.(value);
+        return;
+      }
+      
+      // Bold: Ctrl+B
+      if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+        e.preventDefault();
+        insertFormatting('**', '**');
+        return;
+      }
+      
+      // Italic: Ctrl+I
+      if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
+        e.preventDefault();
+        insertFormatting('*', '*');
+        return;
+      }
+      
+      // Tab handling
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        insertText('  ');
+        return;
+      }
+    },
+    [value, onSave]
+  );
+  
   // Insert text at cursor
   const insertText = useCallback(
     (text: string) => {
@@ -112,7 +144,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     },
     [value, controlledValue, onChange]
   );
-
+  
   // Insert formatting around selection
   const insertFormatting = useCallback(
     (before: string, after: string) => {
@@ -142,215 +174,80 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     },
     [value, controlledValue, onChange]
   );
-
-  // Keyboard shortcuts
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-      const hasAccel = e.ctrlKey || e.metaKey;
-      const key = e.key.toLowerCase();
-
-      // Save: Ctrl+S or Cmd+S
-      if (hasAccel && !e.shiftKey && key === 's') {
-        e.preventDefault();
-        onSave?.(value);
-        return;
-      }
-
-      if (hasAccel && e.shiftKey) {
-        if (key === 's') {
-          e.preventDefault();
-          insertFormatting('~~', '~~');
-          return;
-        }
-
-        if (key === 'i') {
-          e.preventDefault();
-          insertText('![alt](url)');
-          return;
-        }
-
-        if (key === 'l') {
-          e.preventDefault();
-          insertText('1. ');
-          return;
-        }
-
-        if (key === 'c') {
-          e.preventDefault();
-          insertText('```\n\n```\n');
-          return;
-        }
-      }
-
-      if (hasAccel && !e.shiftKey) {
-        if (key === '1') {
-          e.preventDefault();
-          insertText('# ');
-          return;
-        }
-
-        if (key === '2') {
-          e.preventDefault();
-          insertText('## ');
-          return;
-        }
-
-        if (key === '3') {
-          e.preventDefault();
-          insertText('### ');
-          return;
-        }
-
-        if (key === 'k') {
-          e.preventDefault();
-          insertFormatting('[', '](url)');
-          return;
-        }
-
-        if (key === 'l') {
-          e.preventDefault();
-          insertText('- ');
-          return;
-        }
-
-        if (key === 'q') {
-          e.preventDefault();
-          insertText('> ');
-          return;
-        }
-
-        if (e.key === '`') {
-          e.preventDefault();
-          insertFormatting('`', '`');
-          return;
-        }
-      }
-
-      // Bold: Ctrl+B
-      if (hasAccel && !e.shiftKey && key === 'b') {
-        e.preventDefault();
-        insertFormatting('**', '**');
-        return;
-      }
-
-      // Italic: Ctrl+I
-      if (hasAccel && !e.shiftKey && key === 'i') {
-        e.preventDefault();
-        insertFormatting('*', '*');
-        return;
-      }
-
-      // Tab handling
-      if (e.key === 'Tab') {
-        e.preventDefault();
-        insertText('  ');
-      }
-    },
-    [insertFormatting, insertText, onSave, value]
-  );
   
   // Toolbar actions
-  const toolbarActions = useMemo<EditorToolbarItem[]>(
+  const toolbarActions = useMemo(
     () => [
       {
-        key: 'h1',
         label: 'H1',
-        onClick: () => insertText('# '),
-        title: 'Ctrl+1',
+        action: () => insertText('# '),
+        shortcut: 'Ctrl+1',
       },
       {
-        key: 'h2',
         label: 'H2',
-        onClick: () => insertText('## '),
-        title: 'Ctrl+2',
+        action: () => insertText('## '),
+        shortcut: 'Ctrl+2',
       },
       {
-        key: 'h3',
         label: 'H3',
-        onClick: () => insertText('### '),
-        title: 'Ctrl+3',
+        action: () => insertText('### '),
+        shortcut: 'Ctrl+3',
       },
-      { type: 'divider', key: 'div-heading' },
+      { divider: true },
       {
-        key: 'bold',
         label: 'B',
-        onClick: () => insertFormatting('**', '**'),
-        title: 'Ctrl+B',
-        buttonStyle: { fontWeight: 'bold' },
+        action: () => insertFormatting('**', '**'),
+        shortcut: 'Ctrl+B',
       },
       {
-        key: 'italic',
         label: 'I',
-        onClick: () => insertFormatting('*', '*'),
-        title: 'Ctrl+I',
-        buttonStyle: { fontStyle: 'italic' },
+        action: () => insertFormatting('*', '*'),
+        shortcut: 'Ctrl+I',
       },
       {
-        key: 'strike',
         label: 'S',
-        onClick: () => insertFormatting('~~', '~~'),
-        title: 'Ctrl+Shift+S',
+        action: () => insertFormatting('~~', '~~'),
+        shortcut: 'Ctrl+Shift+S',
       },
       {
-        key: 'inline-code',
         label: '</>',
-        onClick: () => insertFormatting('`', '`'),
-        title: 'Ctrl+`',
+        action: () => insertFormatting('`', '`'),
+        shortcut: 'Ctrl+`',
       },
-      { type: 'divider', key: 'div-format' },
+      { divider: true },
       {
-        key: 'link',
         label: 'Link',
-        onClick: () => insertFormatting('[', '](url)'),
-        title: 'Ctrl+K',
+        action: () => insertFormatting('[', '](url)'),
+        shortcut: 'Ctrl+K',
       },
       {
-        key: 'image',
         label: 'Image',
-        onClick: () => insertText('![alt](url)'),
-        title: 'Ctrl+Shift+I',
+        action: () => insertText('![alt](url)'),
+        shortcut: 'Ctrl+Shift+I',
       },
-      { type: 'divider', key: 'div-media' },
+      { divider: true },
       {
-        key: 'list',
         label: 'List',
-        onClick: () => insertText('- '),
-        title: 'Ctrl+L',
+        action: () => insertText('- '),
+        shortcut: 'Ctrl+L',
       },
       {
-        key: 'numbered-list',
         label: 'Num',
-        onClick: () => insertText('1. '),
-        title: 'Ctrl+Shift+L',
+        action: () => insertText('1. '),
+        shortcut: 'Ctrl+Shift+L',
       },
       {
-        key: 'quote',
         label: 'Quote',
-        onClick: () => insertText('> '),
-        title: 'Ctrl+Q',
+        action: () => insertText('> '),
+        shortcut: 'Ctrl+Q',
       },
       {
-        key: 'code-block',
         label: 'Code',
-        onClick: () => insertText('```\n\n```\n'),
-        title: 'Ctrl+Shift+C',
+        action: () => insertText('```\n\n```\n'),
+        shortcut: 'Ctrl+Shift+C',
       },
     ],
     [insertText, insertFormatting]
-  );
-
-  const statusItems = useMemo<EditorStatusBarItem[]>(
-    () => [
-      {
-        key: 'cursor',
-        label: `Ln ${cursorPosition.line}, Col ${cursorPosition.column}`,
-      },
-      { key: 'lines', label: `${stats.lines} lines` },
-      { key: 'words', label: `${stats.words} words` },
-      { key: 'characters', label: `${stats.characters} characters` },
-      { key: 'mode', label: 'Markdown', align: 'end' },
-    ],
-    [cursorPosition, stats]
   );
   
   // Autosave
@@ -374,18 +271,60 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         display: 'flex',
         flexDirection: 'column',
         background: themeColors.background.default,
-        borderRadius: tokens.spacing[2],
+        borderRadius: tokens.radius.md,
         overflow: 'hidden',
       }}
     >
       {/* Toolbar */}
       {toolbar && (
-        <EditorToolbar
-          items={toolbarActions}
-          background={themeColors.background.surface}
-          borderColor={themeColors.border.subtle}
-          textColor={themeColors.text.default}
-        />
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4,
+            padding: '8px 12px',
+            background: themeColors.background.surface,
+            borderBottom: `1px solid ${themeColors.border.subtle}`,
+            flexWrap: 'wrap',
+          }}
+        >
+          {toolbarActions.map((item, index) => {
+            if ('divider' in item) {
+              return (
+                <div
+                  key={index}
+                  style={{
+                    width: 1,
+                    height: 20,
+                    background: themeColors.border.default,
+                    margin: '0 4px',
+                  }}
+                />
+              );
+            }
+            return (
+              <button
+                key={index}
+                onClick={item.action}
+                title={item.shortcut}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  padding: '4px 8px',
+                  borderRadius: 4,
+                  color: themeColors.text.default,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  fontSize: 13,
+                  fontWeight: item.label === 'B' ? 'bold' : 'normal',
+                  fontStyle: item.label === 'I' ? 'italic' : 'normal',
+                }}
+              >
+                {item.label}
+              </button>
+            );
+          })}
+        </div>
       )}
       
       {/* Editor area with line numbers */}
@@ -402,7 +341,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
               padding: '12px 8px',
               background: themeColors.background.elevated,
               color: themeColors.text.subtle,
-              fontFamily: 'JetBrains Mono, monospace',
+              fontFamily: tokens.fontFamily.mono,
               fontSize: 13,
               lineHeight: 1.6,
               textAlign: 'right',
@@ -433,7 +372,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             border: 'none',
             outline: 'none',
             color: themeColors.text.default,
-            fontFamily: 'JetBrains Mono, monospace',
+            fontFamily: tokens.fontFamily.mono,
             fontSize: 14,
             lineHeight: 1.6,
             resize: 'none',
@@ -445,12 +384,24 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       
       {/* Status bar */}
       {statusBar && (
-        <EditorStatusBar
-          items={statusItems}
-          background={themeColors.background.surface}
-          borderColor={themeColors.border.subtle}
-          textColor={themeColors.text.muted}
-        />
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 16,
+            padding: '4px 12px',
+            background: themeColors.background.surface,
+            borderTop: `1px solid ${themeColors.border.subtle}`,
+            fontSize: 12,
+            color: themeColors.text.muted,
+          }}
+        >
+          <span>Ln {cursorPosition.line}, Col {cursorPosition.column}</span>
+          <span>{stats.lines} lines</span>
+          <span>{stats.words} words</span>
+          <span>{stats.characters} characters</span>
+          <span style={{ marginLeft: 'auto' }}>Markdown</span>
+        </div>
       )}
     </div>
   );
@@ -463,7 +414,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         flex: previewMode === 'split' ? previewRatio : 1,
         padding: 16,
         background: themeColors.background.surface,
-        borderRadius: tokens.spacing[2],
+        borderRadius: tokens.radius.md,
         overflow: 'auto',
       }}
     >
@@ -494,7 +445,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           flexDirection: 'column',
           height: '100%',
           background: themeColors.background.default,
-          borderRadius: tokens.spacing[2],
+          borderRadius: tokens.radius.md,
           overflow: 'hidden',
         }}
       >
@@ -555,7 +506,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         style={{
           height: '100%',
           background: themeColors.background.default,
-          borderRadius: tokens.spacing[2],
+          borderRadius: tokens.radius.md,
           overflow: 'hidden',
         }}
       >
@@ -574,7 +525,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         style={{
           height: '100%',
           background: themeColors.background.default,
-          borderRadius: tokens.spacing[2],
+          borderRadius: tokens.radius.md,
           overflow: 'hidden',
         }}
       >
@@ -594,7 +545,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         gap: 1,
         height: '100%',
         background: themeColors.border.default,
-        borderRadius: tokens.spacing[2],
+        borderRadius: tokens.radius.md,
         overflow: 'hidden',
       }}
     >

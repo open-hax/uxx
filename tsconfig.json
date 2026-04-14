@@ -30,6 +30,9 @@
     "node_modules",
     "dist",
     "**/*.stories.tsx",
-    "**/*.test.tsx"
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx"
   ]
 }

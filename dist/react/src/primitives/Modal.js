@@ -34,7 +34,7 @@ const backdropStyles = {
 // Modal container styles
 const modalStyles = {
     backgroundColor: tokens.colors.background.elevated,
-    borderRadius: `${tokens.spacing[3]}px`,
+    borderRadius: tokens.radius.lg,
     boxShadow: tokens.shadow['2xl'],
     border: `1px solid ${tokens.colors.border.subtle}`,
     display: 'flex',

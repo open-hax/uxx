@@ -1,5 +1,4 @@
 import React from 'react';
-import type { MentionItem, ToolbarConfig, ToolbarItem } from './RichTextEditor.types.js';
 export interface RichTextEditorProps {
     value?: string;
     defaultValue?: string;
@@ -30,11 +29,26 @@ export interface RichTextEditorProps {
     onSave?: (value: string) => void;
     className?: string;
 }
+export interface ToolbarConfig {
+    items?: ToolbarItem[];
+    groups?: ToolbarGroup[];
+}
+export interface ToolbarItem {
+    type: 'bold' | 'italic' | 'underline' | 'strikethrough' | 'code' | 'heading' | 'quote' | 'list' | 'link' | 'image' | 'code-block' | 'divider' | 'undo' | 'redo' | 'separator';
+    icon?: React.ReactNode;
+    label?: string;
+    shortcut?: string;
+}
 export interface ToolbarGroup {
     name: string;
     items: ToolbarItem[];
 }
-export type { MentionItem, ToolbarConfig, ToolbarItem } from './RichTextEditor.types.js';
+export interface MentionItem {
+    id: string;
+    name: string;
+    avatar?: string;
+    description?: string;
+}
 export declare const RichTextEditor: React.FC<RichTextEditorProps>;
 export default RichTextEditor;
 //# sourceMappingURL=RichTextEditor.d.ts.map

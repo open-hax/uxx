@@ -7,7 +7,6 @@
 
 (def theme-provider primitives/theme-provider)
 (def toast-provider primitives/toast-provider)
-(def entity-card primitives/entity-card)
 
 (def button primitives/button)
 (def badge primitives/badge)
@@ -28,10 +27,6 @@
 (def resizable-pane primitives/resizable-pane)
 (def which-key-popup primitives/which-key-popup)
 (def inspector-pane primitives/inspector-pane)
-(def inspector-header primitives/inspector-header)
-(def inspector-detail-view primitives/inspector-detail-view)
-(def inspector-empty-state primitives/inspector-empty-state)
-(def inspector-error-state primitives/inspector-error-state)
 (def context-section primitives/context-section)
 (def pinned-tabs-bar primitives/pinned-tabs-bar)
 (def permission-card primitives/permission-card)
@@ -59,9 +54,6 @@
 (def markdown primitives/markdown)
 (def code-block primitives/code-block)
 (def diff-viewer primitives/diff-viewer)
-(def mention-suggestions primitives/mention-suggestions)
-(def editor-toolbar primitives/editor-toolbar)
-(def editor-status-bar primitives/editor-status-bar)
 (def markdown-editor primitives/markdown-editor)
 (def rich-text-editor primitives/rich-text-editor)
 

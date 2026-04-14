@@ -261,7 +261,7 @@ function createThemeColors(palette, overrides) {
     };
     return mergeThemeObjects(base, overrides);
 }
-function toKebabCase(value) {
+export function toKebabCase(value) {
     return value.replace(/([A-Z])/g, '-$1').toLowerCase();
 }
 function createCssVarReference(path, fallback) {
@@ -378,6 +378,39 @@ export const nightOwl = {
         warning: '#FFCA28',
         success: '#c5e478',
         info: '#82AAFF',
+    },
+};
+export const proxyConsole = {
+    bg: {
+        default: '#0A0C0F',
+        darker: '#0F1318',
+        lighter: '#1E2530',
+        selection: '#131820',
+        tabInactive: '#131820',
+        groupBorder: '#1E2530',
+    },
+    fg: {
+        default: '#E8ECF1',
+        bright: '#F4F7FB',
+        panel: '#D6DCE6',
+        soft: '#A6B1C2',
+        muted: '#8A94A6',
+        subtle: '#5A6478',
+    },
+    accent: {
+        yellow: '#F5A623',
+        orange: '#F5A623',
+        red: '#FF4C4C',
+        magenta: '#9B8CFF',
+        blue: '#00D4FF',
+        cyan: '#00D4FF',
+        green: '#00E5A0',
+    },
+    semantic: {
+        error: '#FF4C4C',
+        warning: '#F5A623',
+        success: '#00E5A0',
+        info: '#00D4FF',
     },
 };
 export const themes = {
@@ -502,6 +535,182 @@ export const themes = {
                 shadow: 'rgba(1, 22, 39, 0.35)',
                 shadowLight: 'rgba(1, 11, 20, 0.3)',
                 shadowDeep: 'rgba(1, 17, 29, 0.45)',
+            },
+        },
+    }),
+    'proxy-console': createThemeDefinition('proxy-console', 'Proxy Console', proxyConsole, {
+        appearance: 'dark',
+        colorOverrides: {
+            interactive: {
+                default: proxyConsole.accent.cyan,
+                hover: '#34DEFF',
+                active: '#00B8DE',
+                disabled: proxyConsole.fg.subtle,
+            },
+            button: {
+                primary: {
+                    bg: '#00D4FF',
+                    fg: '#0A0C0F',
+                    hover: '#34DEFF',
+                    active: '#00B8DE',
+                },
+                secondary: {
+                    bg: '#0F1318',
+                    fg: '#E8ECF1',
+                    hover: '#131820',
+                    active: '#1A212C',
+                },
+                ghost: {
+                    bg: 'transparent',
+                    fg: '#E8ECF1',
+                    hover: withAlpha(proxyConsole.accent.cyan, 0.12),
+                    active: withAlpha(proxyConsole.accent.cyan, 0.18),
+                },
+                danger: {
+                    bg: '#FF4C4C',
+                    fg: '#FDFEFF',
+                    hover: '#FF6666',
+                    active: '#E64545',
+                },
+            },
+            badge: {
+                default: {
+                    bg: withAlpha(proxyConsole.fg.subtle, 0.2),
+                    fg: '#E8ECF1',
+                },
+                success: {
+                    bg: withAlpha(proxyConsole.accent.green, 0.12),
+                    fg: '#00E5A0',
+                },
+                warning: {
+                    bg: withAlpha(proxyConsole.accent.orange, 0.12),
+                    fg: '#F5A623',
+                },
+                error: {
+                    bg: withAlpha(proxyConsole.accent.red, 0.12),
+                    fg: '#FF4C4C',
+                },
+                info: {
+                    bg: withAlpha(proxyConsole.accent.cyan, 0.12),
+                    fg: '#00D4FF',
+                },
+            },
+            border: {
+                default: '#1E2530',
+                subtle: '#171C25',
+                focus: '#00D4FF',
+                error: '#FF4C4C',
+            },
+            chart: {
+                segment0: '#00D4FF',
+                segment1: '#00E5A0',
+                segment2: '#F5A623',
+                segment3: '#FF4C4C',
+                segment4: '#9B8CFF',
+                segment5: '#7A90AA',
+            },
+            fill: {
+                good: { start: '#00E5A0', end: '#57F0C0' },
+                warn: { start: '#F5A623', end: '#FFD07A' },
+                danger: { start: '#FF4C4C', end: '#FF8C8C' },
+                neutral: { start: '#00D4FF', end: '#8EEBFF' },
+            },
+            surface: {
+                panel: withAlpha(proxyConsole.bg.darker, 0.92),
+                card: withAlpha(proxyConsole.bg.tabInactive, 0.82),
+                cardAlt: withAlpha(proxyConsole.bg.lighter, 0.62),
+                input: withAlpha('#0A0D11', 0.95),
+                nav: withAlpha(proxyConsole.bg.default, 0.88),
+            },
+            alpha: {
+                green: {
+                    _08: withAlpha(proxyConsole.accent.green, 0.08),
+                    _12: withAlpha(proxyConsole.accent.green, 0.12),
+                    _14: withAlpha(proxyConsole.accent.green, 0.14),
+                    _15: withAlpha(proxyConsole.accent.green, 0.15),
+                    _16: withAlpha(proxyConsole.accent.green, 0.16),
+                    _25: withAlpha(proxyConsole.accent.green, 0.25),
+                    _28: withAlpha(proxyConsole.accent.green, 0.28),
+                    _30: withAlpha(proxyConsole.accent.green, 0.3),
+                    _35: withAlpha(proxyConsole.accent.green, 0.35),
+                    _38: withAlpha(proxyConsole.accent.green, 0.38),
+                    _40: withAlpha(proxyConsole.accent.green, 0.4),
+                    _45: withAlpha(proxyConsole.accent.green, 0.45),
+                    _50: withAlpha(proxyConsole.accent.green, 0.5),
+                    _55: withAlpha(proxyConsole.accent.green, 0.55),
+                    _60: withAlpha(proxyConsole.accent.green, 0.6),
+                    _80: withAlpha(proxyConsole.accent.green, 0.8),
+                },
+                red: {
+                    _12: withAlpha(proxyConsole.accent.red, 0.12),
+                    _14: withAlpha(proxyConsole.accent.red, 0.14),
+                    _15: withAlpha(proxyConsole.accent.red, 0.15),
+                    _25: withAlpha(proxyConsole.accent.red, 0.25),
+                    _30: withAlpha(proxyConsole.accent.red, 0.3),
+                    _38: withAlpha(proxyConsole.accent.red, 0.38),
+                    _40: withAlpha(proxyConsole.accent.red, 0.4),
+                    _45: withAlpha(proxyConsole.accent.red, 0.45),
+                    _46: withAlpha(proxyConsole.accent.red, 0.46),
+                    _50: withAlpha(proxyConsole.accent.red, 0.5),
+                },
+                orange: {
+                    _12: withAlpha(proxyConsole.accent.orange, 0.12),
+                    _15: withAlpha(proxyConsole.accent.orange, 0.15),
+                    _32: withAlpha(proxyConsole.accent.orange, 0.32),
+                    _35: withAlpha(proxyConsole.accent.orange, 0.35),
+                    _40: withAlpha(proxyConsole.accent.orange, 0.4),
+                },
+                blue: {
+                    _15: withAlpha(proxyConsole.accent.blue, 0.15),
+                    _20: withAlpha(proxyConsole.accent.blue, 0.2),
+                    _35: withAlpha(proxyConsole.accent.blue, 0.35),
+                    _45: withAlpha(proxyConsole.accent.blue, 0.45),
+                    _80: withAlpha(proxyConsole.accent.blue, 0.8),
+                    _95: withAlpha(proxyConsole.accent.blue, 0.95),
+                },
+                magenta: {
+                    _08: withAlpha(proxyConsole.accent.magenta, 0.08),
+                    _14: withAlpha(proxyConsole.accent.magenta, 0.14),
+                    _30: withAlpha(proxyConsole.accent.magenta, 0.3),
+                },
+                yellow: {
+                    _06: withAlpha(proxyConsole.accent.yellow, 0.06),
+                },
+                bg: {
+                    _08: withAlpha(proxyConsole.bg.tabInactive, 0.08),
+                    _10: withAlpha(proxyConsole.bg.tabInactive, 0.1),
+                    _12: withAlpha(proxyConsole.bg.tabInactive, 0.12),
+                    _14: withAlpha(proxyConsole.bg.tabInactive, 0.14),
+                    _16: withAlpha(proxyConsole.bg.tabInactive, 0.16),
+                    _18: withAlpha(proxyConsole.bg.tabInactive, 0.18),
+                    _24: withAlpha(proxyConsole.bg.tabInactive, 0.24),
+                    _25: withAlpha(proxyConsole.bg.tabInactive, 0.25),
+                    _28: withAlpha(proxyConsole.bg.tabInactive, 0.28),
+                    _30: withAlpha(proxyConsole.bg.tabInactive, 0.3),
+                    _46: withAlpha(proxyConsole.bg.default, 0.46),
+                    _55: withAlpha(proxyConsole.bg.tabInactive, 0.55),
+                    _60: withAlpha(proxyConsole.bg.default, 0.6),
+                    _62: withAlpha(proxyConsole.bg.default, 0.62),
+                    _68: withAlpha(proxyConsole.bg.default, 0.68),
+                    _70: withAlpha(proxyConsole.bg.tabInactive, 0.7),
+                    _72: withAlpha(proxyConsole.bg.default, 0.72),
+                    _80: withAlpha(proxyConsole.bg.default, 0.8),
+                    _85: withAlpha(proxyConsole.bg.tabInactive, 0.85),
+                    _88: withAlpha(proxyConsole.bg.tabInactive, 0.88),
+                    _88b: withAlpha(proxyConsole.bg.default, 0.88),
+                    _90: withAlpha(proxyConsole.bg.default, 0.9),
+                    _95: withAlpha(proxyConsole.bg.default, 0.95),
+                },
+                warningBg: withAlpha('#442E0C', 0.88),
+                errorBg: withAlpha('#5A1C1C', 0.42),
+                errorBgSolid: withAlpha('#5A1C1C', 0.9),
+                federationError: withAlpha('#7F1D1D', 0.22),
+                white: {
+                    _08: withAlpha('#FFFFFF', 0.08),
+                },
+                shadow: withAlpha('#000000', 0.4),
+                shadowLight: withAlpha('#000000', 0.3),
+                shadowDeep: withAlpha('#000000', 0.5),
             },
         },
     }),

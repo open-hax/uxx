@@ -16,7 +16,7 @@ const tooltipStyles = {
     fontSize: tokens.fontSize.xs,
     lineHeight: 1.4,
     padding: `${tokens.spacing[1]}px ${tokens.spacing[2]}px`,
-    borderRadius: `${tokens.spacing[1]}px`,
+    borderRadius: tokens.radius.sm,
     boxShadow: tokens.shadow.md,
     zIndex: tokens.zIndex.tooltip,
     pointerEvents: 'none',

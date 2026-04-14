@@ -13,7 +13,6 @@
    :modules {:index {:entries [devel.ui.helix.core]
                      :exports {:ThemeProvider devel.ui.helix.core/theme-provider
                                :ToastProvider devel.ui.helix.core/toast-provider
-                               :EntityCard devel.ui.helix.core/entity-card
                                :Button devel.ui.helix.core/button
                                :Badge devel.ui.helix.core/badge
                                :Spinner devel.ui.helix.core/spinner
@@ -33,10 +32,6 @@
                                :ResizablePane devel.ui.helix.core/resizable-pane
                                :WhichKeyPopup devel.ui.helix.core/which-key-popup
                                :InspectorPane devel.ui.helix.core/inspector-pane
-                               :InspectorHeader devel.ui.helix.core/inspector-header
-                               :InspectorDetailView devel.ui.helix.core/inspector-detail-view
-                               :InspectorEmptyState devel.ui.helix.core/inspector-empty-state
-                               :InspectorErrorState devel.ui.helix.core/inspector-error-state
                                :ContextSection devel.ui.helix.core/context-section
                                :PinnedTabsBar devel.ui.helix.core/pinned-tabs-bar
                                :PermissionCard devel.ui.helix.core/permission-card
@@ -64,9 +59,6 @@
                                :Markdown devel.ui.helix.core/markdown
                                :CodeBlock devel.ui.helix.core/code-block
                                :DiffViewer devel.ui.helix.core/diff-viewer
-                               :MentionSuggestions devel.ui.helix.core/mention-suggestions
-                               :EditorToolbar devel.ui.helix.core/editor-toolbar
-                               :EditorStatusBar devel.ui.helix.core/editor-status-bar
                                :MarkdownEditor devel.ui.helix.core/markdown-editor
                                :RichTextEditor devel.ui.helix.core/rich-text-editor
                                :useToast devel.ui.helix.core/use-toast

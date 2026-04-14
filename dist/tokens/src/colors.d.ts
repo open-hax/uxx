@@ -274,6 +274,7 @@ declare function createThemeColors(palette: ThemePalette, overrides?: Record<str
 };
 export type ThemeColors = ReturnType<typeof createThemeColors>;
 export type ThemeCssVariables = Record<string, string>;
+export declare function toKebabCase(value: string): string;
 export interface ThemeDefinition {
     name: string;
     label: string;
@@ -351,9 +352,43 @@ export declare const nightOwl: {
         readonly info: "#82AAFF";
     };
 };
+export declare const proxyConsole: {
+    readonly bg: {
+        readonly default: "#0A0C0F";
+        readonly darker: "#0F1318";
+        readonly lighter: "#1E2530";
+        readonly selection: "#131820";
+        readonly tabInactive: "#131820";
+        readonly groupBorder: "#1E2530";
+    };
+    readonly fg: {
+        readonly default: "#E8ECF1";
+        readonly bright: "#F4F7FB";
+        readonly panel: "#D6DCE6";
+        readonly soft: "#A6B1C2";
+        readonly muted: "#8A94A6";
+        readonly subtle: "#5A6478";
+    };
+    readonly accent: {
+        readonly yellow: "#F5A623";
+        readonly orange: "#F5A623";
+        readonly red: "#FF4C4C";
+        readonly magenta: "#9B8CFF";
+        readonly blue: "#00D4FF";
+        readonly cyan: "#00D4FF";
+        readonly green: "#00E5A0";
+    };
+    readonly semantic: {
+        readonly error: "#FF4C4C";
+        readonly warning: "#F5A623";
+        readonly success: "#00E5A0";
+        readonly info: "#00D4FF";
+    };
+};
 export declare const themes: {
     readonly monokai: ThemeDefinition;
     readonly 'night-owl': ThemeDefinition;
+    readonly 'proxy-console': ThemeDefinition;
 };
 export type ThemeName = keyof typeof themes;
 export type ThemePreference = ThemeName | 'dark' | 'light' | 'auto';
@@ -595,5 +630,6 @@ export declare const colors: {
 export type ColorToken = keyof typeof colors;
 export type MonokaiColor = typeof monokai;
 export type NightOwlColor = typeof nightOwl;
+export type ProxyConsoleColor = typeof proxyConsole;
 export {};
 //# sourceMappingURL=colors.d.ts.map

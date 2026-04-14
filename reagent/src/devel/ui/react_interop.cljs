@@ -155,10 +155,6 @@
 (def resizable-pane (wrap-react-component primitives/ResizablePane))
 (def which-key-popup (wrap-react-component primitives/WhichKeyPopup))
 (def inspector-pane (wrap-react-component primitives/InspectorPane))
-(def inspector-header (wrap-react-component primitives/InspectorHeader))
-(def inspector-detail-view (wrap-react-component primitives/InspectorDetailView))
-(def inspector-empty-state (wrap-react-component primitives/InspectorEmptyState))
-(def inspector-error-state (wrap-react-component primitives/InspectorErrorState))
 (def context-section (wrap-react-component primitives/ContextSection))
 (def pinned-tabs-bar (wrap-react-component primitives/PinnedTabsBar))
 (def permission-card (wrap-react-component primitives/PermissionCard))
@@ -186,9 +182,6 @@
 (def markdown (wrap-react-component primitives/Markdown))
 (def code-block (wrap-react-component primitives/CodeBlock))
 (def diff-viewer (wrap-react-component primitives/DiffViewer))
-(def mention-suggestions (wrap-react-component primitives/MentionSuggestions))
-(def editor-toolbar (wrap-react-component primitives/EditorToolbar))
-(def editor-status-bar (wrap-react-component primitives/EditorStatusBar))
 (def markdown-editor (wrap-react-component primitives/MarkdownEditor))
 (def rich-text-editor (wrap-react-component primitives/RichTextEditor))
 
@@ -221,10 +214,6 @@
    :resizable-pane resizable-pane
    :which-key-popup which-key-popup
    :inspector-pane inspector-pane
-   :inspector-header inspector-header
-   :inspector-detail-view inspector-detail-view
-   :inspector-empty-state inspector-empty-state
-   :inspector-error-state inspector-error-state
    :context-section context-section
    :pinned-tabs-bar pinned-tabs-bar
    :permission-card permission-card
@@ -252,9 +241,6 @@
    :markdown markdown
    :code-block code-block
    :diff-viewer diff-viewer
-   :mention-suggestions mention-suggestions
-   :editor-toolbar editor-toolbar
-   :editor-status-bar editor-status-bar
    :markdown-editor markdown-editor
    :rich-text-editor rich-text-editor})
 

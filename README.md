@@ -2,6 +2,9 @@
 
 Open Hax UI kit with shared tokens plus framework bindings for React, Reagent, and Helix.
 
+
+> Built with [GLM-5](https://z.ai) — part of the [z.ai](https://z.ai) startup ecosystem and the [Ussyverse](https://ussy.cloud).
+
 ## Packages
 
 | Package | Audience | Status | Docs |
@@ -30,13 +33,13 @@ React-only hooks still exist as hooks, but they are re-exported for advanced Clo
 Public parity now covers these exported components:
 
 - Foundations: `Button`, `Badge`, `Spinner`, `Card`, `CardHeader`, `CardBody`, `CardFooter`, `Modal`, `ModalHeader`, `ModalBody`, `ModalFooter`, `Tooltip`, `Input`, `Select`, `Textarea`, `Progress`
-- Workspace UI: `ResizablePane`, `WhichKeyPopup`, `InspectorPane`, `InspectorHeader`, `InspectorDetailView`, `InspectorEmptyState`, `InspectorErrorState`, `ContextSection`, `PinnedTabsBar`, `PermissionCard`, `PromptCard`, `PermissionPrompts`, `ReactReagentSeam`, `CommandPalette`, `Chat`, `Toast`, `FileTree`, `Tabs`
+- Workspace UI: `ResizablePane`, `WhichKeyPopup`, `InspectorPane`, `ContextSection`, `PinnedTabsBar`, `PermissionCard`, `PromptCard`, `PermissionPrompts`, `ReactReagentSeam`, `CommandPalette`, `Chat`, `Toast`, `FileTree`, `Tabs`
 - Data + structure: `SearchableSelect`, `CollapsiblePanel`, `KeyValueSection`, `SurfaceHero`, `PanelHeader`, `MetricTile`, `MetricTileGrid`, `FilterToolbar`, `ActionStrip`, `StatusChipStack`, `DataTableShell`, `Pagination`
-- Content + editors: `Feed`, `Markdown`, `CodeBlock`, `DiffViewer`, `MentionSuggestions`, `EditorToolbar`, `EditorStatusBar`, `MarkdownEditor`, `RichTextEditor`
+- Content + editors: `Feed`, `Markdown`, `CodeBlock`, `DiffViewer`, `MarkdownEditor`, `RichTextEditor`
 
-All three bindings now export the first composition-level component:
+React now also exports the first composition-level component:
 
-- Compositions: `EntityCard`
+- Compositions: `EntityCard` (React public now; Reagent/Helix parity pending)
 
 The new section primitives are now public across all three bindings:
 
@@ -74,6 +77,8 @@ export function Example() {
   );
 }
 ```
+
+Built-in themes now include `monokai`, `night-owl`, and `proxy-console`. The canonical provider is `ThemeProvider`; `UxxThemeProvider` is available as a backward-compatible alias for the collaborator-proposed theme-pack surface.
 
 ### Reagent
 
@@ -115,7 +120,7 @@ npm run build
 ## Architecture
 
 - `react/` contains the canonical TypeScript + React implementation.
-- `dist/` is the stable build artifact consumed by the ClojureScript bindings.
+- `dist/` is the generated build artifact consumed by the ClojureScript bindings.
 - `reagent/` and `helix/` translate idiomatic CLJS props into the React prop surface.
 - `tokens/` remains the shared design-token source.
 
@@ -141,9 +146,9 @@ cd orgs/open-hax/uxx/reagent && npm run build
 cd orgs/open-hax/uxx/helix && npm run build
 ```
 
-## Note on compositions
+## Note on React-only compositions
 
-`react/src/compositions/EntityCard.tsx` is now part of the published API for React, Reagent, and Helix through the wrapper layers.
+`react/src/compositions/EntityCard.tsx` is now part of the published React API. It is still excluded from Reagent and Helix parity until explicit wrapper support is added and documented.
 
 ## License
 

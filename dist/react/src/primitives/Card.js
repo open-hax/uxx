@@ -34,11 +34,11 @@ const paddingStyles = {
 };
 // Radius styles using tokens
 const radiusStyles = {
-    none: 0,
-    sm: tokens.spacing[1],
-    md: tokens.spacing[2],
-    lg: tokens.spacing[3],
-    full: '9999px',
+    none: tokens.radius.none,
+    sm: tokens.radius.sm,
+    md: tokens.radius.md,
+    lg: tokens.radius.lg,
+    full: tokens.radius.full,
 };
 // Base styles
 const baseStyles = {

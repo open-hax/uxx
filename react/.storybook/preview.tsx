@@ -4,6 +4,7 @@ import { ThemeProvider } from '../src/theme.js';
 const themeBackgrounds = {
   monokai: '#272822',
   'night-owl': '#011627',
+  'proxy-console': '#0A0C0F',
 } as const;
 
 const preview: Preview = {
@@ -17,6 +18,7 @@ const preview: Preview = {
         items: [
           { value: 'monokai', title: 'Monokai' },
           { value: 'night-owl', title: 'Night Owl' },
+          { value: 'proxy-console', title: 'Proxy Console' },
         ],
       },
     },
@@ -34,6 +36,7 @@ const preview: Preview = {
       values: [
         { name: 'monokai', value: themeBackgrounds.monokai },
         { name: 'night-owl', value: themeBackgrounds['night-owl'] },
+        { name: 'proxy-console', value: themeBackgrounds['proxy-console'] },
       ],
     },
   },
