@@ -282,7 +282,7 @@ export const MarkdownEditor = ({ value: controlledValue, defaultValue = '', prev
             display: 'flex',
             flexDirection: 'column',
             background: themeColors.background.default,
-            borderRadius: tokens.spacing[2],
+            borderRadius: tokens.radius.md,
             overflow: 'hidden',
         }, children: [toolbar && (_jsx(EditorToolbar, { items: toolbarActions, background: themeColors.background.surface, borderColor: themeColors.border.subtle, textColor: themeColors.text.default })), _jsxs("div", { style: {
                     flex: 1,
@@ -292,7 +292,7 @@ export const MarkdownEditor = ({ value: controlledValue, defaultValue = '', prev
                             padding: '12px 8px',
                             background: themeColors.background.elevated,
                             color: themeColors.text.subtle,
-                            fontFamily: 'JetBrains Mono, monospace',
+                            fontFamily: tokens.fontFamily.mono,
                             fontSize: 13,
                             lineHeight: 1.6,
                             textAlign: 'right',
@@ -306,7 +306,7 @@ export const MarkdownEditor = ({ value: controlledValue, defaultValue = '', prev
                             border: 'none',
                             outline: 'none',
                             color: themeColors.text.default,
-                            fontFamily: 'JetBrains Mono, monospace',
+                            fontFamily: tokens.fontFamily.mono,
                             fontSize: 14,
                             lineHeight: 1.6,
                             resize: 'none',
@@ -318,7 +318,7 @@ export const MarkdownEditor = ({ value: controlledValue, defaultValue = '', prev
             flex: previewMode === 'split' ? previewRatio : 1,
             padding: 16,
             background: themeColors.background.surface,
-            borderRadius: tokens.spacing[2],
+            borderRadius: tokens.radius.md,
             overflow: 'auto',
         }, children: value.trim() ? (_jsx(Markdown, { content: value, theme: theme })) : (_jsx("div", { style: {
                 color: themeColors.text.subtle,
@@ -331,7 +331,7 @@ export const MarkdownEditor = ({ value: controlledValue, defaultValue = '', prev
                 flexDirection: 'column',
                 height: '100%',
                 background: themeColors.background.default,
-                borderRadius: tokens.spacing[2],
+                borderRadius: tokens.radius.md,
                 overflow: 'hidden',
             }, children: [_jsxs("div", { style: {
                         display: 'flex',
@@ -363,7 +363,7 @@ export const MarkdownEditor = ({ value: controlledValue, defaultValue = '', prev
         return (_jsx("div", { className: className, "data-component": "markdown-editor", "data-preview-mode": previewMode, style: {
                 height: '100%',
                 background: themeColors.background.default,
-                borderRadius: tokens.spacing[2],
+                borderRadius: tokens.radius.md,
                 overflow: 'hidden',
             }, children: renderEditor() }));
     }
@@ -372,7 +372,7 @@ export const MarkdownEditor = ({ value: controlledValue, defaultValue = '', prev
         return (_jsx("div", { className: className, "data-component": "markdown-editor", "data-preview-mode": previewMode, style: {
                 height: '100%',
                 background: themeColors.background.default,
-                borderRadius: tokens.spacing[2],
+                borderRadius: tokens.radius.md,
                 overflow: 'hidden',
             }, children: renderPreview() }));
     }
@@ -382,7 +382,7 @@ export const MarkdownEditor = ({ value: controlledValue, defaultValue = '', prev
             gap: 1,
             height: '100%',
             background: themeColors.border.default,
-            borderRadius: tokens.spacing[2],
+            borderRadius: tokens.radius.md,
             overflow: 'hidden',
         }, children: [renderEditor(), renderPreview()] }));
 };
