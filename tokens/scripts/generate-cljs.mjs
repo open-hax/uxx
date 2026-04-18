@@ -10,8 +10,8 @@ import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const distDir = join(__dirname, '..', 'dist');
 
-// Import tokens from compiled JS
-const { tokens } = await import('../dist/index.js');
+// Import raw token values from compiled JS
+const { tokenValues } = await import('../dist/index.js');
 
 function toCljValue(value, indent = 0) {
   const pad = '  '.repeat(indent);
@@ -53,7 +53,7 @@ function generateCljsNamespace() {
   ];
   
   // Generate def for each top-level token category
-  for (const [name, value] of Object.entries(tokens)) {
+  for (const [name, value] of Object.entries(tokenValues)) {
     const cljName = name.replace(/([A-Z])/g, '-$1').toLowerCase();
     lines.push(`(def ${cljName}`);
     lines.push(`  ${toCljValue(value, 1)})`);

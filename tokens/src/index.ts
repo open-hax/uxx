@@ -4,7 +4,7 @@
  * Design tokens for the Open Hax UXX component library.
  */
 
-import { themePacks } from './theme.js';
+import { createThemeCssVarRefs, themePacks } from './theme.js';
 import { fontFamily, fontSize, fontWeight, lineHeight, typography } from './typography.js';
 import { spacing, space } from './spacing.js';
 import { duration, easing, motion, transitions } from './motion.js';
@@ -90,7 +90,12 @@ export type { DeepPartial, ThemePack, ThemeOverride, ThemePackName } from './the
 export { defaultChords, modeColors, leaderKey } from './keybindings.js';
 export type { ModalMode, ChordBinding } from './keybindings.js';
 
-export const tokens = {
+/**
+ * Raw (non-themeable) token values.
+ *
+ * This is primarily used for generating legacy CSS variables and CLJS defs.
+ */
+export const tokenValues = {
   colors: themePacks.monokai.colors,
   background: themePacks.monokai.colors.background,
   text: {
@@ -108,6 +113,39 @@ export const tokens = {
   spacing, space, fontFamily, fontSize, fontWeight, lineHeight, typography,
   duration, easing, motion, transitions, shadow, elevation, zIndex, radius,
   chords: defaultChords, modeColors, leaderKey,
+} as const;
+
+const defaultThemePack = themePacks.monokai;
+
+const runtimeColors = createThemeCssVarRefs(defaultThemePack.colors, ['colors']);
+const runtimePalette = createThemeCssVarRefs(defaultThemePack.palette, ['palette']);
+const runtimeFontFamily = createThemeCssVarRefs(defaultThemePack.fontFamily, ['fontFamily']);
+const runtimeFontSize = createThemeCssVarRefs(defaultThemePack.fontSize, ['fontSize']);
+const runtimeShadow = createThemeCssVarRefs(defaultThemePack.shadow, ['shadow']);
+const runtimeRadius = createThemeCssVarRefs(defaultThemePack.radius, ['radius']);
+
+const runtimeTypography = {
+  ...typography,
+  h1: { ...typography.h1, fontSize: runtimeFontSize['4xl'] },
+  h2: { ...typography.h2, fontSize: runtimeFontSize['3xl'] },
+  h3: { ...typography.h3, fontSize: runtimeFontSize['2xl'] },
+  h4: { ...typography.h4, fontSize: runtimeFontSize.xl },
+  h5: { ...typography.h5, fontSize: runtimeFontSize.lg },
+  h6: { ...typography.h6, fontSize: runtimeFontSize.base },
+  body: { ...typography.body, fontSize: runtimeFontSize.base },
+  bodySm: { ...typography.bodySm, fontSize: runtimeFontSize.sm },
+  label: { ...typography.label, fontSize: runtimeFontSize.sm },
+  caption: { ...typography.caption, fontSize: runtimeFontSize.xs },
+  code: {
+    ...typography.code,
+    fontFamily: runtimeFontFamily.mono,
+    fontSize: runtimeFontSize.sm,
+  },
+  codeInline: {
+    ...typography.codeInline,
+    fontFamily: runtimeFontFamily.mono,
+    fontSize: runtimeFontSize.inlineCode,
+  },
 } as const;
 
 /**
@@ -139,4 +177,4 @@ export const tokens = {
 } as const;
 
 export type Tokens = typeof tokens;
-export type TokenValues = typeof tokens;
+export type TokenValues = typeof tokenValues;
