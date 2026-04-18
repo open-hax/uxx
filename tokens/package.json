@@ -1,6 +1,6 @@
 {
   "name": "@open-hax/uxx-tokens-internal",
-  "private": true,
+  "private": false,
   "version": "0.1.0",
   "type": "module",
   "description": "Internal design token source package for @open-hax/uxx",
