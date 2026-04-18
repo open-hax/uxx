@@ -115,6 +115,7 @@ function createThemeColors(
       elevated: palette.bg.tabInactive,
       highlight: palette.bg.lighter,
       overlay: 'rgba(0, 0, 0, 0.6)',
+      hover: withAlpha(palette.accent.cyan, 0.08),
     },
 
     selection: {
@@ -130,6 +131,7 @@ function createThemeColors(
       subtle: palette.fg.subtle,
       inverse: palette.bg.default,
       secondary: palette.fg.muted,
+      accent: palette.accent.cyan,
     },
 
     interactive: {

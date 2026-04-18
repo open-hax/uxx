@@ -8,6 +8,15 @@ importers:
 
   .:
     dependencies:
+      '@open-hax/uxx-helix':
+        specifier: workspace:*
+        version: link:helix
+      '@open-hax/uxx-reagent':
+        specifier: workspace:*
+        version: link:reagent
+      '@open-hax/uxx-tokens-internal':
+        specifier: workspace:*
+        version: link:tokens
       clsx:
         specifier: ^2.1.1
         version: 2.1.1

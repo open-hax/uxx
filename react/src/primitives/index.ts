@@ -12,6 +12,7 @@ export { ModalFooter, type ModalFooterProps } from './ModalFooter.js';
 export { Tooltip, type TooltipProps, type TooltipPlacement, type TooltipTrigger } from './Tooltip.js';
 export { Input, type InputProps, type InputType, type InputSize, type InputVariant } from './Input.js';
 export { Select, type SelectProps, type SelectSize, type SelectVariant, type SelectOption } from './Select.js';
+export { AutoSelectorInput, type AutoSelectorInputProps, type AutoSelectorOption, type AutoSelectorSize, type AutoSelectorVariant } from './AutoSelectorInput.js';
 export { Textarea, type TextareaProps, type TextareaSize, type TextareaVariant } from './Textarea.js';
 export { Progress, type ProgressProps, type ProgressVariant, type ProgressSize } from './Progress.js';
 export { ResizablePane, type ResizablePaneProps, type ResizeDirection } from './ResizablePane.js';
