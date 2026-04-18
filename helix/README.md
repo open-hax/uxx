@@ -81,6 +81,15 @@ cd helix
 npm run build
 ```
 
+### pnpm + shadow-cljs consumers
+
+If your app uses `pnpm` and builds with `shadow-cljs`, add this to the app repo:
+
+```ini
+# .npmrc
+node-linker=hoisted
+```
+
 ## Watch
 
 ```bash

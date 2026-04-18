@@ -146,6 +146,32 @@ cd orgs/open-hax/uxx/reagent && npm run build
 cd orgs/open-hax/uxx/helix && npm run build
 ```
 
+## Using with shadow-cljs in pnpm projects
+
+If you consume `@open-hax/uxx`, `@open-hax/uxx-reagent`, or `@open-hax/uxx-helix` from a
+project that builds with `shadow-cljs` **and** uses `pnpm`, you will likely need a
+hoisted `node_modules` layout.
+
+Reason: `shadow-cljs` resolves npm deps by searching a small set of `node_modules`
+folders, and it can fail to see pnpm's default symlinked dependency graph for
+transitive dependencies (for example `react-markdown`'s internals).
+
+Add this to your *consumer* repo (not this library):
+
+```ini
+# .npmrc
+node-linker=hoisted
+```
+
+Then reinstall:
+
+```bash
+rm -rf node_modules
+pnpm install
+```
+
+If you use Yarn, prefer `nodeLinker: node-modules` (not PnP) for `shadow-cljs` projects.
+
 ## Note on React-only compositions
 
 `react/src/compositions/EntityCard.tsx` is now part of the published React API. It is still excluded from Reagent and Helix parity until explicit wrapper support is added and documented.
