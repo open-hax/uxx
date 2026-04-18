@@ -32,7 +32,8 @@ const lines = [
   '  "Design tokens for Open Hax UXX components")',
   ''
 ];
-for (const [name, value] of Object.entries(tokenValues)) {
+for (const [name, value] of Object.entries(tokenValues || {})) {
+  if (!name || value === undefined || value === null) continue;
   const cljName = name.replace(/([A-Z])/g, '-$1').toLowerCase();
   lines.push(`(def ${cljName}`);
   lines.push(`  ${toCljValue(value, 1)})`);

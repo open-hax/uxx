@@ -1,6 +1,6 @@
 {
   "name": "@open-hax/uxx",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Open Hax UI component library with React primitives and shared design tokens.",
   "type": "module",
   "license": "LGPL-3.0-or-later",
@@ -50,13 +50,20 @@
     "react": ">=18.0.0",
     "react-dom": ">=18.0.0"
   },
-  "dependencies": {
+"dependencies": {
+    "@open-hax/uxx-helix": "workspace:*",
+    "@open-hax/uxx-reagent": "workspace:*",
+    "@open-hax/uxx-tokens-internal": "workspace:*",
     "clsx": "^2.1.1",
     "prism-react-renderer": "^2.4.1",
     "react-markdown": "^10.1.0",
     "rehype-raw": "^7.0.0",
     "remark-gfm": "^4.0.1",
     "scheduler": "^0.23.2"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
   },
   "devDependencies": {
     "@storybook/addon-essentials": "^8.6.18",

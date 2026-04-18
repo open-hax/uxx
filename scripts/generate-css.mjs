@@ -10,11 +10,13 @@ const { tokenValues, themePacks, getThemeCssVars } = await import('../dist/token
 
 function flattenObject(obj, prefix = '') {
   const result = {};
+  if (!obj || typeof obj !== 'object') return result;
   for (const [key, value] of Object.entries(obj)) {
+    if (typeof key !== 'string') continue;
     const cssVarName = prefix ? `${prefix}-${key}` : key;
     if (typeof value === 'string') {
       result[cssVarName] = value;
-    } else if (typeof value === 'object' && value !== null) {
+    } else if (value && typeof value === 'object' && !Array.isArray(value)) {
       Object.assign(result, flattenObject(value, cssVarName));
     }
   }

@@ -10,6 +10,7 @@ import {
   useState,
   type ChangeEvent, 
   type FocusEvent,
+  type KeyboardEvent,
   type CSSProperties
 } from 'react';
 import { tokens } from '@open-hax/uxx/tokens';
@@ -52,6 +53,8 @@ export interface InputProps {
   onFocus?: (event: FocusEvent<HTMLInputElement>) => void;
   /** Blur event handler */
   onBlur?: (event: FocusEvent<HTMLInputElement>) => void;
+  /** Keyboard event handler */
+  onKeyDown?: (event: KeyboardEvent<HTMLInputElement>) => void;
   /** Input name */
   name?: string;
   /** Input ID */
@@ -184,6 +187,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       onChange,
       onFocus,
       onBlur,
+      onKeyDown,
       name,
       id,
       autoFocus,
@@ -254,6 +258,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           onChange={onChange}
           onFocus={handleFocus}
           onBlur={handleBlur}
+          onKeyDown={onKeyDown}
           aria-invalid={error}
           aria-describedby={error && errorMessage ? `${id}-error` : undefined}
         />

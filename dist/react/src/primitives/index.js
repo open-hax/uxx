@@ -12,6 +12,7 @@ export { ModalFooter } from './ModalFooter.js';
 export { Tooltip } from './Tooltip.js';
 export { Input } from './Input.js';
 export { Select } from './Select.js';
+export { AutoSelectorInput } from './AutoSelectorInput.js';
 export { Textarea } from './Textarea.js';
 export { Progress } from './Progress.js';
 export { ResizablePane } from './ResizablePane.js';

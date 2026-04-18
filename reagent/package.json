@@ -24,7 +24,7 @@
     "shadow-cljs": "^3.3.5"
   },
   "devDependencies": {
-    "@open-hax/uxx/tokens": "workspace:*"
+    "@open-hax/uxx-tokens-internal": "workspace:*"
   },
   "license": "LGPL-3.0-or-later"
 }
