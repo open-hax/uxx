@@ -30,7 +30,7 @@
     "react": ">=18.0.0"
   },
   "dependencies": {
-    "@open-hax/uxx/tokens": "workspace:*",
+    "@open-hax/uxx-tokens-internal": "workspace:*",
     "prism-react-renderer": "^2.4.1",
     "react-markdown": "^10.1.0",
     "rehype-raw": "^7.0.0",
