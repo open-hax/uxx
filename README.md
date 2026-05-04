@@ -50,6 +50,37 @@ See [`docs/framework-parity.md`](./docs/framework-parity.md) for the detailed ma
 
 ## Quick start
 
+### Themes and palettes
+
+```ts
+import {
+  themePacks,
+  createThemePack,
+  getThemeCssVars,
+  monokai,
+  nightOwl,
+  proxyConsole,
+} from '@open-hax/uxx/tokens';
+
+const theme = createThemePack(themePacks['proxy-console'], {
+  colors: { accent: { cyan: '#16e0ff' } },
+});
+
+const cssVars = getThemeCssVars(theme);
+```
+
+For Eta Mu / Pi, `@open-hax/uxx` publishes generated terminal theme JSON files under `dist/eta-mu-themes` and declares them in the package `pi.themes` manifest. After installing the package as a Pi package, select one of:
+
+- `uxx-monokai`
+- `uxx-night-owl`
+- `uxx-proxy-console`
+
+Programmatic Eta Mu adapters are also available:
+
+```ts
+import { etaMuThemes, createEtaMuThemeJson } from '@open-hax/uxx/eta-mu';
+```
+
 ### React
 
 ```bash

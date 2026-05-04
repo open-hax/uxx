@@ -85,6 +85,13 @@ export {
   themePacks,
 } from './theme.js';
 export type { DeepPartial, ThemePack, ThemeOverride, ThemePackName } from './theme.js';
+export {
+  createEtaMuThemeJson,
+  etaMuThemeSchemaUrl,
+  etaMuThemes,
+  getEtaMuThemeName,
+} from './eta-mu-theme.js';
+export type { EtaMuThemeColorValue, EtaMuThemeJson } from './eta-mu-theme.js';
 
 // Keybindings
 export { defaultChords, modeColors, leaderKey } from './keybindings.js';

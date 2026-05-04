@@ -1,7 +1,7 @@
 {
   "name": "@open-hax/uxx",
-  "version": "0.2.2",
-  "description": "Open Hax UI component library with React primitives and shared design tokens.",
+  "version": "0.2.3",
+  "description": "Open Hax UI component library with React primitives, shared design tokens, reusable themes, and color palettes.",
   "type": "module",
   "license": "LGPL-3.0-or-later",
   "main": "./dist/src/index.js",
@@ -11,6 +11,17 @@
     "url": "https://github.com/open-hax/uxx.git"
   },
   "homepage": "https://github.com/open-hax/uxx",
+  "keywords": [
+    "design-tokens",
+    "themes",
+    "color-palettes",
+    "pi-package"
+  ],
+  "pi": {
+    "themes": [
+      "./dist/eta-mu-themes"
+    ]
+  },
   "publishConfig": {
     "access": "public"
   },
@@ -29,6 +40,10 @@
       "types": "./dist/tokens/src/index.d.ts",
       "import": "./dist/tokens/src/index.js"
     },
+    "./eta-mu": {
+      "types": "./dist/tokens/src/eta-mu-theme.d.ts",
+      "import": "./dist/tokens/src/eta-mu-theme.js"
+    },
     "./primitives": {
       "types": "./dist/react/src/primitives/index.d.ts",
       "import": "./dist/react/src/primitives/index.js"
@@ -37,7 +52,7 @@
     "./cljs": "./dist/tokens.cljs"
   },
   "scripts": {
-    "build": "rm -rf dist && tsc -p tsconfig.json && node scripts/generate-css.mjs && node scripts/generate-cljs.mjs",
+    "build": "rm -rf dist && tsc -p tsconfig.json && node scripts/generate-css.mjs && node scripts/generate-cljs.mjs && node scripts/generate-eta-mu-themes.mjs",
     "prepack": "npm run build",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run --config react/vitest.config.ts",
@@ -66,10 +81,6 @@
     "rehype-raw": "^7.0.0",
     "remark-gfm": "^4.0.1",
     "scheduler": "^0.23.2"
-  },
-  "peerDependencies": {
-    "react": ">=18.0.0",
-    "react-dom": ">=18.0.0"
   },
   "devDependencies": {
     "@storybook/addon-essentials": "^8.6.18",

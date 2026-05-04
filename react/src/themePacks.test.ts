@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { createThemePack, getThemeCssVars, themePacks, tokens } from '@open-hax/uxx/tokens';
+import {
+  createEtaMuThemeJson,
+  createThemePack,
+  etaMuThemes,
+  getThemeCssVars,
+  themePacks,
+  tokens,
+} from '@open-hax/uxx/tokens';
 
 describe('theme packs', () => {
   it('exports the proxy console preset', () => {
@@ -35,6 +42,16 @@ describe('theme packs', () => {
     expect(cssVars['--uxx-colors-button-primary-bg']).toBe('#00D4FF');
     expect(cssVars['--uxx-font-family-sans']).toContain('IBM Plex Sans');
     expect(cssVars['--uxx-radius-md']).toBe('4px');
+  });
+
+  it('adapts theme packs into Eta Mu terminal themes', () => {
+    const etaMuTheme = createEtaMuThemeJson('proxy-console');
+
+    expect(etaMuTheme.name).toBe('uxx-proxy-console');
+    expect(etaMuTheme.colors.accent).toBe('#00D4FF');
+    expect(etaMuTheme.colors.success).toBe('#00E5A0');
+    expect(Object.keys(etaMuTheme.colors)).toHaveLength(51);
+    expect(etaMuThemes['night-owl'].name).toBe('uxx-night-owl');
   });
 
   it('exposes runtime token references for themeable categories', () => {
