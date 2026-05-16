@@ -209,4 +209,21 @@ If you use Yarn, prefer `nodeLinker: node-modules` (not PnP) for `shadow-cljs` p
 
 ## License
 
-LGPL-3.0-or-later
+`@open-hax/uxx` is licensed under **LGPL-3.0-or-later**.
+
+### What this means for consumers
+
+This component library **may be bundled directly with proprietary, closed-source projects**. Your application code does not need to be licensed under the LGPL or GPL.
+
+**The one obligation:** any modifications you make **to this library itself** — whether to fix bugs, add features, or adapt it to your project's needs — must be published back under the LGPL-3.0-or-later.
+
+In practical terms:
+
+- ✅ Use `@open-hax/uxx` as a dependency in proprietary software
+- ✅ Distribute your proprietary application alongside the unmodified library
+- ✅ Build closed-source products that import and render these components
+- 📢 If you modify any file within this library, publish those changes under LGPL-3.0-or-later
+
+The boundary is the library itself. Your application code remains yours. Changes to the library remain the commons.
+
+See the full [`LICENSE`](./LICENSE) text for the complete terms.
