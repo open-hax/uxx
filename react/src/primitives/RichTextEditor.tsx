@@ -199,10 +199,13 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   });
   const [showMentions, setShowMentions] = useState(false);
   const [mentionFilter, setMentionFilter] = useState('');
+  const [selectedMentionIndex, setSelectedMentionIndex] = useState(0);
   
   const value = controlledValue !== undefined
     ? (format === 'html' ? controlledValue : markdownToHtml(controlledValue))
     : internalValue;
+  const mentionTrigger = mentions?.trigger ?? '@';
+  const hasValidMentionTrigger = mentionTrigger.length === 1;
   
   // Execute formatting command
   const execCommand = useCallback((command: string, value?: string) => {
@@ -229,53 +232,6 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       }
     }
   }, [controlledValue, format, onChange]);
-  
-  // Handle keyboard shortcuts
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      // Save
-      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-        e.preventDefault();
-        if (onSave && editorRef.current) {
-          const html = editorRef.current.innerHTML;
-          onSave(format === 'markdown' ? htmlToMarkdown(html) : html);
-        }
-        return;
-      }
-      
-      // Bold
-      if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
-        e.preventDefault();
-        execCommand('bold');
-        return;
-      }
-      
-      // Italic
-      if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
-        e.preventDefault();
-        execCommand('italic');
-        return;
-      }
-      
-      // Underline
-      if ((e.ctrlKey || e.metaKey) && e.key === 'u') {
-        e.preventDefault();
-        execCommand('underline');
-        return;
-      }
-      
-      // Mentions trigger
-      if (mentions && e.key === '@') {
-        setShowMentions(true);
-        setMentionFilter('');
-      } else if (showMentions && e.key.length === 1) {
-        setMentionFilter((prev) => prev + e.key);
-      } else if (showMentions && e.key === 'Escape') {
-        setShowMentions(false);
-      }
-    },
-    [execCommand, format, onSave, showMentions, mentions]
-  );
   
   // Handle image paste/upload
   const handlePaste = useCallback(
@@ -317,11 +273,13 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   // Insert mention
   const insertMention = useCallback(
     (item: MentionItem) => {
-      const mentionText = `@${item.name}`;
+      const mentionText = `${mentionTrigger}${item.name}`;
       execCommand('insertText', mentionText);
       setShowMentions(false);
+      setMentionFilter('');
+      setSelectedMentionIndex(0);
     },
-    [execCommand]
+    [execCommand, mentionTrigger]
   );
   
   // Filtered mentions
@@ -333,6 +291,124 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         item.id.toLowerCase().includes(mentionFilter.toLowerCase())
     );
   }, [mentions, mentionFilter]);
+
+  useEffect(() => {
+    if (!showMentions) return;
+    setSelectedMentionIndex((previous) =>
+      Math.min(previous, Math.max(filteredMentions.length - 1, 0))
+    );
+  }, [filteredMentions.length, showMentions]);
+
+  // Handle keyboard shortcuts and mention selection.
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        if (onSave && editorRef.current) {
+          const html = editorRef.current.innerHTML;
+          onSave(format === 'markdown' ? htmlToMarkdown(html) : html);
+        }
+        return;
+      }
+
+      if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+        e.preventDefault();
+        execCommand('bold');
+        return;
+      }
+
+      if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
+        e.preventDefault();
+        execCommand('italic');
+        return;
+      }
+
+      if ((e.ctrlKey || e.metaKey) && e.key === 'u') {
+        e.preventDefault();
+        execCommand('underline');
+        return;
+      }
+
+      if (
+        mentions &&
+        hasValidMentionTrigger &&
+        e.key === mentionTrigger &&
+        !e.ctrlKey &&
+        !e.metaKey &&
+        !e.altKey
+      ) {
+        e.preventDefault();
+        setShowMentions(true);
+        setMentionFilter('');
+        setSelectedMentionIndex(0);
+        return;
+      }
+
+      if (!showMentions) return;
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSelectedMentionIndex((previous) =>
+          Math.min(previous + 1, Math.max(filteredMentions.length - 1, 0))
+        );
+        return;
+      }
+
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelectedMentionIndex((previous) => Math.max(previous - 1, 0));
+        return;
+      }
+
+      if (e.key === 'Enter') {
+        const activeMention = filteredMentions[selectedMentionIndex];
+        if (activeMention) {
+          e.preventDefault();
+          insertMention(activeMention);
+        }
+        return;
+      }
+
+      if (e.key === 'Backspace') {
+        e.preventDefault();
+        if (mentionFilter === '') {
+          setShowMentions(false);
+          setSelectedMentionIndex(0);
+          return;
+        }
+        setMentionFilter((previous) => previous.slice(0, -1));
+        setSelectedMentionIndex(0);
+        return;
+      }
+
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setShowMentions(false);
+        setMentionFilter('');
+        setSelectedMentionIndex(0);
+        return;
+      }
+
+      if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key.length === 1) {
+        e.preventDefault();
+        setMentionFilter((previous) => previous + e.key);
+        setSelectedMentionIndex(0);
+      }
+    },
+    [
+      execCommand,
+      filteredMentions,
+      format,
+      hasValidMentionTrigger,
+      insertMention,
+      mentionFilter,
+      mentionTrigger,
+      mentions,
+      onSave,
+      selectedMentionIndex,
+      showMentions,
+    ]
+  );
   
   // Toolbar items
   const toolbarItems: ToolbarItem[] = useMemo(
@@ -398,6 +474,17 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   );
   
   // Focus on mount if autofocus
+  useEffect(() => {
+    if (mentions?.trigger && !hasValidMentionTrigger) {
+      console.error(
+        `RichTextEditor mentions.trigger must be a single character, received "${mentions.trigger}".`
+      );
+      setShowMentions(false);
+      setMentionFilter('');
+      setSelectedMentionIndex(0);
+    }
+  }, [hasValidMentionTrigger, mentions?.trigger]);
+
   useEffect(() => {
     if (autofocus && editorRef.current) {
       editorRef.current.focus();
@@ -525,6 +612,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         {/* Mentions dropdown */}
         {showMentions && filteredMentions.length > 0 && (
           <div
+            data-testid="mention-suggestions"
             style={{
               position: 'absolute',
               top: '100%',
@@ -538,38 +626,51 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
               zIndex: 1000,
             }}
           >
-            {filteredMentions.map((item) => (
+            {filteredMentions.map((item, index) => (
               <button
+                type="button"
                 key={item.id}
                 onClick={() => insertMention(item)}
+                onMouseEnter={() => setSelectedMentionIndex(index)}
+                data-testid="mention-suggestion-item"
+                aria-selected={index === selectedMentionIndex}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: 8,
                   width: '100%',
                   padding: '8px 12px',
-                  background: 'transparent',
+                  background:
+                    index === selectedMentionIndex
+                      ? tokens.colors.background.surface
+                      : 'transparent',
                   border: 'none',
                   textAlign: 'left',
                   cursor: 'pointer',
                   color: tokens.colors.text.default,
                 }}
               >
-                {item.avatar && (
-                  <img
-                    src={item.avatar}
-                    alt={item.name}
-                    style={{ width: 24, height: 24, borderRadius: '50%' }}
-                  />
-                )}
-                <div>
-                  <div style={{ fontWeight: 500 }}>{item.name}</div>
-                  {item.description && (
-                    <div style={{ fontSize: 12, color: tokens.colors.text.muted }}>
-                      {item.description}
+                {mentions?.render ? (
+                  mentions.render(item)
+                ) : (
+                  <>
+                    {item.avatar && (
+                      <img
+                        src={item.avatar}
+                        alt={item.name}
+                        style={{ width: 24, height: 24, borderRadius: '50%' }}
+                      />
+                    )}
+                    <div>
+                      <div style={{ fontWeight: 500 }}>{item.name}</div>
+                      {item.description && (
+                        <div style={{ fontSize: 12, color: tokens.colors.text.muted }}>
+                          {item.description}
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
+                  </>
+                )}
               </button>
             ))}
           </div>
