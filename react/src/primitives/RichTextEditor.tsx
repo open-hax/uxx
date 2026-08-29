@@ -628,6 +628,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           >
             {filteredMentions.map((item, index) => (
               <button
+                type="button"
                 key={item.id}
                 onClick={() => insertMention(item)}
                 onMouseEnter={() => setSelectedMentionIndex(index)}

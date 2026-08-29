@@ -24,7 +24,9 @@ describe('RichTextEditor mentions', () => {
     const initialHtml = editor.innerHTML;
 
     fireEvent.keyDown(editor, { key: '@' });
-    expect(screen.getAllByTestId('mention-suggestion-item')).toHaveLength(2);
+    const suggestionButtons = screen.getAllByTestId('mention-suggestion-item');
+    expect(suggestionButtons).toHaveLength(2);
+    suggestionButtons.forEach((button) => expect(button).toHaveAttribute('type', 'button'));
     expect(editor.innerHTML).toBe(initialHtml);
 
     fireEvent.keyDown(editor, { key: 'b' });
