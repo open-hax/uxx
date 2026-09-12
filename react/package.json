@@ -19,7 +19,7 @@
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint src",
+    "lint": "eslint src --max-warnings 0",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -57,7 +57,8 @@
     "storybook": "^8.0.0",
     "typescript": "^5.9.3",
     "vite": "^5.0.0",
-    "vitest": "^1.6.0"
+    "vitest": "^1.6.0",
+    "@testing-library/dom": "10.4.1"
   },
   "license": "LGPL-3.0-or-later"
 }

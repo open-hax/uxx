@@ -14,7 +14,6 @@ import {
   useId,
   type CSSProperties,
   type ChangeEvent,
-  type FocusEvent,
   type KeyboardEvent,
 } from 'react';
 import { tokens } from '@open-hax/uxx/tokens';
@@ -87,7 +86,9 @@ const inputStyles: CSSProperties = {
   fontFamily: tokens.fontFamily.sans,
   color: tokens.colors.text.default,
   backgroundColor: tokens.colors.background.surface,
-  border: `1px solid ${tokens.colors.border.default}`,
+  borderWidth: 1,
+  borderStyle: 'solid',
+  borderColor: tokens.colors.border.default,
   borderRadius: tokens.radius.md,
   outline: 'none',
   transition: tokens.transitions.colors,

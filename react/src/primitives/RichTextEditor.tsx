@@ -184,8 +184,6 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   maxHeight,
   imageUpload,
   mentions,
-  links = { autolink: true, openInNewTab: true },
-  markdownShortcuts = true,
   spellcheck = true,
   onChange,
   onFocus,

@@ -152,7 +152,7 @@ describe('KeyValueSection', () => {
     });
 
     it('renders inline layout with label width', () => {
-      const { container } = render(
+      render(
         <KeyValueSection
           layout="inline"
           labelWidth={150}

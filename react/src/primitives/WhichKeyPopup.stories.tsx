@@ -106,7 +106,6 @@ const WhichKeyPopupWithToggle = () => {
         showCategory
         onSelect={(binding) => {
           if (binding) {
-            // eslint-disable-next-line no-alert
             alert(`Selected: ${binding.key} - ${binding.description}`);
           }
           setActive(false);

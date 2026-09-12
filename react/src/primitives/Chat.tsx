@@ -199,7 +199,6 @@ export function Chat({
   userAvatar,
   maxHeight = '500px',
   showTimestamps = false,
-  allowAttachments = false,
   allowMarkdown = true,
   emptyState,
   onMessageAction,

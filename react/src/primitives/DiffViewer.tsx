@@ -132,7 +132,7 @@ function groupIntoHunks(lines: DiffLine[]): DiffHunk[] {
   let currentHunk: DiffHunk | null = null;
   let unchangedCount = 0;
   
-  lines.forEach((line, index) => {
+  lines.forEach((line) => {
     if (line.type === 'unchanged') {
       unchangedCount++;
       if (currentHunk) {
@@ -176,13 +176,11 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
   original,
   modified,
   filename,
-  language,
   mode = 'unified',
   theme = 'dark',
   lineNumbers = true,
   showStats = true,
   showFilename = true,
-  foldThreshold = 100,
   highlightLines,
   onLineClick,
   onHunkClick,

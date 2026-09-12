@@ -99,9 +99,6 @@ const headerStyles: CSSProperties = {
   outline: 'none',
 };
 
-const headerFocusStyles: CSSProperties = {
-  backgroundColor: tokens.colors.background.surface,
-};
 
 const titleRowStyles: CSSProperties = {
   display: 'flex',
@@ -197,7 +194,6 @@ export function CollapsiblePanel({
   stats,
   maxHeight = 300,
   variant = 'default',
-  animate = true,
   className,
   headerClassName,
   contentClassName,

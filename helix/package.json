@@ -9,10 +9,6 @@
   "exports": {
     ".": {
       "import": "./dist/index.js"
-    },
-
-    ".": {
-      "import": "./dist/index.js"
     }
   },
   "scripts": {
@@ -25,6 +21,13 @@
     "react-dom": "^18.3.0",
     "shadow-cljs": "^3.3.5"
   },
-  "devDependencies": {},
-  "license": "LGPL-3.0-or-later"
+  "devDependencies": {
+    "@open-hax/uxx": "workspace:*"
+  },
+  "license": "LGPL-3.0-or-later",
+  "peerDependencies": {
+    "@open-hax/uxx": ">=0.2.3",
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  }
 }

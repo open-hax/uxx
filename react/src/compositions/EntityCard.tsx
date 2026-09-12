@@ -203,7 +203,7 @@ export function EntityCard({
   footer,
   className,
 }: EntityCardProps) {
-  const handleClick = (e: MouseEvent<HTMLDivElement>) => {
+  const handleClick = () => {
     if (interactive && onClick) {
       onClick();
     }

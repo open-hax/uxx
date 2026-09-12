@@ -164,44 +164,24 @@ This means parity work lands once in React and can be surfaced in Reagent and He
 - [`helix/README.md`](./helix/README.md)
 - [`docs/framework-parity.md`](./docs/framework-parity.md)
 
-## Build matrix
+## Build and verify locally
 
-```bash
-# Canonical React + tokens build
-cd orgs/open-hax/uxx && npm run build
-
-# Reagent wrapper build
-cd orgs/open-hax/uxx/reagent && npm run build
-
-# Helix wrapper build
-cd orgs/open-hax/uxx/helix && npm run build
+```sh
+pnpm install --frozen-lockfile
+pnpm build:all
+pnpm test
+pnpm test:adapters
+pnpm typecheck
+pnpm lint
 ```
 
-## Using with shadow-cljs in pnpm projects
+The root build generates tokens first. The adapter build creates production ESM exports for Helix and Reagent; the runtime check imports both artifacts and confirms peer consumers resolve one React identity. The adapters consume the canonical root library as a peer, so the root library does not depend back on its adapters. Each adapter declares its own runtime peer and a workspace development link.
 
-If you consume `@open-hax/uxx`, `@open-hax/uxx-reagent`, or `@open-hax/uxx-helix` from a
-project that builds with `shadow-cljs` **and** uses `pnpm`, you will likely need a
-hoisted `node_modules` layout.
+The workspace uses pnpm's isolated linker with public hoisting. The hoisted linker treats the workspace directory named react as a competing hoist node and can leave the root React dependency missing while duplicating it under peer consumers. Public links preserve Shadow's root package visibility without creating multiple React identities.
 
-Reason: `shadow-cljs` resolves npm deps by searching a small set of `node_modules`
-folders, and it can fail to see pnpm's default symlinked dependency graph for
-transitive dependencies (for example `react-markdown`'s internals).
+The Shadow ESM import options belong inside each build; top-level js-options were ignored. Keeping React and the canonical Uxx package external avoids bundling another runtime or parsing unrelated transitive packages with Closure. Production builds can be loaded together; independently compiled development CLJS runtimes declare global namespaces and should be loaded through their owning development build.
 
-Add this to your *consumer* repo (not this library):
-
-```ini
-# .npmrc
-node-linker=hoisted
-```
-
-Then reinstall:
-
-```bash
-rm -rf node_modules
-pnpm install
-```
-
-If you use Yarn, prefer `nodeLinker: node-modules` (not PnP) for `shadow-cljs` projects.
+ESLint and TypeScript ESLint are explicitly pinned, using their recommended rules and zero allowed warnings. The setup fixes previously unused bindings and replaces broad any casts with the actual UI types. Existing public props and assertions remain available.
 
 ## Note on React-only compositions
 

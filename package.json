@@ -64,15 +64,18 @@
     "storybook:pm2:start": "pm2 start ./scripts/storybook-server.sh --name uxx-storybook --no-autorestart",
     "storybook:pm2:stop": "pm2 stop uxx-storybook",
     "storybook:pm2:delete": "pm2 delete uxx-storybook",
-    "storybook:pm2:logs": "pm2 logs uxx-storybook --lines 200"
+    "storybook:pm2:logs": "pm2 logs uxx-storybook --lines 200",
+    "lint": "eslint src react/src --max-warnings 0",
+    "prebuild": "pnpm --dir tokens build",
+    "build:adapters": "pnpm --dir helix release && pnpm --dir reagent release",
+    "build:all": "pnpm build && pnpm build:adapters",
+    "test:adapters": "node scripts/verify-adapters.mjs"
   },
   "peerDependencies": {
     "react": ">=18.0.0",
     "react-dom": ">=18.0.0"
   },
   "dependencies": {
-    "@open-hax/uxx-helix": "workspace:*",
-    "@open-hax/uxx-reagent": "workspace:*",
     "@open-hax/uxx-tokens-internal": "workspace:*",
     "clsx": "^2.1.1",
     "devlop": "^1.0.0",
@@ -104,6 +107,10 @@
     "storybook": "^8.6.18",
     "typescript": "^5.9.3",
     "vite": "^5.0.0",
-    "vitest": "^1.6.0"
+    "vitest": "^1.6.0",
+    "eslint": "9.39.4",
+    "@eslint/js": "9.39.4",
+    "typescript-eslint": "8.58.1",
+    "@testing-library/dom": "10.4.1"
   }
 }

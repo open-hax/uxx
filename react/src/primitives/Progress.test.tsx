@@ -4,8 +4,8 @@
  * Unit tests for the enhanced Progress component.
  */
 
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect } from 'vitest';
+import { render, screen } from '@testing-library/react';
 import React from 'react';
 import { Progress } from './Progress.js';
 
@@ -181,7 +181,7 @@ describe('Progress', () => {
     });
 
     it('shows value inside bar for lg size', () => {
-      const { container } = render(
+      render(
         <Progress value={75} size="lg" showValue valuePosition="inside" />
       );
       expect(screen.getByText('75%')).toBeInTheDocument();

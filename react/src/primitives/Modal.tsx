@@ -148,8 +148,6 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(
       closable = true,
       closeOnBackdrop = true,
       closeOnEscape = true,
-      centered = true,
-      scrollBehavior = 'inside',
       header,
       title,
       children,
@@ -157,7 +155,7 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(
     },
     ref
   ) => {
-    const modalRef = useRef<HTMLDivElement>(null);
+    const modalRef = useRef<HTMLDivElement | null>(null);
     const previousActiveElement = useRef<HTMLElement | null>(null);
     const titleId = useId();
     const descriptionId = useId();
@@ -246,7 +244,7 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(
         <div
           ref={(node) => {
             // Handle both refs
-            (modalRef as any).current = node;
+            modalRef.current = node;
             if (typeof ref === 'function') {
               ref(node);
             } else if (ref) {
