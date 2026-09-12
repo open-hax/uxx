@@ -190,8 +190,8 @@ function formatTimestamp(date: Date): string {
 }
 
 /**
- * Render conversation messages and a composer that submits through `onSend`.
- * Supports optional Markdown, timestamps, message actions, connection status,
+ * Render plain-text messages and a composer that submits through `onSend`.
+ * Supports optional timestamps, message actions, connection status,
  * and pending/typing indicators while preserving a reader's scroll position.
  */
 export function Chat({
