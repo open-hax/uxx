@@ -1,0 +1,17 @@
+{
+  "id": "uxx-review-pack-reagent",
+  "cwd": "/tmp/foresight-restore-uxx-review/reagent",
+  "argv": [
+    "npm",
+    "pack",
+    "--pack-destination",
+    "/tmp/uxx-review-tarballs"
+  ],
+  "start": "2026-09-12T09:33:33.786Z",
+  "end": "2026-09-12T09:33:48.426Z",
+  "seconds": 14.64,
+  "code": 0,
+  "signal": null,
+  "timeout": false,
+  "log": "/workspace/scratch/3655842e43cf/evidence/logs/uxx-review-pack-reagent.log"
+}

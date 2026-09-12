@@ -1,0 +1,25 @@
+{
+  "packages": [
+    {
+      "adapter": "helix",
+      "files": 17,
+      "exports": 63,
+      "bytes": 271533,
+      "sha256": "c56dabea4cad539a3d9e1a65481f0fc0d8f23afe5af60e8f5ee4ee7a1b0e260e",
+      "sharedReactPeer": true,
+      "importedExtractedPackage": true,
+      "noAmbientScheduler": true
+    },
+    {
+      "adapter": "reagent",
+      "files": 24,
+      "exports": 63,
+      "bytes": 376462,
+      "sha256": "5575e7dc7a2e46acb9b469685ceef191d52d4d0a9394e5615499dde37a9a6d39",
+      "sharedReactPeer": true,
+      "importedExtractedPackage": true,
+      "noAmbientScheduler": true
+    }
+  ],
+  "temporaryConsumerRemoved": true
+}

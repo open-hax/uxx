@@ -1,0 +1,15 @@
+{
+  "id": "uxx-review-adapter-build",
+  "cwd": "/tmp/foresight-restore-uxx-review",
+  "argv": [
+    "pnpm",
+    "build:all"
+  ],
+  "start": "2026-09-12T09:29:22.202Z",
+  "end": "2026-09-12T09:30:04.949Z",
+  "seconds": 42.747,
+  "code": 0,
+  "signal": null,
+  "timeout": false,
+  "log": "/workspace/scratch/3655842e43cf/evidence/logs/uxx-review-adapter-build.log"
+}

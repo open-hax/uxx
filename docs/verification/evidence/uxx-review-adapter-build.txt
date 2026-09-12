@@ -1,0 +1,49 @@
+
+> @open-hax/uxx@0.2.3 build:all /tmp/foresight-restore-uxx-review
+> pnpm build && pnpm build:adapters
+
+
+> @open-hax/uxx@0.2.3 prebuild /tmp/foresight-restore-uxx-review
+> pnpm --dir tokens build
+
+
+> @open-hax/uxx-tokens-internal@0.1.0 build /tmp/foresight-restore-uxx-review/tokens
+> tsc && node scripts/generate-css.mjs && node scripts/generate-cljs.mjs
+
+Generated dist/tokens.css
+Generated dist/tokens.cljs
+
+> @open-hax/uxx@0.2.3 build /tmp/foresight-restore-uxx-review
+> rm -rf dist && tsc -p tsconfig.json && node scripts/generate-css.mjs && node scripts/generate-cljs.mjs && node scripts/generate-eta-mu-themes.mjs
+
+Generated dist/tokens.css
+Generated dist/tokens.cljs
+Generated dist/eta-mu-themes/uxx-monokai.json
+Generated dist/eta-mu-themes/uxx-night-owl.json
+Generated dist/eta-mu-themes/uxx-proxy-console.json
+
+> @open-hax/uxx@0.2.3 build:adapters /tmp/foresight-restore-uxx-review
+> pnpm --dir helix release && pnpm --dir reagent release
+
+
+> @open-hax/uxx-helix@0.1.0 release /tmp/foresight-restore-uxx-review/helix
+> shadow-cljs release ui-helix
+
+shadow-cljs - config: /tmp/foresight-restore-uxx-review/helix/shadow-cljs.edn
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=/workspace/scratch/3655842e43cf/toolchain/jvm-homes/b6573004-d9cc-4c42-9cca-b9d2bcca122f -Djavax.net.ssl.trustStore=/workspace/scratch/3655842e43cf/toolchain/cacerts -Djavax.net.ssl.trustStorePassword=changeit -XX:ActiveProcessorCount=4 -Xmx2g -Dhttp.proxyHost=127.0.0.1 -Dhttp.proxyPort=41111 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=41111 -Dhttp.nonProxyHosts=localhost|127.*|0.0.0.0|[::1]
+shadow-cljs - updating dependencies
+shadow-cljs - dependencies updated
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=/workspace/scratch/3655842e43cf/toolchain/jvm-homes/b6573004-d9cc-4c42-9cca-b9d2bcca122f -Djavax.net.ssl.trustStore=/workspace/scratch/3655842e43cf/toolchain/cacerts -Djavax.net.ssl.trustStorePassword=changeit -XX:ActiveProcessorCount=4 -Xmx2g -Dhttp.proxyHost=127.0.0.1 -Dhttp.proxyPort=41111 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=41111 -Dhttp.nonProxyHosts=localhost|127.*|0.0.0.0|[::1]
+[:ui-helix] Compiling ...
+[:ui-helix] Build completed. (52 files, 5 compiled, 0 warnings, 7.23s)
+
+> @open-hax/uxx-reagent@0.1.0 release /tmp/foresight-restore-uxx-review/reagent
+> shadow-cljs release ui-reagent
+
+shadow-cljs - config: /tmp/foresight-restore-uxx-review/reagent/shadow-cljs.edn
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=/workspace/scratch/3655842e43cf/toolchain/jvm-homes/b6573004-d9cc-4c42-9cca-b9d2bcca122f -Djavax.net.ssl.trustStore=/workspace/scratch/3655842e43cf/toolchain/cacerts -Djavax.net.ssl.trustStorePassword=changeit -XX:ActiveProcessorCount=4 -Xmx2g -Dhttp.proxyHost=127.0.0.1 -Dhttp.proxyPort=41111 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=41111 -Dhttp.nonProxyHosts=localhost|127.*|0.0.0.0|[::1]
+shadow-cljs - updating dependencies
+shadow-cljs - dependencies updated
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=/workspace/scratch/3655842e43cf/toolchain/jvm-homes/b6573004-d9cc-4c42-9cca-b9d2bcca122f -Djavax.net.ssl.trustStore=/workspace/scratch/3655842e43cf/toolchain/cacerts -Djavax.net.ssl.trustStorePassword=changeit -XX:ActiveProcessorCount=4 -Xmx2g -Dhttp.proxyHost=127.0.0.1 -Dhttp.proxyPort=41111 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=41111 -Dhttp.nonProxyHosts=localhost|127.*|0.0.0.0|[::1]
+[:ui-reagent] Compiling ...
+[:ui-reagent] Build completed. (63 files, 16 compiled, 0 warnings, 11.64s)

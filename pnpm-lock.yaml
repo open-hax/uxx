@@ -213,10 +213,6 @@ importers:
         version: 1.6.1(jsdom@29.0.1)
 
   reagent:
-    dependencies:
-      scheduler:
-        specifier: ^0.23.0
-        version: 0.23.2
     devDependencies:
       '@open-hax/uxx':
         specifier: workspace:*

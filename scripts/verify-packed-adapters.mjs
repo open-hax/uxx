@@ -20,7 +20,7 @@ try {
   fs.mkdirSync(path.join(modules, '@open-hax'), { recursive: true });
   fs.writeFileSync(path.join(temporary, 'package.json'), JSON.stringify({ private: true, type: 'module' }));
   fs.symlinkSync(root, path.join(modules, '@open-hax/uxx'), 'dir');
-  for (const peer of ['react', 'react-dom', 'scheduler']) {
+  for (const peer of ['react', 'react-dom']) {
     fs.symlinkSync(path.dirname(require.resolve(peer + '/package.json')), path.join(modules, peer), 'dir');
   }
   const canonicalReact = require.resolve('react');
@@ -46,12 +46,15 @@ try {
     const artifact = path.join(destination, manifest.exports['.'].import);
     assert.ok(fs.statSync(artifact).isFile(), 'Published import entrypoint must exist');
     assert.equal(createRequire(artifact).resolve('react'), canonicalReact, 'Extracted adapter must share the consumer React');
+    // No undeclared scheduler is supplied beside the extracted adapters.
+    // ReactDOM may still resolve its own legitimate transitive dependency.
+    assert.throws(() => createRequire(artifact).resolve('scheduler'), {code:'MODULE_NOT_FOUND'});
     const exports = await import(pathToFileURL(artifact));
     assert.equal(typeof exports.Button, 'function');
     assert.equal(typeof exports.ThemeProvider, 'function');
     result.push({ adapter, files: entries.length, exports: Object.keys(exports).length,
       bytes: fs.statSync(archive).size, sha256: createHash('sha256').update(fs.readFileSync(archive)).digest('hex'),
-      sharedReactPeer: true, importedExtractedPackage: true });
+      sharedReactPeer: true, importedExtractedPackage: true, noAmbientScheduler: true });
   }
 } finally {
   fs.rmSync(temporary, { recursive: true, force: true });
