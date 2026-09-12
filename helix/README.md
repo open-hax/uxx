@@ -83,11 +83,13 @@ npm run build
 
 ### pnpm + shadow-cljs consumers
 
-If your app uses `pnpm` and builds with `shadow-cljs`, add this to the app repo:
+For this workspace, retain the root linker configuration so Shadow can see
+public dependencies while peer consumers share one React identity:
 
 ```ini
 # .npmrc
-node-linker=hoisted
+node-linker=isolated
+shamefully-hoist=true
 ```
 
 ## Watch
