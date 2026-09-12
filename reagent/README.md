@@ -74,9 +74,9 @@ Normal React hook rules still apply.
 
 ```bash
 cd orgs/open-hax/uxx
-npm run build
-cd reagent
-npm run build
+pnpm install --frozen-lockfile
+pnpm build
+pnpm --dir reagent build
 ```
 
 ### pnpm + shadow-cljs consumers
@@ -93,8 +93,8 @@ shamefully-hoist=true
 ## Watch
 
 ```bash
-cd orgs/open-hax/uxx/reagent
-npm run watch
+cd orgs/open-hax/uxx
+pnpm --dir reagent watch
 ```
 
 ## Notes

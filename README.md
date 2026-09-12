@@ -85,8 +85,8 @@ import { etaMuThemes, createEtaMuThemeJson } from '@open-hax/uxx/eta-mu';
 
 ```bash
 cd orgs/open-hax/uxx
-npm install
-npm run build
+pnpm install --frozen-lockfile
+pnpm build
 ```
 
 ```tsx
@@ -114,9 +114,10 @@ Built-in themes now include `monokai`, `night-owl`, and `proxy-console`. The can
 ### Reagent
 
 ```bash
-cd orgs/open-hax/uxx/reagent
-npm install
-npm run build
+cd orgs/open-hax/uxx
+pnpm install --frozen-lockfile
+pnpm build
+pnpm --dir reagent build
 ```
 
 ```clojure
@@ -132,9 +133,10 @@ npm run build
 ### Helix
 
 ```bash
-cd orgs/open-hax/uxx/helix
-npm install
-npm run build
+cd orgs/open-hax/uxx
+pnpm install --frozen-lockfile
+pnpm build
+pnpm --dir helix build
 ```
 
 ```clojure

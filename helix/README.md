@@ -76,9 +76,9 @@ Normal React hook rules still apply.
 
 ```bash
 cd orgs/open-hax/uxx
-npm run build
-cd helix
-npm run build
+pnpm install --frozen-lockfile
+pnpm build
+pnpm --dir helix build
 ```
 
 ### pnpm + shadow-cljs consumers
@@ -95,8 +95,8 @@ shamefully-hoist=true
 ## Watch
 
 ```bash
-cd orgs/open-hax/uxx/helix
-npm run watch
+cd orgs/open-hax/uxx
+pnpm --dir helix watch
 ```
 
 ## Notes
