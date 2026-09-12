@@ -20,3 +20,10 @@ pnpm test
 ```
 
 The recovery install reused the shared offline pnpm store. A lockfile-only re-resolution failed because unrelated Storybook version metadata was absent from the offline metadata cache. Removing only the obsolete four-line Reagent importer entry, while preserving all still-used scheduler package snapshots, then passed `pnpm install --frozen-lockfile --offline`. Pnpm's existing ignored-esbuild-build-script notice was recorded; the actual esbuild-dependent build/tests still ran successfully. No installer warning was suppressed. The committed JSON records preserve original run paths; matching `.txt` files are durable copies of the output.
+
+The review documentation follow-up uses `release` for both production adapter
+checks and documents the public `Chat` component. Fresh strict lint passes; its
+[metadata](evidence/uxx-review-chat-doc-lint.json) and
+[output](evidence/uxx-review-chat-doc-lint.txt) are recorded. Only trailing blank
+lines were trimmed from that output to satisfy the whitespace gate. No runtime
+behavior changed, and no additional full test run is claimed for these comments.

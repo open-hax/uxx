@@ -1,0 +1,15 @@
+{
+  "id": "uxx-review-chat-doc-lint",
+  "cwd": "/tmp/foresight-restore-uxx-review",
+  "argv": [
+    "pnpm",
+    "lint"
+  ],
+  "start": "2026-09-12T09:50:19.757Z",
+  "end": "2026-09-12T09:50:22.743Z",
+  "seconds": 2.986,
+  "code": 0,
+  "signal": null,
+  "timeout": false,
+  "log": "/workspace/scratch/3655842e43cf/evidence/logs/uxx-review-chat-doc-lint.log"
+}

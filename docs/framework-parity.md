@@ -146,6 +146,6 @@ When adding a new public React export:
 cd orgs/open-hax/uxx
 pnpm install --frozen-lockfile
 pnpm build
-pnpm --dir reagent build
-pnpm --dir helix build
+pnpm --dir reagent release
+pnpm --dir helix release
 ```
