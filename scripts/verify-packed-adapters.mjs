@@ -4,14 +4,14 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { URL, pathToFileURL } from 'node:url';
+import { URL, fileURLToPath, pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
 import process from 'node:process';
 import console from 'node:console';
 
 const archives = process.argv.slice(2);
 assert.equal(archives.length, 2, 'Usage: node scripts/verify-packed-adapters.mjs HELIX.tgz REAGENT.tgz');
-const root = path.resolve(new URL('..', import.meta.url).pathname);
+const root = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
 const require = createRequire(path.join(root, 'package.json'));
 const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'uxx-packed-consumer-'));
 const result = [];

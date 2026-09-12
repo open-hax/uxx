@@ -121,17 +121,17 @@ Use `ThemeProvider` for the canonical API, or `UxxThemeProvider` if you want the
 
 ```bash
 cd orgs/open-hax/uxx
-npm install
-npm run build
-npm run storybook
-npm test
+pnpm install --frozen-lockfile
+pnpm build
+pnpm storybook
+pnpm test
 ```
 
 ## Storybook
 
 ```bash
 cd orgs/open-hax/uxx
-npm run storybook
+pnpm storybook
 ```
 
 ## Relationship to Reagent and Helix
