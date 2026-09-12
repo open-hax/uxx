@@ -1,0 +1,4 @@
+
+> @open-hax/uxx@0.2.3 typecheck /tmp/foresight-restore-uxx-review
+> tsc -p tsconfig.json --noEmit
+

@@ -1,0 +1,15 @@
+{
+  "id": "uxx-review-typecheck",
+  "cwd": "/tmp/foresight-restore-uxx-review",
+  "argv": [
+    "pnpm",
+    "typecheck"
+  ],
+  "start": "2026-09-12T09:35:06.575Z",
+  "end": "2026-09-12T09:35:09.782Z",
+  "seconds": 3.207,
+  "code": 0,
+  "signal": null,
+  "timeout": false,
+  "log": "/workspace/scratch/3655842e43cf/evidence/logs/uxx-review-typecheck.log"
+}

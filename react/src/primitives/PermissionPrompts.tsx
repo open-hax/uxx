@@ -54,7 +54,6 @@ export function PermissionPrompts({
   onPromptResponse,
   autoFocusInput = true,
   showMetadata = true,
-  groupBySession = false,
 }: PermissionPromptsProps) {
   const pendingCount = permissions.length + prompts.length;
   const hasPending = pendingCount > 0;

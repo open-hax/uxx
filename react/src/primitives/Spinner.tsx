@@ -5,7 +5,6 @@
  * Loading indicator with customizable size and color.
  */
 
-import { tokens } from '@open-hax/uxx/tokens';
 
 // Types derived from contract
 export type SpinnerSize = 'sm' | 'md' | 'lg' | 'xl';

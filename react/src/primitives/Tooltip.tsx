@@ -11,6 +11,7 @@ import {
   useEffect, 
   useCallback,
   type ReactNode,
+  type HTMLAttributes,
   type CSSProperties
 } from 'react';
 import { createPortal } from 'react-dom';
@@ -231,7 +232,7 @@ export function Tooltip({
     return <>{children}</>;
   }
 
-  const triggerProps: Record<string, any> = {};
+  const triggerProps: HTMLAttributes<HTMLDivElement> = {};
   
   if (trigger === 'hover' || trigger === 'hover-focus') {
     triggerProps.onMouseEnter = showTooltip;

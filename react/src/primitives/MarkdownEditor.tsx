@@ -39,7 +39,6 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   lineNumbers = true,
   wrap = true,
   theme = 'dark',
-  highlightActiveLine = true,
   spellcheck = false,
   placeholder = 'Write your markdown here...',
   onChange,

@@ -5,7 +5,7 @@
  */
 
 import type { Meta, StoryObj } from '@storybook/react';
-import { Badge } from './Badge.js';
+import { Badge, type BadgeVariant } from './Badge.js';
 
 const meta: Meta<typeof Badge> = {
   title: 'Primitives/Badge',
@@ -296,7 +296,7 @@ export const AllVariantsGrid: Story = {
         'stopped',
       ].map((variant) => (
         <div key={variant} style={{ padding: '8px', border: '1px solid #333', borderRadius: '4px' }}>
-          <Badge variant={variant as any}>{variant}</Badge>
+          <Badge variant={variant as BadgeVariant}>{variant}</Badge>
         </div>
       ))}
     </div>

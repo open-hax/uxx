@@ -80,9 +80,6 @@ const itemStyles: CSSProperties = {
 };
 
 // Item hover styles
-const itemHoverStyles: CSSProperties = {
-  backgroundColor: tokens.colors.background.surface,
-};
 
 // Item selected styles
 const itemSelectedStyles: CSSProperties = {
@@ -196,7 +193,6 @@ export function FileTree({
   showSize = false,
   indentSize = 16,
   search,
-  multiSelect = false,
 }: FileTreeProps) {
   const [internalExpandedIds, setInternalExpandedIds] = useState<Set<string>>(new Set());
   const expandedIds = controlledExpandedIds ? new Set(controlledExpandedIds) : internalExpandedIds;

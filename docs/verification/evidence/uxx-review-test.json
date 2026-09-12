@@ -1,0 +1,15 @@
+{
+  "id": "uxx-review-test",
+  "cwd": "/tmp/foresight-restore-uxx-review",
+  "argv": [
+    "pnpm",
+    "test"
+  ],
+  "start": "2026-09-12T09:35:09.833Z",
+  "end": "2026-09-12T09:35:20.222Z",
+  "seconds": 10.389,
+  "code": 0,
+  "signal": null,
+  "timeout": false,
+  "log": "/workspace/scratch/3655842e43cf/evidence/logs/uxx-review-test.log"
+}

@@ -171,6 +171,11 @@ function markdownToHtml(md: string): string {
   return html;
 }
 
+/**
+ * Edit HTML or Markdown content with controlled or initial source values.
+ * Toolbar actions and optional image/mention controls operate on the current
+ * selection, while `onChange` reports the configured source representation.
+ */
 export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   value: controlledValue,
   defaultValue = '',
@@ -184,8 +189,6 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   maxHeight,
   imageUpload,
   mentions,
-  links = { autolink: true, openInNewTab: true },
-  markdownShortcuts = true,
   spellcheck = true,
   onChange,
   onFocus,

@@ -5,26 +5,30 @@
   "type": "module",
   "description": "Reagent companion package for @open-hax/uxx",
   "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
+  "module": "./dist/index.js",
+  "files": ["dist", "src", "shadow-cljs.edn"],
   "exports": {
     ".": {
-      "import": "./dist/index.mjs"
+      "import": "./dist/index.js"
     }
   },
   "scripts": {
+    "prepack": "npm run release",
     "build": "shadow-cljs compile ui-reagent",
     "release": "shadow-cljs release ui-reagent",
     "watch": "shadow-cljs watch ui-reagent"
   },
-  "dependencies": {
+  "devDependencies": {
+    "shadow-cljs": "^3.3.5",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
-    "scheduler": "^0.23.0",
-    "reagent": "^1.0.1",
-    "shadow-cljs": "^3.3.5"
+    "@open-hax/uxx-tokens-internal": "workspace:*",
+    "@open-hax/uxx": "workspace:*"
   },
-  "devDependencies": {
-    "@open-hax/uxx-tokens-internal": "workspace:*"
-  },
-  "license": "LGPL-3.0-or-later"
+  "license": "LGPL-3.0-or-later",
+  "peerDependencies": {
+    "@open-hax/uxx": ">=0.2.3",
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  }
 }

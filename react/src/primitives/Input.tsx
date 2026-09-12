@@ -91,15 +91,21 @@ const sizeStyles: Record<InputSize, CSSProperties> = {
 const variantStyles: Record<InputVariant, CSSProperties> = {
   default: {
     backgroundColor: tokens.colors.background.default,
-    border: `1px solid ${tokens.colors.border.default}`,
+    borderWidth: 1,
+    borderStyle: 'solid',
+    borderColor: tokens.colors.border.default,
   },
   filled: {
     backgroundColor: tokens.colors.background.surface,
-    border: '1px solid transparent',
+    borderWidth: 1,
+    borderStyle: 'solid',
+    borderColor: 'transparent',
   },
   unstyled: {
     backgroundColor: 'transparent',
-    border: 'none',
+    borderWidth: 0,
+    borderStyle: 'none',
+    borderColor: 'transparent',
     padding: 0,
   },
 };

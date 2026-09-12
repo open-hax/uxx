@@ -266,7 +266,7 @@ describe('EntityCard', () => {
 
   describe('event propagation', () => {
     it('stops propagation from primary action button', () => {
-      const { container } = render(
+      render(
         <EntityCard
           id="test-1"
           name="Test"
@@ -282,7 +282,7 @@ describe('EntityCard', () => {
     });
 
     it('stops propagation from secondary action buttons', () => {
-      const { container } = render(
+      render(
         <EntityCard
           id="test-1"
           name="Test"

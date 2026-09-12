@@ -143,7 +143,9 @@ When adding a new public React export:
 ## Validation commands
 
 ```bash
-cd orgs/open-hax/uxx && npm run build
-cd orgs/open-hax/uxx/reagent && npm run build
-cd orgs/open-hax/uxx/helix && npm run build
+cd orgs/open-hax/uxx
+pnpm install --frozen-lockfile
+pnpm build
+pnpm --dir reagent release
+pnpm --dir helix release
 ```

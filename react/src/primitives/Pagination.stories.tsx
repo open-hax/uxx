@@ -224,7 +224,6 @@ export const WithItems: Story = {
 // Demo showing pagination utility functions
 const PaginationUtilitiesDemo = () => {
   const items = Array.from({ length: 95 }, (_, i) => `Item ${i + 1}`);
-  const pageSize = 10;
   
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

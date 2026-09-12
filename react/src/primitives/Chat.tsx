@@ -189,6 +189,11 @@ function formatTimestamp(date: Date): string {
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
+/**
+ * Render plain-text messages and a composer that submits through `onSend`.
+ * Supports optional timestamps, message actions, connection status,
+ * and pending/typing indicators while preserving a reader's scroll position.
+ */
 export function Chat({
   messages,
   onSend,
@@ -199,7 +204,6 @@ export function Chat({
   userAvatar,
   maxHeight = '500px',
   showTimestamps = false,
-  allowAttachments = false,
   allowMarkdown = true,
   emptyState,
   onMessageAction,

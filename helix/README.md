@@ -76,25 +76,27 @@ Normal React hook rules still apply.
 
 ```bash
 cd orgs/open-hax/uxx
-npm run build
-cd helix
-npm run build
+pnpm install --frozen-lockfile
+pnpm build
+pnpm --dir helix build
 ```
 
 ### pnpm + shadow-cljs consumers
 
-If your app uses `pnpm` and builds with `shadow-cljs`, add this to the app repo:
+For this workspace, retain the root linker configuration so Shadow can see
+public dependencies while peer consumers share one React identity:
 
 ```ini
 # .npmrc
-node-linker=hoisted
+node-linker=isolated
+shamefully-hoist=true
 ```
 
 ## Watch
 
 ```bash
-cd orgs/open-hax/uxx/helix
-npm run watch
+cd orgs/open-hax/uxx
+pnpm --dir helix watch
 ```
 
 ## Notes

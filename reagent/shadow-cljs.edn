@@ -3,12 +3,15 @@
  :dependencies
  [[reagent/reagent "1.2.0"]]
 
- :js-options
- {:js-package-dirs ["../node_modules" "../vendor"]}
-
  :builds
  {:ui-reagent
   {:target :esm
+   :js-options
+   {;; These ESM library adapters share the consuming application's React peer.
+    ;; Preserve npm imports instead of bundling a second React/runtime graph.
+    :js-provider :import
+    :keep-as-import #{"react" "react-dom" "@open-hax/uxx" "@open-hax/uxx/primitives"}
+    :js-package-dirs ["../node_modules" "../vendor"]}
    :output-dir "dist"
    :modules {:index {:entries [devel.ui.core]
                      :exports {:ThemeProvider devel.ui.core/theme-provider
