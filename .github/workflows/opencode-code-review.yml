@@ -1,111 +1,159 @@
 name: OpenCode Kimi PR Review
 
 on:
-  workflow_dispatch:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
 
 concurrency:
   group: opencode-kimi-review-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
+  runner-tests:
+    name: Review runner regression tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - run: node --test .github/scripts/kimi-review.test.cjs
+
   review:
+    needs: runner-tests
+    timeout-minutes: 30
     name: Review pull request with OpenCode
     if: ${{ github.event.pull_request.draft == false && github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
     env:
-      HAS_DISCORD_REVIEW_WEBHOOK_URL: ${{ secrets.DISCORD_REVIEW_WEBHOOK_URL != '' }}
+      # The helper source must be a reviewed immutable base ancestor; workflow YAML retains the repository contributor trust boundary.
+      KIMI_RUNTIME_SHA: f2ca216e3ea64ac84acc8772648dc93cbfe5e57a
     permissions:
-      id-token: write
       contents: read
       pull-requests: write
       issues: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
           persist-credentials: false
 
-      - name: Capture review start time
-        id: review_start
-        run: echo "started_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
-
-      - name: Run OpenCode review
-        uses: anomalyco/opencode/github@latest
+      - name: Install verified OpenCode CLI
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENCODE_VERSION: 1.18.34
+          OPENCODE_SHA256: 0f22479647226d1d2dd99595d20082ee7bda3870b62dc6a90b41efc1a71d7e9a
+        run: |
+          set -euo pipefail
+          archive="$RUNNER_TEMP/opencode.tar.gz"
+          curl --fail --silent --show-error --location \
+            "https://github.com/anomalyco/opencode/releases/download/v${OPENCODE_VERSION}/opencode-linux-x64.tar.gz" \
+            --output "$archive"
+          echo "${OPENCODE_SHA256}  $archive" | sha256sum --check --strict
+          mkdir -p "$RUNNER_TEMP/opencode-bin"
+          tar -xzf "$archive" -C "$RUNNER_TEMP/opencode-bin"
+          echo "$RUNNER_TEMP/opencode-bin" >> "$GITHUB_PATH"
+          test "$("$RUNNER_TEMP/opencode-bin/opencode" --version)" = "$OPENCODE_VERSION"
+
+      - name: Prepare immutable review runtime
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          [[ "$KIMI_RUNTIME_SHA" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$PR_BASE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          git merge-base --is-ancestor "$KIMI_RUNTIME_SHA" "$PR_BASE_SHA"
+          git show "${KIMI_RUNTIME_SHA}:.github/scripts/kimi-review.cjs" > "$RUNNER_TEMP/kimi-review.cjs"
+          node --check "$RUNNER_TEMP/kimi-review.cjs"
+
+      - name: Run exact-head Kimi review without publication credentials
+        run: node "$RUNNER_TEMP/kimi-review.cjs"
+        env:
           KIMI_API_KEY: ${{ secrets.KIMI_FOR_CODING_API_KEY }}
-        with:
-          model: kimi-for-coding/k2p5
-          use_github_token: true
-          prompt: |
-            Review this pull request as a senior maintainer.
-            Focus on correctness, security, maintainability, tests, and repo-specific conventions.
-            Check linked GitHub issues and any synced Kanban markers (`openhax-kanban-sync`) to understand the task intent.
-            If this repository has a kanban/ directory or docs/agent-workflows.md, use it as planning context and keep status/priority labels in mind.
-            Submit concrete findings as GitHub PR inline review comments on the exact changed lines whenever GitHub can attach them.
-            If there are no actionable findings, leave a short passing review summary instead of inventing comments.
-            Do not request cosmetic churn unless it prevents confusion or future defects.
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          KIMI_REVIEW_FILE: ${{ runner.temp }}/kimi-review.json
 
-      - name: Send new inline review comments to Discord
-        if: ${{ always() && env.HAS_DISCORD_REVIEW_WEBHOOK_URL == 'true' }}
-        uses: actions/github-script@v7
+      - name: Record native execution provenance
         env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs'), crypto = require('node:crypto');
+          const { execFileSync } = require('node:child_process');
+          const e = process.env, sha = value => /^[0-9a-f]{40}$/.test(value || '');
+          if (![e.KIMI_RUNTIME_SHA, e.PR_HEAD_SHA, e.PR_BASE_SHA, e.GITHUB_WORKFLOW_SHA].every(sha) ||
+              !/^[1-9][0-9]*$/.test(e.GITHUB_RUN_ID || '') || !/^[1-9][0-9]*$/.test(e.GITHUB_RUN_ATTEMPT || '')) throw new Error('Invalid execution provenance');
+          execFileSync('git', ['merge-base', '--is-ancestor', e.KIMI_RUNTIME_SHA, e.PR_BASE_SHA]);
+          const runtimePath = `${e.RUNNER_TEMP}/kimi-review.cjs`;
+          const runtime = fs.readFileSync(runtimePath), expected = execFileSync('git', ['show', `${e.KIMI_RUNTIME_SHA}:.github/scripts/kimi-review.cjs`]);
+          if (!runtime.equals(expected)) throw new Error('Runtime bytes differ from immutable source');
+          const review = JSON.parse(fs.readFileSync(`${e.RUNNER_TEMP}/kimi-review.json`, 'utf8'));
+          const helper = require(runtimePath);
+          helper.assertHead(e.PR_HEAD_SHA, review.head);
+          const model = helper.structuredRequest('', review.head, review).model;
+          if (model.providerID !== 'kimi-code-plan-global' || model.modelID !== 'kimi-for-coding') throw new Error('Unexpected requested model');
+          const version = execFileSync('opencode', ['--version'], { encoding: 'utf8' }).trim();
+          const archiveSha256 = crypto.createHash('sha256').update(fs.readFileSync(`${e.RUNNER_TEMP}/opencode.tar.gz`)).digest('hex');
+          if (version !== '1.18.34' || archiveSha256 !== '0f22479647226d1d2dd99595d20082ee7bda3870b62dc6a90b41efc1a71d7e9a') throw new Error('Toolchain provenance mismatch');
+          const provenance = {
+            origin: 'github-actions-native-execution', repository: e.GITHUB_REPOSITORY,
+            head: review.head, base: e.PR_BASE_SHA, runtimeSha: e.KIMI_RUNTIME_SHA,
+            runtimeBlobSha256: crypto.createHash('sha256').update(runtime).digest('hex'), runtimeBaseAncestorVerified: true,
+            requestedModel: model, executedModel: model,
+            executedModelBinding: 'Successful immutable parseStructured requires assistant providerID/modelID to equal requested Kimi identities',
+            runID: e.GITHUB_RUN_ID, runAttempt: Number(e.GITHUB_RUN_ATTEMPT),
+            runURL: `${e.GITHUB_SERVER_URL}/${e.GITHUB_REPOSITORY}/actions/runs/${e.GITHUB_RUN_ID}`,
+            workflowSha: e.GITHUB_WORKFLOW_SHA, workflowRef: e.GITHUB_WORKFLOW_REF,
+            opencodeVersion: version, archiveSha256, diffSha256: review.diffSha256, coveredFiles: review.coveredFiles,
+          };
+          fs.writeFileSync(`${e.RUNNER_TEMP}/kimi-provenance.json`, JSON.stringify(provenance, null, 2));
+          NODE
+
+      - name: Preserve native submission and its execution provenance
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kimi-native-${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/kimi-review.json
+            ${{ runner.temp }}/kimi-provenance.json
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Publish exact-head review and its own bounded Discord notifications
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b
+        env:
+          KIMI_REVIEW_FILE: ${{ runner.temp }}/kimi-review.json
           DISCORD_REVIEW_WEBHOOK_URL: ${{ secrets.DISCORD_REVIEW_WEBHOOK_URL }}
-          REVIEW_STARTED_AT: ${{ steps.review_start.outputs.started_at }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const webhookUrl = process.env.DISCORD_REVIEW_WEBHOOK_URL;
-            const startedAt = new Date(process.env.REVIEW_STARTED_AT || 0);
-            const { owner, repo } = context.repo;
-            const pr = context.payload.pull_request;
-            if (!webhookUrl || !pr) return;
-
-            const comments = await github.paginate(github.rest.pulls.listReviewComments, {
-              owner,
-              repo,
-              pull_number: pr.number,
-              per_page: 100,
-            });
-            const fresh = comments
-              .filter((comment) => new Date(comment.created_at) >= startedAt)
-              .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-            if (fresh.length === 0) {
-              core.info('No new inline review comments to send to Discord.');
-              return;
-            }
-
-            const truncate = (value, max) => {
-              const text = String(value || '');
-              return text.length <= max ? text : `${text.slice(0, max - 1)}…`;
+            const fs = require('node:fs');
+            const provenance = JSON.parse(fs.readFileSync(`${process.env.RUNNER_TEMP}/kimi-provenance.json`, 'utf8'));
+            // Keep complete coverage in the artifact; body metadata has a fixed field set.
+            const bodyProvenance = {
+              origin: provenance.origin, repository: provenance.repository,
+              head: provenance.head, base: provenance.base, runtimeSha: provenance.runtimeSha,
+              runtimeBlobSha256: provenance.runtimeBlobSha256,
+              runtimeBaseAncestorVerified: provenance.runtimeBaseAncestorVerified,
+              requestedModel: provenance.requestedModel, executedModel: provenance.executedModel,
+              runID: provenance.runID, runAttempt: provenance.runAttempt,
+              workflowSha: provenance.workflowSha, opencodeVersion: provenance.opencodeVersion,
+              archiveSha256: provenance.archiveSha256, diffSha256: provenance.diffSha256,
+              coveredFileCount: provenance.coveredFiles.length,
             };
-            const embeds = fresh.map((comment) => ({
-              title: `${owner}/${repo}#${pr.number}: inline review comment`,
-              url: comment.html_url,
-              color: 0x8b5cf6,
-              description: truncate(comment.body, 3500),
-              fields: [
-                { name: 'Author', value: comment.user?.login || 'unknown', inline: true },
-                { name: 'File', value: truncate(comment.path || 'unknown', 1024), inline: true },
-                { name: 'Line', value: String(comment.line || comment.original_line || 'n/a'), inline: true },
-                { name: 'PR', value: pr.html_url, inline: false },
-              ],
-              timestamp: comment.created_at,
-            }));
-
-            for (let i = 0; i < embeds.length; i += 10) {
-              const chunk = embeds.slice(i, i + 10);
-              const response = await fetch(webhookUrl, {
-                method: 'POST',
-                headers: { 'content-type': 'application/json' },
-                body: JSON.stringify({
-                  username: 'Kimi Code Review',
-                  content: `New inline review comment${chunk.length === 1 ? '' : 's'} on ${owner}/${repo}#${pr.number}`,
-                  embeds: chunk,
-                  allowed_mentions: { parse: [] },
-                }),
-              });
-              if (!response.ok) {
-                throw new Error(`Discord webhook failed: ${response.status} ${await response.text()}`);
-              }
-            }
+            const bodyMetadata = JSON.stringify(bodyProvenance, null, 2);
+            if (bodyMetadata.length > 4096) throw new Error('Execution metadata exceeds fixed body budget');
+            const createReview = github.rest.pulls.createReview.bind(github.rest.pulls);
+            github.rest.pulls.createReview = parameters => {
+              const body = `${parameters.body}\n\nNative execution provenance (execution evidence, not reviewer quorum):\n\`\`\`json\n${bodyMetadata}\n\`\`\``;
+              if (body.length > 65536) throw new Error('Publication body exceeds GitHub bounds');
+              return createReview({ ...parameters, body });
+            };
+            const { publish } = require(`${process.env.RUNNER_TEMP}/kimi-review.cjs`);
+            await publish({ github, context, file: process.env.KIMI_REVIEW_FILE,
+              webhookUrl: process.env.DISCORD_REVIEW_WEBHOOK_URL });
