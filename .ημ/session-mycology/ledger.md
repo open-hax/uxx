@@ -13,3 +13,11 @@ Parent retains all publication/activation authority. No model/token/native write
 A matching provider/model identity alone does not establish economical control. Reuse qualified Proxx281 bytes and public guards, preserve returned executionControl, and keep hidden backend/reasoning budget UNKNOWN. The same verified runtime/auth dependency supplies contract, read/model and fresh publisher jobs; no local fallback or copied capability law.
 
 RED old runner: 13 tests/149 assertions, 7 failures/0 errors, exit1. GREEN corrected adapter17/196 and four unchanged shared low-control tests using the captured catalog. Standard actionlint and selected Clojure analysis pass. Earlier packet and all17191receipt/1041reflection bytes retained; no native/model/token calls, staging, publication, installs or new native qualification. Parent owns activation and independent actual Uxx assessment. Evidence: /tmp/uxx-assessment-low-runtime-ob0mfnsc.
+
+- ts: "2026-10-04T13:26:26.820Z"
+  origin: Uxx16 native eager merge guard
+  p-efficiency: 0.90
+  p-friction: 0.18
+  p-skill-candidate: 0.18
+  spore: none
+  note: Reuse the already reviewed guard to prevent eager unqualified queue attempts; retain actual skipped state and canonical protected merge qualification. Native transport tests and operational auto-merge failures establish different facts.

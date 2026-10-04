@@ -4,6 +4,14 @@ This is local transport preparation. It supplies no native assessment, approval,
 completed review round or thread settlement. Parent publication and hosted
 qualification remain required. The original Uxx14 worktree is unchanged.
 
+The first native PR run exposed a separate inherited eager auto-merge call:
+it attempted `SQUASH` on PR creation and failed because this repository disallows
+auto-merge. The caller now uses the reviewed Proxx guard to keep that action
+unconditionally disabled. It is reported as skipped, not successful. No repository
+setting or required check is changed; the canonical operator gate owns any later
+qualified exact-head merge commit. The actual prior event expression dispatches
+an unwanted enable call; all eight event cases refuse it after the repair.
+
 ## Bounded authority and source reuse
 
 The sole target is open-hax/uxx#14 at
