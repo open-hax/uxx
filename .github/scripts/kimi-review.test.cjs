@@ -356,8 +356,10 @@ function kimiRetryFixture() {
   const fs = require('node:fs'), os = require('node:os'), path = require('node:path');
   const { execFileSync } = require('node:child_process');
   const helper = require('./kimi-review.cjs'); // Load the pinned-equal source before chdir.
+  const prior = process.cwd();
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'kimi-publication-retry-'));
-  const prior = process.cwd(), source = fs.readFileSync(require.resolve('./kimi-review.cjs'));
+  try {
+  const source = fs.readFileSync(require.resolve('./kimi-review.cjs'));
   const workflow = fs.readFileSync(path.join(__dirname, '../workflows/opencode-code-review.yml'), 'utf8');
   const git = args => execFileSync('git', args, { cwd: directory, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
   git(['init']); git(['config', 'user.name', 'local fixture']); git(['config', 'user.email', 'fixture@example.invalid']);
@@ -428,6 +430,10 @@ function kimiRetryFixture() {
   return { workflow, env, temp, counts, records, produce, verify, publish, nodeStep,
     allowNotifications: () => { notifyFail = false; },
     cleanup: () => { process.chdir(prior); fs.rmSync(directory, { recursive: true, force: true }); } };
+  } catch (error) {
+    process.chdir(prior); fs.rmSync(directory, { recursive: true, force: true });
+    throw error;
+  }
 }
 
 test('failed publication job reuses producer bytes after actual review POST and Discord failure', async () => {
@@ -516,3 +522,23 @@ test('actual producer output and nonempty download guard preserve the successful
     }
   } finally { f.cleanup(); }
 });
+
+
+for (const seam of ['coverage', 'mkdir']) {
+  test(`retry fixture construction failure at ${seam} restores cwd and removes its temporary Git workspace`, () => {
+    const fs = require('node:fs'), helper = require('./kimi-review.cjs');
+    const prior = process.cwd(), originalCoverage = helper.diffCoverage, originalMkdtemp = fs.mkdtempSync, originalMkdir = fs.mkdirSync;
+    const failure = new Error(`Synthetic constructor ${seam} failure`); let directory;
+    fs.mkdtempSync = (...args) => { directory = originalMkdtemp(...args); return directory; };
+    if (seam === 'coverage') helper.diffCoverage = () => { throw failure; };
+    else fs.mkdirSync = () => { throw failure; };
+    try {
+      assert.throws(() => kimiRetryFixture(), error => error === failure);
+      assert.equal(process.cwd(), prior, 'Constructor failure must restore its caller cwd before rethrow');
+      assert.ok(directory); assert.equal(fs.existsSync(directory), false, 'Constructor failure must remove its workspace');
+    } finally {
+      helper.diffCoverage = originalCoverage; fs.mkdtempSync = originalMkdtemp; fs.mkdirSync = originalMkdir;
+      process.chdir(prior); if (directory) fs.rmSync(directory, { recursive: true, force: true });
+    }
+  });
+}

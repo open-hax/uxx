@@ -110,3 +110,11 @@ An ordinary integration preserves two divergent ledger histories through exact r
   p-skill-candidate: 0.35
   spore: none
   note: A successful review POST followed by failed Discord delivery must retry the saved producer artifact in a separate publisher job. Preserve original attempt/source provenance and native review ID; deliberate full production reruns and webhook delivery remain separately bounded. Verify identical predecessor tests in the correct Git context before attributing every failure to the repair. Functional tests do not establish hosted retry execution or generic Bot enrollment.
+
+- ts: "2026-10-04T23:44:02.480Z"
+  origin: review-restoration/test-fixture-constructor-cleanup
+  p-efficiency: 0.9
+  p-friction: 0.23
+  p-skill-candidate: 0.3
+  spore: none
+  note: Constructors that allocate temporary resources must guard every subsequent operation, including faults before process cwd changes. Verify both early and late construction errors restore caller state while retaining the original error. Native generic Bot findings remain actionable without granting that Bot reviewer-quorum identity.
