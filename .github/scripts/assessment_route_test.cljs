@@ -154,6 +154,24 @@
   (let [native (js->clj (js/JSON.parse (fs/readFileSync ".github/scripts/fixtures/uxx14-native-comment-metadata.json" "utf8")) :keywordize-keys true)]
     (is (= (:html_url native) (:html_url (fixture-comment (:id native) "fixture" (:created_at native) (:user native)))))))
 
+(defn publisher-check-before-mint?
+  "Validate the actual publisher text, including absence of either boundary."
+  [publisher]
+  (let [check (.indexOf publisher "ASSESSMENT_COMMAND: check")
+        mint (.indexOf publisher "withOpenCodeAppToken")]
+    (and (<= 0 check) (<= 0 mint) (< check mint))))
+
+(deftest publisher-ordering-rejects-absent-and-reordered-check
+  (let [workflow (fs/readFileSync ".github/workflows/opencode-issue-agent.yml" "utf8")
+        publisher (second (re-find #"(?s)\n  scoped-assessment-publish:(.*?)(?:\n  [a-z][a-z0-9-]*:|$)" workflow))]
+    (is (true? (publisher-check-before-mint? publisher)))
+    (is (false? (publisher-check-before-mint?
+                 (str/replace publisher "ASSESSMENT_COMMAND: check" "ASSESSMENT_COMMAND: absent"))))
+    (is (false? (publisher-check-before-mint?
+                 (str/replace publisher "withOpenCodeAppToken" "missing-app-mint"))))
+    (is (false? (publisher-check-before-mint?
+                 (str "withOpenCodeAppToken\n" publisher))))))
+
 (deftest actual-workflow-separates-model-and-app
   (let [workflow (fs/readFileSync ".github/workflows/opencode-issue-agent.yml" "utf8")
         read-job (or (second (re-find #"(?s)  scoped-assessment-read:(.*?)\n  scoped-assessment-publish:" workflow)) "")
@@ -164,7 +182,7 @@
     (is (not (str/includes? publisher "KIMI_API_KEY")))
     (is (not (str/includes? publisher "Install immutable OpenCode")))
     (is (not (str/includes? publisher "anomalyco/opencode/github")))
-    (is (< (.indexOf publisher "ASSESSMENT_COMMAND: check") (.indexOf publisher "withOpenCodeAppToken")))
+    (is (true? (publisher-check-before-mint? publisher)))
     (is (str/includes? publisher "2810f4515424a146fe37390fb0baf532cca31236"))
     (is (= 2 (count (re-seq #"ref: \$\{\{ github.sha \}\}" workflow))))))
 
@@ -181,6 +199,59 @@
     (is (not (str/includes? scope ".assessment-publisher")))
     (doseq [[_ use] uses]
       (let [[action pin] (str/split use #"@" 2)] (is (= (get pins action) pin))))))
+
+(deftest scoped-jobs-use-the-committed-frozen-runtime
+  (let [workflow (fs/readFileSync ".github/workflows/opencode-issue-agent.yml" "utf8")
+        scope (second (re-find #"(?s)\n  scoped-assessment-contract:(.*?)\n  daily-issue-sweep:" workflow))]
+    (is (= 3 (count (re-seq #"working-directory: \.github/assessment-tools" scope))))
+    (is (= 3 (count (re-seq #"npm ci --ignore-scripts --no-audit --no-fund" scope))))
+    (is (not (str/includes? scope "npm install")))
+    (is (not (str/includes? scope "$RUNNER_TEMP/assessment-tools")))
+    (is (str/includes? workflow "'.github/assessment-tools/**'"))))
+
+(deftest contract-diagnostic-has-the-read-job-permissions
+  (let [workflow (fs/readFileSync ".github/workflows/opencode-issue-agent.yml" "utf8")
+        permissions (fn [job]
+                      (second (re-find (re-pattern (str "(?s)  " job ":.*?    permissions:\\n(.*?)    (?:steps|env):")) workflow)))]
+    (is (= (permissions "scoped-assessment-contract") (permissions "scoped-assessment-read")))
+    (is (= "      contents: read\n      pull-requests: read\n      issues: read\n"
+           (permissions "scoped-assessment-contract")))))
+
+(deftest actual-read-token-diagnostic-fails-closed-and-sanitizes
+  (test/async done
+    (let [workflow (fs/readFileSync ".github/workflows/opencode-issue-agent.yml" "utf8")
+          raw (second (re-find #"(?s)      - name: Verify read-token collaborator-permission API.*?          script: \|\n(.*?)(?=\n  scoped-assessment-read:)" workflow))
+          script (str/replace (or raw "") #"(?m)^            " "")
+          execute (js/Function. "github" "core" (str "return (async () => {\n" script "\n})();"))
+          cases [[{:status 200 :data {:permission "admin"}} true]
+                 [{:status 200 :data {:permission "none"}} true]
+                 [{:status 403 :data {:permission "admin"}} false]
+                 [{:status 200 :data {:permission "unknown-permission"}} false]
+                 [{:status 200 :data {}} false]
+                 [{:throw-status 403} false]
+                 [{:throw-status "unknown"} false]]
+          probes (mapv
+                   (fn [[response succeeds?]]
+                     (let [calls (atom []) infos (atom []) failures (atom [])
+                           github #js {:rest #js {:repos #js {:getCollaboratorPermissionLevel
+                                        (fn [args]
+                                          (swap! calls conj (js->clj args :keywordize-keys true))
+                                          (if-let [status (:throw-status response)]
+                                            (let [error (js/Error. "PRIVATE_ERROR_SENTINEL")]
+                                              (aset error "status" status)
+                                              (throw error))
+                                            (js/Promise.resolve (clj->js response))))}}}
+                           core #js {:info #(swap! infos conj %) :setFailed #(swap! failures conj %)}]
+                       (.then (execute github core)
+                              (fn []
+                                (is (= [{:owner "open-hax" :repo "uxx" :username "riatzukiza"}] @calls))
+                                (is (= succeeds? (empty? @failures)))
+                                (is (= (if succeeds? 1 0) (count @infos)))
+                                (is (not (str/includes? (str @infos @failures) "PRIVATE_ERROR_SENTINEL")))))))
+                   cases)]
+      (-> (js/Promise.all (clj->js probes))
+          (.then (fn [_] (done)))
+          (.catch (fn [_] (is false "Actual diagnostic script unexpectedly rejected") (done)))))))
 
 (deftest intake-negative-boundaries
   (doseq [bad [(assoc intake :authorized? false)

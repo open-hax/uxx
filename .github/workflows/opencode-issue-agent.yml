@@ -9,6 +9,8 @@ on:
       - '.github/workflows/opencode-issue-agent.yml'
       - '.github/scripts/assessment*'
       - '.github/scripts/fixtures/uxx14-native-*.json'
+      - '.github/assessment-tools/**'
+      - '.github/workflows/eta-mu-review.yml'
 
 concurrency:
   group: opencode-kimi-issues-${{ github.event.issue.number || github.run_id }}
@@ -66,6 +68,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      pull-requests: read
+      issues: read
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
@@ -86,9 +90,32 @@ jobs:
         with:
           node-version: '22.20.0'
       - name: Install pinned portable test runtime
-        run: npm install --ignore-scripts --no-audit --no-fund --prefix "$RUNNER_TEMP/assessment-tools" nbb@1.3.204
+        working-directory: .github/assessment-tools
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Test actual adapter and guarded workflow
-        run: '"$RUNNER_TEMP/assessment-tools/node_modules/.bin/nbb" -cp .github/scripts:.assessment-policy/skills/pr-flow/scripts .github/scripts/assessment_route_test.cljs'
+        run: .github/assessment-tools/node_modules/.bin/nbb -cp .github/scripts:.assessment-policy/skills/pr-flow/scripts .github/scripts/assessment_route_test.cljs
+      - name: Verify read-token collaborator-permission API
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b
+        with:
+          script: |
+            // This diagnostic uses the same read-only job scopes as intake.
+            // It proves endpoint reachability, not scoped assessment admission.
+            let response;
+            try {
+              response = await github.rest.repos.getCollaboratorPermissionLevel({
+                owner: 'open-hax', repo: 'uxx', username: 'riatzukiza',
+              });
+            } catch (error) {
+              const status = Number.isInteger(error?.status) ? error.status : 'unknown';
+              core.setFailed(`Read-token permission diagnostic failed (HTTP ${status}).`);
+              return;
+            }
+            const permission = response?.data?.permission;
+            if (response?.status !== 200 || !['admin', 'maintain', 'write', 'triage', 'read', 'none'].includes(permission)) {
+              core.setFailed('Read-token permission diagnostic returned invalid status or permission.');
+              return;
+            }
+            core.info(JSON.stringify({ repository: 'open-hax/uxx', login: 'riatzukiza', status: response.status, permission }));
 
   scoped-assessment-read:
     name: Independent bounded Uxx14 assessment
@@ -124,9 +151,10 @@ jobs:
         with:
           node-version: '22.20.0'
       - name: Install pinned portable runtime
+        working-directory: .github/assessment-tools
         run: |
-          npm install --ignore-scripts --no-audit --no-fund --prefix "$RUNNER_TEMP/assessment-tools" nbb@1.3.204
-          echo "$RUNNER_TEMP/assessment-tools/node_modules/.bin" >> "$GITHUB_PATH"
+          npm ci --ignore-scripts --no-audit --no-fund
+          echo "$GITHUB_WORKSPACE/.github/assessment-tools/node_modules/.bin" >> "$GITHUB_PATH"
           {
             echo "ASSESSMENT_INPUT=$RUNNER_TEMP/assessment-input.edn"
             echo "ASSESSMENT_RESULT=$RUNNER_TEMP/assessment-result.edn"
@@ -201,9 +229,10 @@ jobs:
         with:
           node-version: '22.20.0'
       - name: Install pinned portable runtime
+        working-directory: .github/assessment-tools
         run: |
-          npm install --ignore-scripts --no-audit --no-fund --prefix "$RUNNER_TEMP/assessment-tools" nbb@1.3.204
-          echo "$RUNNER_TEMP/assessment-tools/node_modules/.bin" >> "$GITHUB_PATH"
+          npm ci --ignore-scripts --no-audit --no-fund
+          echo "$GITHUB_WORKSPACE/.github/assessment-tools/node_modules/.bin" >> "$GITHUB_PATH"
           {
             echo "ASSESSMENT_INPUT=$RUNNER_TEMP/assessment-input.edn"
             echo "ASSESSMENT_RESULT=$RUNNER_TEMP/assessment-result.edn"

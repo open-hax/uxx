@@ -129,27 +129,79 @@ this assessment-only slice.
 
 ## Local verification and remaining activation
 
+The separate PR-wide MiMo caller now consumes qualified
+[Eta 45ec](https://github.com/open-hax/eta-mu/tree/45ec644c2d15ed511e9bc1e797d1b4073b63dbfc),
+Muse `0b9a91492c8355e6933dc2164d35668cb76d9e60` and unchanged skills
+`7fd3252e7663ad5e68be5e90429d126aa66c38c8`, with Node `22.20.0`.
+This is a functional input-delivery correction: the shared pipeline stages the
+full Git-bound UTF-8 input and manifest, independently verifies them, supplies
+the complete-input reader and assessment tools, and rechecks the artifacts and
+actual submission's input/coverage binding after recovery before publication.
+Uxx implements no second pipeline. Existing exact-head selection, producer
+`diff_stat` gate, read permissions and named secret forwarding remain unchanged.
+The supplied inputs/types and secret names were checked against the actual
+immutable reusable-workflow interface; four affected upstream fixtures pass.
+
+C2's native MiMo `APPROVED` review `5406568423` remains authentic historical
+evidence. Its older Eta b5/Muse05b route used OpenCode `1.18.18` ordinary Read,
+whose 2,000-character line limit clipped seven long diff-line tails in the
+preserved attempt. The old submission had no complete-input manifest/page
+coverage binding, and the captured reads do not establish recovered tails.
+It cannot receive complete-input credit. Job success and this source correction
+do not retroactively qualify that attempt or prove the next model read.
+
+The three scoped jobs install only `.github/assessment-tools` using the same
+committed `package.json`/`package-lock.json` and `npm ci --ignore-scripts`.
+The complete public-registry closure locks NBB `1.3.204` and its startup
+dependency `import-meta-resolve` `4.2.0`, including tarball integrity hashes.
+No root package or lockfile changes. Actual frozen installation succeeds under
+Node `22.20.0`; a manifest/lock mismatch is refused. This repairs CodeRabbit
+review `5406647171`, root `4178052416`, whose full C2 review selected all nine
+paths and posted one actionable finding with no additional body findings.
+
+Before any native assessment, the existing PR scoped-contract job now makes a
+read-only `repos.getCollaboratorPermissionLevel` diagnostic for
+`open-hax/uxx/riatzukiza` using exactly the read job's `contents:read`,
+`pull-requests:read`, and `issues:read` scopes. It requires actual HTTP 200 and a
+recognized permission and emits only sanitized repository/login/status/permission
+metadata. API errors and malformed responses fail the job without exposing
+tokens or error bodies. It has no App/OIDC/model binding or write operation.
+Its native result remains pending; local mocked success cannot establish token
+reachability. Existing fresh writer authorization and publisher guards still
+control real admission. Fork-token permission restrictions may produce a real
+failure rather than a skipped pass.
+
 With the reviewed canonical source and Proxx281 runtime checkout present locally,
 the repeatable test is:
 
 ```sh
-ASSESSMENT_RUNTIME=/path/to/Proxx281 nbb -cp .github/scripts:/path/to/Agents0f95/skills/pr-flow/scripts .github/scripts/assessment_route_test.cljs
+cd .github/assessment-tools
+npm ci --ignore-scripts --no-audit --no-fund
+cd ../..
+ASSESSMENT_RUNTIME=/path/to/Proxx281 .github/assessment-tools/node_modules/.bin/nbb -cp .github/scripts:/path/to/Agents0f95/skills/pr-flow/scripts .github/scripts/assessment_route_test.cljs
 ```
 
 The genuine context/metadata fixtures and explicit synthetic causal API seams
 cover enabled guarded invocation, writer/head/root/proposal chronology,
 pagination, input mutation after the first guard, independent negative verdicts,
 wrong native readback and model credential/tool isolation. The corrected adapter
-suite passes 17 tests / 196 assertions. Focused low request, assistant, catalog
+suite passes 21 tests / 236 assertions under Node `22.20.0`, including actual
+diagnostic-script API/error seams and the ordering regression. The original
+ordering predicate incorrectly accepted a missing pre-mint check (`-1 < mint`);
+the absent-check mutant reproduced one failure across 18 tests / 200 assertions,
+and the corrected predicate rejects absence and reordering. These test changes
+do not change executable publisher admission. Focused low request, assistant, catalog
 and version checks from the unchanged Proxx281 test source pass 4 tests using its
 captured native provider fixture. These are local contract checks with synthetic
 assessment outputs, not hosted qualification or independent native evidence.
-Local Node is `24.14.1`; the hosted job remains pinned to `22.20.0`, whose new-head
-run is still required. Actionlint with standard ShellCheck, selected Clojure
+The earlier low-control packet used local Node `24.14.1`. This correction uses
+Node `22.20.0`; its new-head hosted run is still required. Actionlint with
+standard ShellCheck, selected Clojure
 analysis (zero errors/warnings) and diff hygiene pass. The correction's RED
 against the old runner is 13 tests / 149 assertions with 7 failures, zero errors
 and exit 1, demonstrating missing low request/control and acceptance of wrong
-assistant variants. No model, GitHub API or OIDC call was made.
+assistant variants. This preparation read native review evidence through the
+existing authenticated CLI; it made no model, diagnostic-token or OIDC call.
 
 The earlier 12/141 adapter, 17-runner and 18-auth results and original workflow
 RED remain historical evidence in `/tmp/uxx-assessment-implementation-l7r4f2mx`

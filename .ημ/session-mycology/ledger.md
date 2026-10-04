@@ -21,3 +21,9 @@ RED old runner: 13 tests/149 assertions, 7 failures/0 errors, exit1. GREEN corre
   p-skill-candidate: 0.18
   spore: none
   note: Reuse the already reviewed guard to prevent eager unqualified queue attempts; retain actual skipped state and canonical protected merge qualification. Native transport tests and operational auto-merge failures establish different facts.
+
+2026-10-04T14:50:41.028Z — Full-input caller and frozen assessment runtime correction; p-efficiency0.88, p-friction0.22, p-skill-candidate0.20; no spore/promotion.
+
+Preserve authentic native approval without upgrading omitted input to complete coverage. Reuse the qualified shared pipeline rather than a provenance-only repin or copied law. Credential-bearing runtime startup imports require a complete integrity lock even when lifecycle scripts are disabled. An ordering assertion must reject absent boundaries before comparing their indexes.
+
+Meaningful ordering RED18/200 with1failure, corrected affected GREEN21/236; actual Node22 frozen install/startup and mismatch refusal, four upstream interface fixtures, analysis/actionlint/diff pass. Initial harness/cache/YAML environment failures remain inspectable; only corrected meaningful results receive credit. Read-token endpoint diagnostic and next-head full review remain native-pending; parent owns all effects. Full26173receipt/2388reflection prefixes retained. Evidence: /tmp/uxx16-full-input-lock-au6ufzh4.
