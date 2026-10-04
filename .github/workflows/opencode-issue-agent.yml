@@ -12,8 +12,12 @@ on:
       - '.github/assessment-tools/**'
       - '.github/workflows/eta-mu-review.yml'
 
+# Hold each eligible reader and its separate publisher in one workflow group.
+# Ineligible runs use unique groups. Only one pending eligible workflow is
+# retained; a newer eligible trigger can replace it before model execution.
+# This does not guarantee backlog retention or execution order.
 concurrency:
-  group: opencode-kimi-issues-${{ github.event.issue.number || github.run_id }}
+  group: ${{ (github.event_name == 'issue_comment' && github.event.action == 'created' && github.event.issue.number == 14 && github.event.issue.pull_request != null && github.event.comment.user.type == 'User' && startsWith(github.event.comment.body, '/opencode assess-actionability ')) && 'opencode-kimi-assessment-14' || format('opencode-kimi-assessment-14-ineligible-{0}', github.run_id) }}
   cancel-in-progress: false
 
 jobs:
@@ -122,6 +126,8 @@ jobs:
     if: ${{ github.event_name == 'issue_comment' && github.event.action == 'created' && github.event.issue.number == 14 && github.event.issue.pull_request != null && github.event.comment.user.type == 'User' && startsWith(github.event.comment.body, '/opencode assess-actionability ') }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    outputs:
+      artifact-name: ${{ steps.assessment-artifact.outputs.name }}
     permissions:
       contents: read
       pull-requests: read
@@ -182,11 +188,16 @@ jobs:
           KIMI_API_KEY: ${{ secrets.KIMI_FOR_CODING_API_KEY }}
           ASSESSMENT_COMMAND: model
         run: nbb -cp .github/scripts:.assessment-policy/skills/pr-flow/scripts .github/scripts/assessment_route.cljs
+      - name: Record producer artifact name
+        id: assessment-artifact
+        env:
+          ASSESSMENT_ARTIFACT_NAME: scoped-assessment-${{ github.run_id }}-${{ github.run_attempt }}
+        run: echo "name=$ASSESSMENT_ARTIFACT_NAME" >> "$GITHUB_OUTPUT"
       - name: Preserve immutable input and actual structured result
         if: ${{ success() }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: scoped-assessment-${{ github.run_id }}-${{ github.run_attempt }}
+          name: ${{ steps.assessment-artifact.outputs.name }}
           path: |
             ${{ runner.temp }}/assessment-input.edn
             ${{ runner.temp }}/assessment-result.edn
@@ -238,9 +249,13 @@ jobs:
             echo "ASSESSMENT_RESULT=$RUNNER_TEMP/assessment-result.edn"
             echo "ASSESSMENT_READBACK=$RUNNER_TEMP/assessment-readback.edn"
           } >> "$GITHUB_ENV"
+      - name: Require successful producer artifact name
+        env:
+          ASSESSMENT_ARTIFACT_NAME: ${{ needs.scoped-assessment-read.outputs.artifact-name }}
+        run: test -n "$ASSESSMENT_ARTIFACT_NAME"
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
-          name: scoped-assessment-${{ github.run_id }}-${{ github.run_attempt }}
+          name: ${{ needs.scoped-assessment-read.outputs.artifact-name }}
           path: ${{ runner.temp }}
       - name: Reverify native context and submission before App mint
         env:
