@@ -1,0 +1,29 @@
+{
+  "id": 5968643326,
+  "node_id": "IC_kwDOR5O5HM8AAAABY8JE_g",
+  "html_url": "https://github.com/open-hax/uxx/pull/14#issuecomment-5968643326",
+  "created_at": "2026-10-03T11:17:26Z",
+  "updated_at": "2026-10-03T11:17:26Z",
+  "user": {
+    "login": "riatzukiza",
+    "id": 10676925,
+    "node_id": "MDQ6VXNlcjEwNjc2OTI1",
+    "avatar_url": "https://avatars.githubusercontent.com/u/10676925?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/riatzukiza",
+    "html_url": "https://github.com/riatzukiza",
+    "followers_url": "https://api.github.com/users/riatzukiza/followers",
+    "following_url": "https://api.github.com/users/riatzukiza/following{/other_user}",
+    "gists_url": "https://api.github.com/users/riatzukiza/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/riatzukiza/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/riatzukiza/subscriptions",
+    "organizations_url": "https://api.github.com/users/riatzukiza/orgs",
+    "repos_url": "https://api.github.com/users/riatzukiza/repos",
+    "events_url": "https://api.github.com/users/riatzukiza/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/riatzukiza/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "capture_note": "Actual public native Uxx14 issue-comment metadata; assessment/proposal fixture records remain explicitly synthetic."
+}
