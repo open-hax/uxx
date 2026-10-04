@@ -416,6 +416,54 @@
                                                           :modelID "kimi-for-coding" :structured value} :parts #js []}
                                     (:head r/selection) #js {:diffSha256 (:diff-sha256 coverage) :coveredFiles (clj->js (:files coverage))})))))
 
+(deftest model-child-consumes-only-allowed-real-node-environment
+  (let [settings {"PATH" "/synthetic/fixture/bin" "LANG" "C.fixture" "TMPDIR" "/synthetic/fixture/tmp"
+                  "KIMI_API_KEY" "synthetic-fixture-only" "GH_TOKEN" "synthetic-must-not-pass"
+                  "GITHUB_TOKEN" "synthetic-must-not-pass" "ACTIONS_ID_TOKEN_REQUEST_TOKEN" "synthetic-must-not-pass"
+                  "ACTIONS_ID_TOKEN_REQUEST_URL" "synthetic-must-not-pass"}
+        previous (into {} (for [[k _] settings] [k (aget js/process.env k)]))]
+    (try
+      (doseq [[k v] settings] (aset js/process.env k v))
+      (let [env (js->clj (r/model-env "/synthetic/fixture/home"))]
+        (doseq [key ["PATH" "LANG" "TMPDIR" "KIMI_API_KEY"]]
+          (is (= (get settings key) (get env key))))
+        (doseq [key ["GH_TOKEN" "GITHUB_TOKEN" "ACTIONS_ID_TOKEN_REQUEST_TOKEN" "ACTIONS_ID_TOKEN_REQUEST_URL"]]
+          (is (not (contains? env key))))
+        (is (= "/synthetic/fixture/home" (get env "HOME"))))
+      (finally
+        (doseq [[k v] previous]
+          (if (nil? v) (js-delete js/process.env k) (aset js/process.env k v)))))))
+
+(deftest intake-entrypoint-consumes-real-node-environment
+  ;; process.env is a native Node object, not the plain JS map used by fixtures.
+  ;; Keep the actual entrypoint and filesystem write; replace only native reads.
+  (let [directory (fs/mkdtempSync (path/join (os/tmpdir) "uxx-intake-env-"))
+        input (path/join directory "input.edn")
+        settings {"ASSESSMENT_COMMAND" "intake" "ASSESSMENT_POLICY" "fixture-policy"
+                  "GITHUB_EVENT_PATH" "fixture-native-event.json" "ASSESSMENT_INPUT" input
+                  "ASSESSMENT_RESULT" (path/join directory "result.edn")}
+        previous (into {} (for [[k _] settings] [k (aget js/process.env k)]))
+        calls (atom []) value {:captured "native-input-fixture"}]
+    (try
+      (doseq [[k v] settings] (aset js/process.env k v))
+      (let [failure (try
+                      (with-redefs [r/policy! (fn [file] (swap! calls conj [:policy file]) policy)
+                                    r/read-bounded (fn [file] (swap! calls conj [:event file]) "{}")
+                                    r/live! (fn [_ event actual-policy _]
+                                              (swap! calls conj [:native event actual-policy]) value)]
+                        (r/main!))
+                      nil
+                      (catch :default e (ex-message e)))]
+        (is (nil? failure))
+        (is (= [[:policy "fixture-policy"] [:event "fixture-native-event.json"]
+                [:native {} policy]] @calls))
+        (is (fs/existsSync input))
+        (when (fs/existsSync input) (is (= (pr-str value) (fs/readFileSync input "utf8")))))
+      (finally
+        (doseq [[k v] previous]
+          (if (nil? v) (js-delete js/process.env k) (aset js/process.env k v)))
+        (fs/rmSync directory #js {:recursive true :force true})))))
+
 (defmethod test/report [:cljs.test/default :end-run-tests] [summary]
   (when (pos? (+ (:fail summary) (:error summary))) (set! (.-exitCode js/process) 1)))
 (run-tests)
