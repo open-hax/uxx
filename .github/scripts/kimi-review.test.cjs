@@ -348,3 +348,171 @@ test('publisher body stays bounded with large coverage while preserving full art
     assert.equal(fs.readFileSync(path.join(root, 'kimi-provenance.json'), 'utf8'), original);
   } finally { fs.rmSync(root, { recursive: true, force: true }); }
 });
+
+// These local Git/filesystem fixtures execute the workflow publisher; no model,
+// GitHub or Discord service is contacted. They model failed-job dependency reuse,
+// not GitHub's scheduler or exactly-once webhook delivery.
+function kimiRetryFixture() {
+  const fs = require('node:fs'), os = require('node:os'), path = require('node:path');
+  const { execFileSync } = require('node:child_process');
+  const helper = require('./kimi-review.cjs'); // Load the pinned-equal source before chdir.
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'kimi-publication-retry-'));
+  const prior = process.cwd(), source = fs.readFileSync(require.resolve('./kimi-review.cjs'));
+  const workflow = fs.readFileSync(path.join(__dirname, '../workflows/opencode-code-review.yml'), 'utf8');
+  const git = args => execFileSync('git', args, { cwd: directory, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+  git(['init']); git(['config', 'user.name', 'local fixture']); git(['config', 'user.email', 'fixture@example.invalid']);
+  fs.mkdirSync(path.join(directory, '.github/scripts'), { recursive: true });
+  fs.writeFileSync(path.join(directory, '.github/scripts/kimi-review.cjs'), source);
+  fs.writeFileSync(path.join(directory, 'source.cljc'), '(def fixture 1)\n');
+  git(['add', '--', '.github', 'source.cljc']); git(['commit', '-qm', 'trusted fixture runtime']); const base = git(['rev-parse', 'HEAD']);
+  fs.writeFileSync(path.join(directory, 'source.cljc'), '(def fixture 2)\n');
+  git(['add', '--', 'source.cljc']); git(['commit', '-qm', 'changed fixture source']); const head = git(['rev-parse', 'HEAD']);
+  const temp = path.join(directory, 'runner'); fs.mkdirSync(temp);
+  fs.writeFileSync(path.join(temp, 'kimi-review.cjs'), source);
+  process.chdir(directory);
+  const coverage = helper.diffCoverage(base, head);
+  const env = { RUNNER_TEMP: temp, GITHUB_REPOSITORY: 'open-hax/uxx', GITHUB_RUN_ID: '12345', GITHUB_RUN_ATTEMPT: '1',
+    GITHUB_WORKFLOW_SHA: head, GITHUB_WORKFLOW_REF: 'open-hax/uxx/.github/workflows/opencode-code-review.yml@refs/pull/14/merge',
+    KIMI_RUNTIME_SHA: base, PR_HEAD_SHA: head, PR_BASE_SHA: base, PR_NUMBER: '14',
+    KIMI_REVIEW_FILE: path.join(temp, 'kimi-review.json'), DISCORD_REVIEW_WEBHOOK_URL: 'https://fixture.invalid/webhook',
+    PRODUCER_ARTIFACT: `kimi-native-14-${head}-1`, PRODUCER_ATTEMPT: '1' };
+  const pr = { number: 14, state: 'open', draft: false, head: { sha: head, repo: { full_name: 'open-hax/uxx' } }, base: { sha: base } };
+  const records = [], counts = { model: 0, posts: 0, discord: 0 }; let notifyFail = true;
+  const github = { rest: { pulls: {
+    get: async () => ({ data: pr }), listFiles: function listFiles() {}, listReviews: function listReviews() {},
+    listCommentsForReview: function listCommentsForReview() {},
+    createReview: async parameters => { counts.posts++; const row = { ...parameters, id: counts.posts, state: 'COMMENTED',
+      user: { login: 'github-actions[bot]' }, html_url: `https://fixture.invalid/review/${counts.posts}` }; records.push(row); return { data: row }; },
+  } }, paginate: async (method, parameters) => {
+    if (method === github.rest.pulls.listFiles) return [{ filename: 'source.cljc', patch: '@@ -1 +1 @@\n-(def fixture 1)\n+(def fixture 2)' }];
+    if (method === github.rest.pulls.listReviews) return records;
+    assert.equal(method, github.rest.pulls.listCommentsForReview);
+    return [{ body: 'Synthetic local finding', path: 'source.cljc', line: 1, user: { login: 'github-actions[bot]' } }];
+  } };
+  const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+  function nodeStep(name) {
+    const block = workflow.split(`      - name: ${name}\n`)[1]?.split('\n      - ')[0];
+    if (!block) return null;
+    return block.split("          node <<'NODE'\n")[1]?.split('\n          NODE')[0].split('\n').map(line => line.slice(10)).join('\n');
+  }
+  function produce(attempt = 1) {
+    counts.model++;
+    const review = { head, diffSha256: coverage.diffSha256, coveredFiles: coverage.coveredFiles,
+      summary: `Synthetic model output ${counts.model}`, comments: [{ path: 'source.cljc', line: 1, body: 'Synthetic local finding' }] };
+    const model = helper.structuredRequest('', head, review).model;
+    const provenance = { origin: 'github-actions-native-execution', repository: env.GITHUB_REPOSITORY, head, base, runtimeSha: base,
+      runtimeBlobSha256: require('node:crypto').createHash('sha256').update(source).digest('hex'), runtimeBaseAncestorVerified: true,
+      requestedModel: model, executedModel: model, runID: env.GITHUB_RUN_ID, runAttempt: attempt,
+      workflowSha: env.GITHUB_WORKFLOW_SHA, workflowRef: env.GITHUB_WORKFLOW_REF, opencodeVersion: '1.18.34',
+      archiveSha256: '0f22479647226d1d2dd99595d20082ee7bda3870b62dc6a90b41efc1a71d7e9a',
+      diffSha256: review.diffSha256, coveredFiles: review.coveredFiles };
+    fs.writeFileSync(env.KIMI_REVIEW_FILE, JSON.stringify(review));
+    fs.writeFileSync(path.join(temp, 'kimi-provenance.json'), JSON.stringify(provenance));
+    return { review: fs.readFileSync(env.KIMI_REVIEW_FILE), provenance: fs.readFileSync(path.join(temp, 'kimi-provenance.json')) };
+  }
+  const verify = async () => {
+    const code = nodeStep('Verify producer artifact before publication');
+    assert.ok(code, 'Actual publisher must validate the reused producer artifact before POST');
+    await new AsyncFunction('require', 'process', code)(require, { env });
+  };
+  const publish = async () => {
+    const script = workflow.split('          script: |\n')[1].split('\n').map(line => line.slice(12)).join('\n');
+    const original = github.rest.pulls.createReview;
+    try {
+      await new AsyncFunction('require', 'github', 'context', 'process', script)(
+        id => id === path.join(temp, 'kimi-review.cjs') ? { publish: options => helper.publish({ ...options,
+          fetchImpl: async () => { counts.discord++; return { ok: !notifyFail, status: notifyFail ? 500 : 204 }; } }) } : require(id),
+        github, { repo: { owner: 'open-hax', repo: 'uxx' }, payload: { pull_request: pr } }, { env });
+    } finally { github.rest.pulls.createReview = original; }
+  };
+  return { workflow, env, temp, counts, records, produce, verify, publish, nodeStep,
+    allowNotifications: () => { notifyFail = false; },
+    cleanup: () => { process.chdir(prior); fs.rmSync(directory, { recursive: true, force: true }); } };
+}
+
+test('failed publication job reuses producer bytes after actual review POST and Discord failure', async () => {
+  const fs = require('node:fs'), path = require('node:path');
+  const f = kimiRetryFixture();
+  try {
+    const artifact = f.produce();
+    if (f.workflow.includes('\n  publish:\n')) await f.verify();
+    await assert.rejects(f.publish(), /Discord webhook failed: 500/);
+    assert.equal(f.counts.posts, 1, 'First native API fixture records POST before notification failure');
+    f.env.GITHUB_RUN_ATTEMPT = '2'; f.allowNotifications();
+    if (f.workflow.includes('\n  publish:\n')) {
+      assert.match(f.workflow, /publish:\n    needs: review/);
+      assert.match(f.workflow, /name: \$\{\{ needs.review.outputs.artifact-name \}\}/);
+      fs.writeFileSync(f.env.KIMI_REVIEW_FILE, artifact.review);
+      fs.writeFileSync(path.join(f.temp, 'kimi-provenance.json'), artifact.provenance);
+      await f.verify();
+    } else f.produce(2); // Published predecessor reruns the model in the failed combined job.
+    await f.publish();
+    console.log('[retry-after-post]', JSON.stringify({ ...f.counts, reviewIDs: f.records.map(r => r.id), producerAttempt: JSON.parse(fs.readFileSync(path.join(f.temp, 'kimi-provenance.json'))).runAttempt }));
+    assert.equal(f.counts.model, 1, 'Failed publisher retry must not execute model production');
+    assert.equal(f.counts.posts, 1, 'Same immutable submission must reuse the original review and thread IDs');
+    assert.equal(f.counts.discord, 2, 'Failed webhook is retried; this does not assert exactly-once delivery');
+    assert.equal(fs.readFileSync(path.join(f.temp, 'kimi-provenance.json')).equals(artifact.provenance), true);
+  } finally { f.cleanup(); }
+});
+
+test('publisher accepts producer1/consumer2 and producer2/consumer2 without attempt relabeling', async () => {
+  const fs = require('node:fs'), path = require('node:path');
+  const f = kimiRetryFixture();
+  try {
+    for (const producer of [1, 2]) {
+      const artifact = f.produce(producer);
+      f.env.GITHUB_RUN_ATTEMPT = '2'; f.env.PRODUCER_ATTEMPT = String(producer);
+      f.env.PRODUCER_ARTIFACT = `kimi-native-14-${f.env.PR_HEAD_SHA}-${producer}`;
+      await f.verify();
+      assert.equal(fs.readFileSync(path.join(f.temp, 'kimi-provenance.json')).equals(artifact.provenance), true);
+    }
+  } finally { f.cleanup(); }
+});
+
+test('reused producer provenance refuses missing output, foreign identity, coverage and future attempt before POST', async () => {
+  const fs = require('node:fs'), path = require('node:path');
+  const f = kimiRetryFixture();
+  try {
+    const artifact = f.produce(); f.env.GITHUB_RUN_ATTEMPT = '2';
+    const goodEnv = { ...f.env }, good = JSON.parse(artifact.provenance);
+    await f.verify(); // Positive control makes refusal cases prove validation, not missing code.
+    const cases = [
+      ['missing artifact', null, { PRODUCER_ARTIFACT: '' }], ['missing attempt', null, { PRODUCER_ATTEMPT: '' }],
+      ['wrong artifact', null, { PRODUCER_ARTIFACT: 'foreign-name' }], ['future attempt', { runAttempt: 3 }, { PRODUCER_ATTEMPT: '3' }],
+      ...['repository', 'head', 'base', 'runtimeSha', 'runtimeBlobSha256', 'runID', 'workflowSha', 'workflowRef', 'archiveSha256', 'opencodeVersion', 'diffSha256'].map(key => [key, { [key]: 'foreign' }, {}]),
+      ['foreign requested model', { requestedModel: { providerID: 'foreign', modelID: 'kimi-for-coding' } }, {}],
+      ['foreign executed model', { executedModel: { providerID: 'foreign', modelID: 'kimi-for-coding' } }, {}],
+      ['missing ancestor proof', { runtimeBaseAncestorVerified: false }, {}], ['wrong files', { coveredFiles: [] }, {}],
+      ['foreign origin', { origin: 'local-fiction' }, {}], ['producer attempt relabeled', { runAttempt: 2 }, {}],
+    ];
+    for (const [label, change, override] of cases) {
+      Object.assign(f.env, goodEnv, override); fs.writeFileSync(path.join(f.temp, 'kimi-provenance.json'), JSON.stringify({ ...good, ...change }));
+      await assert.rejects(f.verify(), undefined, label); assert.equal(f.counts.posts, 0, label);
+    }
+    Object.assign(f.env, goodEnv); fs.writeFileSync(path.join(f.temp, 'kimi-provenance.json'), artifact.provenance);
+    const review = JSON.parse(artifact.review); review.diffSha256 = 'e'.repeat(64);
+    fs.writeFileSync(f.env.KIMI_REVIEW_FILE, JSON.stringify(review));
+    await assert.rejects(f.verify()); assert.equal(f.counts.posts, 0);
+  } finally { f.cleanup(); }
+});
+
+test('actual producer output and nonempty download guard preserve the successful upload identity', async () => {
+  const fs = require('node:fs'), path = require('node:path');
+  const { spawnSync } = require('node:child_process');
+  const f = kimiRetryFixture();
+  try {
+    const code = f.nodeStep('Bind successful producer artifact');
+    assert.ok(code, 'Artifact output must come from the successful producer');
+    f.env.GITHUB_OUTPUT = path.join(f.temp, 'outputs'); f.env.GITHUB_RUN_ATTEMPT = '2';
+    const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+    await new AsyncFunction('require', 'process', code)(require, { env: f.env });
+    assert.equal(fs.readFileSync(f.env.GITHUB_OUTPUT, 'utf8'), `artifact-name=kimi-native-14-${f.env.PR_HEAD_SHA}-2\nproducer-attempt=2\n`);
+    const beforeDownload = f.workflow.split('      - name: Require successful producer output\n')[1]?.split('      - uses: actions/download-artifact@')[0];
+    assert.ok(beforeDownload, 'Missing output must refuse before artifact download');
+    const guard = beforeDownload.split('        run: ')[1].trim();
+    for (const [value, expected] of [['', 1], [f.env.PRODUCER_ARTIFACT, 0]]) {
+      const run = spawnSync('bash', ['-c', guard], { env: { ...process.env, PRODUCER_ARTIFACT: value } });
+      assert.equal(run.status, expected);
+    }
+  } finally { f.cleanup(); }
+});

@@ -23,6 +23,9 @@ jobs:
 
   review:
     needs: runner-tests
+    outputs:
+      artifact-name: ${{ steps.producer-artifact.outputs.artifact-name }}
+      producer-attempt: ${{ steps.producer-artifact.outputs.producer-attempt }}
     timeout-minutes: 30
     name: Review pull request with OpenCode
     if: ${{ github.event.pull_request.draft == false && github.event.pull_request.head.repo.full_name == github.repository }}
@@ -32,8 +35,6 @@ jobs:
       KIMI_RUNTIME_SHA: f2ca216e3ea64ac84acc8772648dc93cbfe5e57a
     permissions:
       contents: read
-      pull-requests: write
-      issues: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
@@ -114,15 +115,111 @@ jobs:
           fs.writeFileSync(`${e.RUNNER_TEMP}/kimi-provenance.json`, JSON.stringify(provenance, null, 2));
           NODE
 
+      - name: Bind successful producer artifact
+        id: producer-artifact
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs'), e = process.env;
+          if (!/^[1-9][0-9]*$/.test(e.PR_NUMBER || '') || !/^[0-9a-f]{40}$/.test(e.PR_HEAD_SHA || '') ||
+              !/^[1-9][0-9]*$/.test(e.GITHUB_RUN_ATTEMPT || '')) throw new Error('Invalid producer artifact identity');
+          fs.appendFileSync(e.GITHUB_OUTPUT, `artifact-name=kimi-native-${e.PR_NUMBER}-${e.PR_HEAD_SHA}-${e.GITHUB_RUN_ATTEMPT}\nproducer-attempt=${e.GITHUB_RUN_ATTEMPT}\n`);
+          NODE
+
       - name: Preserve native submission and its execution provenance
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: kimi-native-${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}-${{ github.run_attempt }}
+          name: ${{ steps.producer-artifact.outputs.artifact-name }}
           path: |
             ${{ runner.temp }}/kimi-review.json
             ${{ runner.temp }}/kimi-provenance.json
           if-no-files-found: error
           retention-days: 14
+
+  # Failed-job retries reuse this successful producer's bytes. Re-run all jobs
+  # deliberately reruns production; webhook delivery remains at-least-once.
+  publish:
+    needs: review
+    timeout-minutes: 30
+    name: Publish preserved Kimi review
+    runs-on: ubuntu-latest
+    env:
+      KIMI_RUNTIME_SHA: f2ca216e3ea64ac84acc8772648dc93cbfe5e57a
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Checkout publisher source
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Prepare immutable publisher runtime
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          [[ "$KIMI_RUNTIME_SHA" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$PR_BASE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          git merge-base --is-ancestor "$KIMI_RUNTIME_SHA" "$PR_BASE_SHA"
+          git show "${KIMI_RUNTIME_SHA}:.github/scripts/kimi-review.cjs" > "$RUNNER_TEMP/kimi-review.cjs"
+          node --check "$RUNNER_TEMP/kimi-review.cjs"
+
+      - name: Require successful producer output
+        env:
+          PRODUCER_ARTIFACT: ${{ needs.review.outputs.artifact-name }}
+        run: test -n "$PRODUCER_ARTIFACT"
+
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: ${{ needs.review.outputs.artifact-name }}
+          path: ${{ runner.temp }}
+
+      - name: Verify producer artifact before publication
+        env:
+          PRODUCER_ARTIFACT: ${{ needs.review.outputs.artifact-name }}
+          PRODUCER_ATTEMPT: ${{ needs.review.outputs.producer-attempt }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs'), crypto = require('node:crypto');
+          const { execFileSync } = require('node:child_process');
+          const e = process.env, sha = value => /^[0-9a-f]{40}$/.test(value || '');
+          const positive = value => /^[1-9][0-9]*$/.test(value || '');
+          if (![e.KIMI_RUNTIME_SHA, e.PR_HEAD_SHA, e.PR_BASE_SHA, e.GITHUB_WORKFLOW_SHA].every(sha) ||
+              ![e.PR_NUMBER, e.GITHUB_RUN_ID, e.GITHUB_RUN_ATTEMPT, e.PRODUCER_ATTEMPT].every(positive) ||
+              Number(e.PRODUCER_ATTEMPT) > Number(e.GITHUB_RUN_ATTEMPT) ||
+              e.PRODUCER_ARTIFACT !== `kimi-native-${e.PR_NUMBER}-${e.PR_HEAD_SHA}-${e.PRODUCER_ATTEMPT}`) throw new Error('Invalid producer artifact identity');
+          const runtimePath = `${e.RUNNER_TEMP}/kimi-review.cjs`, runtime = fs.readFileSync(runtimePath);
+          execFileSync('git', ['merge-base', '--is-ancestor', e.KIMI_RUNTIME_SHA, e.PR_BASE_SHA]);
+          if (!runtime.equals(execFileSync('git', ['show', `${e.KIMI_RUNTIME_SHA}:.github/scripts/kimi-review.cjs`]))) throw new Error('Publisher runtime differs from immutable source');
+          const review = JSON.parse(fs.readFileSync(`${e.RUNNER_TEMP}/kimi-review.json`, 'utf8'));
+          const provenance = JSON.parse(fs.readFileSync(`${e.RUNNER_TEMP}/kimi-provenance.json`, 'utf8'));
+          const helper = require(runtimePath), coverage = helper.diffCoverage(e.PR_BASE_SHA, e.PR_HEAD_SHA);
+          helper.assertHead(e.PR_HEAD_SHA, review.head, provenance.head);
+          helper.assertReviewablePaths(coverage.coveredFiles); helper.validateReview(review);
+          const model = helper.structuredRequest('', review.head, review).model;
+          if (provenance.origin !== 'github-actions-native-execution' || provenance.repository !== e.GITHUB_REPOSITORY ||
+              provenance.base !== e.PR_BASE_SHA || provenance.runtimeSha !== e.KIMI_RUNTIME_SHA ||
+              provenance.runtimeBlobSha256 !== crypto.createHash('sha256').update(runtime).digest('hex') ||
+              provenance.runtimeBaseAncestorVerified !== true || provenance.runID !== e.GITHUB_RUN_ID ||
+              provenance.runAttempt !== Number(e.PRODUCER_ATTEMPT) || provenance.workflowSha !== e.GITHUB_WORKFLOW_SHA ||
+              provenance.workflowRef !== e.GITHUB_WORKFLOW_REF || provenance.opencodeVersion !== '1.18.34' ||
+              provenance.archiveSha256 !== '0f22479647226d1d2dd99595d20082ee7bda3870b62dc6a90b41efc1a71d7e9a' ||
+              JSON.stringify(provenance.requestedModel) !== JSON.stringify(model) || JSON.stringify(provenance.executedModel) !== JSON.stringify(model) ||
+              review.diffSha256 !== coverage.diffSha256 || provenance.diffSha256 !== coverage.diffSha256 ||
+              JSON.stringify(review.coveredFiles) !== JSON.stringify(coverage.coveredFiles) ||
+              JSON.stringify(provenance.coveredFiles) !== JSON.stringify(coverage.coveredFiles)) throw new Error('Producer provenance or complete coverage changed');
+          // Preserve producer attempt and bytes; publisher retries do not mint model provenance.
+          NODE
 
       - name: Publish exact-head review and its own bounded Discord notifications
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b

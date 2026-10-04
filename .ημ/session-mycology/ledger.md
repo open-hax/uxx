@@ -102,3 +102,11 @@ Append correction to historical checkpoint event5c257de8-877a-411d-b438-43fd61e2
 2026-10-04T22:23:59.891Z — p-efficiency0.9,p-friction0.2,p-skill-candidate0.4; no spore or promotion.
 
 An ordinary integration preserves two divergent ledger histories through exact raw rows and actual Git parents, while retaining the entire merged MAIN prefix. The child ledger had already interleaved ten byte-identical merge-base rows, so a false contiguous-prefix assumption was rejected before edits; a row-position proof reconstructs all original25844 bytes. The complete14991 MAIN reflection and1196 child reflection survive. Local45/1139 scoped contract and19 runner tests pass, with no actual model or App effect. Prerequisite18 was genuinely protected merged at411 with current reviewed855 tree; its approval does not transfer to the new14 head. Fresh full native qualification and actual independent assessment remain required.
+
+- ts: "2026-10-04T23:24:45.696841Z"
+  origin: review-restoration/kimi-publisher-failed-job-retry
+  p-efficiency: 0.89
+  p-friction: 0.26
+  p-skill-candidate: 0.35
+  spore: none
+  note: A successful review POST followed by failed Discord delivery must retry the saved producer artifact in a separate publisher job. Preserve original attempt/source provenance and native review ID; deliberate full production reruns and webhook delivery remain separately bounded. Verify identical predecessor tests in the correct Git context before attributing every failure to the repair. Functional tests do not establish hosted retry execution or generic Bot enrollment.
