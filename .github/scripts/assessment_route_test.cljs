@@ -15,25 +15,33 @@
   {:id id :node_id (str "IC_fixture_" id) :user actor :body body
    :created_at time :updated_at time
    :html_url (str "https://github.com/open-hax/uxx/pull/14#issuecomment-" id)})
+(def head (get-in context [:pr :headRefOid]))
 (def t (r/target context [] policy))
 (def proposal (r/native-comment (fixture-comment 7001
-                  (str "Actionability proposal v1 for " (:head r/selection) ":\n" (pr-str (a/context-binding t)))
+                  (str "Actionability proposal v1 for " head ":\n" (pr-str (a/context-binding t)))
                   "2026-10-04T12:00:00Z" user) true))
 (def trigger (fixture-comment 7002
-               (str "/opencode assess-actionability " (:head r/selection) " " (:thread r/selection) " comment4172775340 proposal7001")
+               (str "/opencode assess-actionability " head " " (:thread r/selection) " comment4172775340 proposal7001")
                "2026-10-04T12:01:00Z" user))
 (def event {:action "created" :repository {:full_name "open-hax/uxx" :private false}
             :issue {:number 14 :pull_request {:url "native"}} :comment trigger})
 (def base "0602ff3ee1913cc0759d1de7478e9ef5a2e3419c")
-(def live-pr {:state "open" :draft false :head {:sha (:head r/selection) :repo {:full_name "open-hax/uxx" :private false}}
-              :base {:sha base :repo {:full_name "open-hax/uxx" :private false}}})
+(def main-sha "53966d08c022f17b288e724c0492d09cd7e39641")
+(def repo {:full_name "open-hax/uxx" :private false :id (get-in context [:repository :databaseId])
+           :node_id (get-in context [:repository :id])})
+(def live-branch {:ref "refs/heads/main" :node_id "REF_fixture_main"
+                  :object {:type "commit" :sha main-sha
+                           :url (str "https://api.github.com/repos/open-hax/uxx/git/commits/" main-sha)}})
+(def live-pr {:number 14 :node_id (get-in context [:pr :id]) :state "open" :draft false
+              :head {:sha head :repo repo}
+              :base {:sha base :ref "main" :repo repo}})
 (def coverage {:diff-sha256 (r/sha "fixture exact diff") :files [".github/workflows/opencode-code-review.yml"] :diff "fixture exact diff"})
 (def intake {:event event :live-pr live-pr :context context :comments [proposal (r/native-comment trigger true)]
-             :trigger trigger :authorized? true :policy policy :coverage coverage})
+             :trigger trigger :authorized? true :policy policy :coverage coverage :live-base live-branch})
 (def snapshot (r/validate-intake! intake))
 (defn submission-value [decision]
-  {:head (:head r/selection) :diffSha256 (:diff-sha256 coverage) :coveredFiles (:files coverage) :comments []
-   :summary (str "Actionability assessment v1 for " (:head r/selection) ":\n"
+  {:head head :diffSha256 (:diff-sha256 coverage) :coveredFiles (:files coverage) :comments []
+   :summary (str "Actionability assessment v1 for " head ":\n"
                  (pr-str (into (a/context-binding (:target snapshot))
                                [7001 (:body-sha256 proposal) decision
                                 (if (= "informational" decision) "complete-context/no-defect/no-request/no-question" "scope-incomplete-or-finding")
@@ -49,21 +57,21 @@
                         :state #js {:status "completed" :input (clj->js value)}}]})
 (defn review [decision]
   (js->clj (.parseStructured (r/runtime!) (native-response (submission-value decision) "low")
-                            (:head r/selection) #js {:diffSha256 (:diff-sha256 coverage) :coveredFiles (clj->js (:files coverage))})
+                            head #js {:diffSha256 (:diff-sha256 coverage) :coveredFiles (clj->js (:files coverage))})
            :keywordize-keys true))
 
 (deftest reused-runner-enforces-actual-low-request-and-assistant
   (let [runner (r/runtime!) value (submission-value "informational")
         full #js {:diffSha256 (:diff-sha256 coverage) :coveredFiles (clj->js (:files coverage))}
-        request (.structuredRequest runner "synthetic local assessment fixture" (:head r/selection) full)
-        parsed (js->clj (.parseStructured runner (native-response value "low") (:head r/selection) full) :keywordize-keys true)]
+        request (.structuredRequest runner "synthetic local assessment fixture" head full)
+        parsed (js->clj (.parseStructured runner (native-response value "low") head full) :keywordize-keys true)]
     (is (= "low" (.-variant request)))
     (is (map? (:executionControl parsed)))
     (is (= "low" (get-in parsed [:executionControl :observedAssistantVariant])))
     (is (contains? (:executionControl parsed) :underlyingProviderModel))
     (is (nil? (get-in parsed [:executionControl :underlyingProviderModel])))
     (doseq [variant [nil "max" "none"]]
-      (is (refuses? #(.parseStructured runner (native-response value variant) (:head r/selection) full))))))
+      (is (refuses? #(.parseStructured runner (native-response value variant) head full))))))
 
 (deftest reused-native-capability-and-version-guards
   (let [runner (r/runtime!)
@@ -291,7 +299,7 @@
       (is (false? (workflow-guard "scoped-assessment-publish" github {:scoped-assessment-read {:result status}}))))))
 
 (deftest genuine-native-context-and-canonical-law
-  (is (= (:context r/selection) (:context-digest t)))
+  (is (= "034ecce657d6b6129050350878820c68e16fde116d4c542849f69f21ae343721" (:context-digest t)))
   (is (= :finding (:kind (a/disposition (:target snapshot)))))
   (is (= 7001 (:proposal-id (a/disposition (:target snapshot)))))
   (is (= "opencode-agent[bot]" (:login (first (:identities policy)))))
@@ -445,7 +453,7 @@
                (assoc (review "informational") :diffSha256 (r/sha "different"))
                (assoc (review "informational") :head base)
                (assoc (review "informational") :comments [{:path "a" :line 1 :body "other scope"}])
-               (update (review "informational") :summary #(str/replace % (:context r/selection) (r/sha "different")))
+               (update (review "informational") :summary #(str/replace % (:context-digest t) (r/sha "different")))
                (update (review "informational") :summary #(str/replace % " 7001 " " 7009 "))
                (update (review "informational") :summary #(str/replace % "complete-context/no-defect/no-request/no-question" "incomplete"))]]
     (is (refuses? #(r/submission! snapshot bad)))))
@@ -475,6 +483,7 @@
                                               (assoc (:pr (:context @state)) :reviewThreads
                                                      {:nodes [(:thread (:context @state))] :pageInfo {:hasNextPage false}}))}}
                    (= endpoint "repos/open-hax/uxx/pulls/14") (:pr @state)
+                   (= endpoint "repos/open-hax/uxx/git/ref/heads/main") live-branch
                    (= endpoint "repos/open-hax/uxx/issues/comments/7002") trigger
                    (str/includes? endpoint "/comments?") (:rows @state)
                    (str/includes? endpoint "/permission") {:permission (:permission @state)}
@@ -511,6 +520,7 @@
                  (str/includes? endpoint "/comments?") (alter-rows [proposal trigger native])
                  (str/includes? endpoint "/permission") {:permission "write"}
                  (= endpoint "repos/open-hax/uxx/pulls/14") live-pr
+                 (= endpoint "repos/open-hax/uxx/git/ref/heads/main") live-branch
                  :else (throw (js/Error. "Unexpected effect"))))]
     {:calls calls :run #(r/publish! api! snapshot (result (review decision)) (fn [] snapshot))})))
 
@@ -559,7 +569,7 @@
     ;; Actual reused native runner rejects a hand-authored review with no completed tool proof.
     (is (refuses? #(.parseStructured runner #js {:info #js {:role "assistant" :providerID "kimi-code-plan-global"
                                                           :modelID "kimi-for-coding" :structured value} :parts #js []}
-                                    (:head r/selection) #js {:diffSha256 (:diff-sha256 coverage) :coveredFiles (clj->js (:files coverage))})))))
+                                    head #js {:diffSha256 (:diff-sha256 coverage) :coveredFiles (clj->js (:files coverage))})))))
 
 (deftest actual-model-caller-excludes-publisher-credentials
   (async done
@@ -580,12 +590,12 @@
       (try
         (let [result (with-redefs [r/runtime! (constantly runner)
                                   r/opencode-version! (constantly "fixture-version")]
-                       (r/model! {:coverage coverage :base (apply str (repeat 40 "b"))}))]
+                       (r/model! {:target {:head head} :coverage coverage :base (apply str (repeat 40 "b"))}))]
           (-> result
               (.then (fn [_] (is false "Fixture must stop before model output")))
               (.catch (fn [error]
                         (is (identical? refusal error))
-                        (is (= (:head r/selection) (:head @seen)))
+                        (is (= head (:head @seen)))
                         (is (= "synthetic-fixture-only" (aget (:env @seen) "KIMI_API_KEY")))
                         (doseq [key ["GH_TOKEN" "GITHUB_TOKEN" "ACTIONS_ID_TOKEN_REQUEST_TOKEN" "ACTIONS_ID_TOKEN_REQUEST_URL"]]
                           (is (nil? (aget (:env @seen) key))))
@@ -641,6 +651,212 @@
         (doseq [[k v] previous]
           (if (nil? v) (js-delete js/process.env k) (aset js/process.env k v)))
         (fs/rmSync directory #js {:recursive true :force true})))))
+
+(defn scoped-fixture [current-head]
+  ;; A synthetic successor observation; no native current-head attestation.
+  (let [native (-> context (assoc-in [:pr :headRefOid] current-head)
+                   (update-in [:thread :comments :nodes]
+                              #(mapv (fn [c] (assoc-in c [:commit :oid] current-head)) %)))
+        target (r/target native [] policy)
+        p (r/native-comment (fixture-comment 7101
+              (str "Actionability proposal v1 for " current-head ":\n" (pr-str (a/context-binding target)))
+              "2026-10-04T12:00:00Z" user) true)
+        trigger (fixture-comment 7102
+                  (str "/opencode assess-actionability " current-head " " (:thread r/selection)
+                       " comment4172775340 proposal7101") "2026-10-04T12:01:00Z" user)
+        diff (str "synthetic exact successor diff for " current-head)]
+    {:context native :live-pr (assoc-in live-pr [:head :sha] current-head)
+     :live-base live-branch :comments [p (r/native-comment trigger true)]
+     :trigger trigger :authorized? true :policy policy
+     :event (assoc event :comment trigger)
+     :coverage {:diff diff :diff-sha256 (r/sha diff) :files (:files coverage)}}))
+
+(defn scoped-api [state calls posts after-readback]
+  (fn [method endpoint payload]
+    (swap! calls conj [method endpoint])
+    (cond
+      (= endpoint "graphql")
+      {:data {:repository (assoc (:repository (:context @state)) :pullRequest
+                                 (assoc (:pr (:context @state)) :reviewThreads
+                                        {:nodes [(:thread (:context @state))] :pageInfo {:hasNextPage false}}))}}
+      (= endpoint "repos/open-hax/uxx/pulls/14") (:live-pr @state)
+      (= endpoint "repos/open-hax/uxx/git/ref/heads/main") (:live-base @state)
+      (= endpoint "repos/open-hax/uxx/issues/comments/7102") (:trigger @state)
+      (str/includes? endpoint "/comments?") (:comments @state)
+      (str/includes? endpoint "/permission") {:permission "write"}
+      (= [method endpoint] ["POST" "repos/open-hax/uxx/issues/14/comments"])
+      (let [native (fixture-comment 7104 (:body payload) "2026-10-04T12:10:00Z" bot)]
+        (swap! posts inc) (swap! state assoc :published native)
+        (swap! state update :comments conj native) native)
+      (= endpoint "repos/open-hax/uxx/issues/comments/7104")
+      (let [native (:published @state)] (swap! state after-readback) native)
+      :else (throw (js/Error. "Unexpected scoped fixture API call")))))
+
+(defn scoped-review [input]
+  (let [current-head (get-in input [:target :head]) c (:coverage input) p (:proposal input)
+        value {:head current-head :diffSha256 (:diff-sha256 c) :coveredFiles (:files c) :comments []
+               :summary (str "Actionability assessment v1 for " current-head ":\n"
+                             (pr-str (into (a/context-binding (:target input))
+                                           [(:id p) (:body-sha256 p) "informational"
+                                            "complete-context/no-defect/no-request/no-question"
+                                            "Synthetic fixture only; no native actionability or approval evidence."
+                                            ".github/scripts/assessment_route.cljs synthetic successor fixture"])))}]
+    (js->clj (.parseStructured (r/runtime!) (native-response value "low") current-head
+                              #js {:diffSha256 (:diff-sha256 c) :coveredFiles (clj->js (:files c))})
+             :keywordize-keys true)))
+
+(defn advance-main [fixture]
+  (let [sha (apply str (repeat 40 "8"))]
+    (-> fixture (assoc-in [:live-base :object :sha] sha)
+        (assoc-in [:live-base :object :url]
+                  (str "https://api.github.com/repos/open-hax/uxx/git/commits/" sha)))))
+
+(deftest current-successor-head-and-live-main-base-bind-the-immutable-input
+  (let [successor (apply str (repeat 40 "7")) fixture (scoped-fixture successor)
+        state (atom fixture) calls (atom []) posts (atom 0) git-inputs (atom [])
+        api! (scoped-api state calls posts identity)
+        observed (try {:input (r/live! api! (:event fixture) policy
+                                       (fn [base head] (swap! git-inputs conj [base head]) (:coverage fixture)))}
+                      (catch :default error {:failure (ex-message error)}))
+        input (:input observed)]
+    (is (= successor (:head (r/target (:context fixture) [] policy))))
+    (is (nil? (:failure observed)) (:failure observed))
+    (is (= [[main-sha successor]] @git-inputs))
+    (is (= successor (get-in input [:target :head])))
+    (is (= main-sha (:base input)))
+    (is (= (:base live-pr) (:cached-pr-base input)))
+    (is (= base (get-in input [:cached-pr-base :sha])))
+    (is (= live-branch (:live-base input)))
+    (is (some #{live-branch} (:identity input)))
+    (is (some #{(:base live-pr)} (:identity input)))
+    (is (some #{["GET" "repos/open-hax/uxx/git/ref/heads/main"]} @calls))
+    (is (zero? @posts))
+    (when input
+      (let [review (scoped-review input)]
+        (is (= (:summary review) (r/submission! input review)))
+        (is (str/includes? (r/prompt input) (str "Head: " successor)))
+        (is (refuses? #(r/submission! input (assoc review :head head))))))))
+
+(deftest scoped-current-head-base-and-native-identity-refusals
+  (let [fixture (scoped-fixture (apply str (repeat 40 "7")))]
+    (doseq [bad [(assoc fixture :trigger trigger :event event :comments [proposal (r/native-comment trigger true)])
+                 (assoc-in fixture [:live-pr :base :ref] "staging")
+                 (assoc-in fixture [:live-pr :head :sha] "malformed")
+                 (assoc-in fixture [:live-pr :base :sha] "malformed")
+                 (assoc-in fixture [:live-base :ref] "refs/heads/staging")
+                 (assoc-in fixture [:live-base :object :sha] "malformed")
+                 (assoc-in fixture [:live-base :object :type] "tag")
+                 (assoc-in fixture [:live-base :object :url] "https://api.github.com/repos/other/uxx/git/commits/foreign")
+                 (assoc-in fixture [:live-base :node_id] nil)
+                 (assoc-in fixture [:live-pr :number] 15)
+                 (assoc-in fixture [:live-pr :node_id] "PR_other")
+                 (assoc-in fixture [:live-pr :head :repo :full_name] "fork/uxx")
+                 (assoc-in fixture [:live-pr :base :repo :private] true)
+                 (assoc-in fixture [:live-pr :head :repo :id] 1)
+                 (assoc-in fixture [:context :repository :id] "R_other")
+                 (assoc-in fixture [:context :pr :number] 15)
+                 (assoc-in fixture [:context :thread :id] "PRRT_other")
+                 (assoc-in fixture [:context :thread :comments :nodes 0 :databaseId] 1)]]
+      (is (refuses? #(r/validate-intake! bad)))))
+  ;; Main advancing while the real live collector runs also fails closed.
+  (let [fixture (scoped-fixture head) state (atom fixture) posts (atom 0)
+        api! (scoped-api state (atom []) posts identity)]
+    (is (refuses? #(r/live! api! (:event fixture) policy
+                           (fn [& _]
+                             (swap! state advance-main)
+                             (:coverage fixture)))))
+    (is (zero? @posts))))
+
+(deftest successor-publication-requires-its-own-current-context-and-submission
+  (let [successor (apply str (repeat 40 "7")) fixture (scoped-fixture successor)
+        state (atom fixture) calls (atom []) posts (atom 0)
+        api! (scoped-api state calls posts identity)
+        current! #(r/live! api! (:event fixture) policy (fn [& _] (:coverage fixture)))
+        observed (try {:input (current!)} (catch :default error {:failure (ex-message error)}))]
+    (is (nil? (:failure observed)) (:failure observed))
+    (when-let [original (:input observed)]
+      (let [review (scoped-review original)
+            result {:input-sha256 (r/sha (pr-str original)) :runner-sha256 r/runtime-hash :review review}
+            output (r/publish! api! original result current!)]
+        (is (= 1 @posts))
+        (is (= 7104 (:native-id output)))
+        (is (= :qualified (get-in output [:disposition :status])))
+        (is (str/starts-with? (:body (:published @state))
+                             (str "Actionability assessment v1 for " successor ":")))))))
+
+(deftest live-main-drift-refuses-actual-model-check-and-post-entrypoints
+  (let [fixture (scoped-fixture head) state (atom fixture) calls (atom []) posts (atom 0)
+        api! (scoped-api state calls posts identity)
+        current! #(r/live! api! (:event fixture) policy (fn [& _] (:coverage fixture)))
+        original (current!) review (scoped-review original)
+        result {:input-sha256 (r/sha (pr-str original)) :runner-sha256 r/runtime-hash :review review}
+        directory (fs/mkdtempSync (path/join (os/tmpdir) "uxx-live-base-"))
+        input-file (path/join directory "input.edn") result-file (path/join directory "result.edn")
+        event-file (path/join directory "event.json")
+        settings {"ASSESSMENT_POLICY" "fixture-policy" "ASSESSMENT_INPUT" input-file
+                  "ASSESSMENT_RESULT" result-file "GITHUB_EVENT_PATH" event-file}
+        previous (into {} (for [k (conj (vec (keys settings)) "ASSESSMENT_COMMAND")]
+                            [k (aget js/process.env k)])) model-calls (atom 0)]
+    (try
+      (fs/writeFileSync input-file (pr-str original)) (fs/writeFileSync result-file (pr-str result))
+      (fs/writeFileSync event-file (js/JSON.stringify (clj->js (:event fixture))))
+      (doseq [[k v] settings] (aset js/process.env k v))
+      (swap! state assoc-in [:live-base :object :sha] (apply str (repeat 40 "8")))
+      (swap! state assoc-in [:live-base :object :url]
+             (str "https://api.github.com/repos/open-hax/uxx/git/commits/" (apply str (repeat 40 "8"))))
+      (doseq [mode ["model" "check"]]
+        (aset js/process.env "ASSESSMENT_COMMAND" mode)
+        (is (refuses? #(with-redefs [r/policy! (fn [_] policy) r/gh-api! api!
+                                    r/coverage! (fn [& _] (:coverage fixture))
+                                    r/model! (fn [_] (swap! model-calls inc)
+                                               (throw (js/Error. "Fixture stops before any model")))]
+                        (r/main!)))))
+      (is (zero? @model-calls))
+      (is (refuses? #(r/publish! api! original result current!)))
+      (is (zero? @posts))
+      (finally
+        (doseq [[k v] previous]
+          (if v (aset js/process.env k v) (js-delete js/process.env k)))
+        (fs/rmSync directory #js {:recursive true :force true})))))
+
+(deftest post-readback-refreshes-actual-main-branch-and-cached-metadata
+  (doseq [alter [identity
+                advance-main
+                #(assoc-in % [:live-base :ref] "refs/heads/staging")
+                #(assoc-in % [:live-pr :base :sha] (apply str (repeat 40 "9")))
+                #(assoc-in % [:live-pr :head :sha] (apply str (repeat 40 "7")))]]
+    (let [fixture (scoped-fixture head) state (atom fixture) calls (atom []) posts (atom 0)
+          api! (scoped-api state calls posts alter)
+          current! #(r/live! api! (:event fixture) policy (fn [& _] (:coverage fixture)))
+          original (current!) review (scoped-review original)
+          result {:input-sha256 (r/sha (pr-str original)) :runner-sha256 r/runtime-hash :review review}
+          observed (try {:output (r/publish! api! original result current!)}
+                        (catch :default error {:failure (ex-message error)}))]
+      (is (= 1 @posts))
+      (if (identical? identity alter)
+        (do (is (nil? (:failure observed)) (:failure observed))
+            (is (= 7104 (get-in observed [:output :native-id])))
+            (is (= :qualified (get-in observed [:output :disposition :status]))))
+        (is (some? (:failure observed))))
+      (is (some #{["GET" "repos/open-hax/uxx/git/ref/heads/main"]}
+                (drop-while #(not= ["GET" "repos/open-hax/uxx/issues/comments/7104"] %) @calls))))))
+
+(deftest actual-successor-model-caller-uses-snapshot-head-and-live-base
+  (async done
+    (let [successor (apply str (repeat 40 "7")) seen (atom nil)
+          runner #js {:reviewConfig (fn [] #js {}) :assertRuntimeVersion (fn [_])
+                      :sourceSnapshot (fn [head _ base] (reset! seen {:source-head head :source-base base}))
+                      :executeStructured (fn [prompt _ _ head _]
+                                           (swap! seen assoc :head head :prompt prompt)
+                                           (js/Promise.reject (js/Error. "Fixture stops before provider/model")))}
+          result (with-redefs [r/runtime! (constantly runner) r/opencode-version! (constantly "fixture-version")]
+                   (r/model! {:target {:head successor} :proposal proposal :base main-sha :coverage coverage}))]
+      (-> result
+            (.catch (fn [_]
+                      (is (= successor (:source-head @seen) (:head @seen)))
+                      (is (= main-sha (:source-base @seen)))
+                      (is (str/includes? (:prompt @seen) (str "Head: " successor)))))
+          (.finally done)))))
 
 (defmethod test/report [:cljs.test/default :end-run-tests] [summary]
   (when (pos? (+ (:fail summary) (:error summary))) (set! (.-exitCode js/process) 1)))

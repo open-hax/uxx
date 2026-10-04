@@ -9,9 +9,7 @@
 
 (def selection
   {:repo "open-hax/uxx" :pr 14
-   :head "68eeefdca9d840571e2dec911085b782dc5c4ed2"
-   :thread "PRRT_kwDOR5O5HM6omklO" :root 4172775340
-   :context "034ecce657d6b6129050350878820c68e16fde116d4c542849f69f21ae343721"})
+   :thread "PRRT_kwDOR5O5HM6omklO" :root 4172775340})
 (def policy-sha "0f95afe56fb01fbcf9d7934b72ce31fe96baf451")
 (def law-hash "7af285c05816801608a1ce603f4f74ab7956d401bdb100c837b1470a13601404")
 (def flow-hash "7fb1e7656f5369970228651ee21ba4692e1296574a6baa478fcaf2e2ff642903")
@@ -90,7 +88,7 @@
                                  (update :pullRequestReview (fn [r] (assoc r :body-sha256 (sha (:body r))))))) %)))
 (defn target [context comments policy]
   (let [native (hydrate context) manifest (a/context-manifest native)]
-    {:id (:thread selection) :head (:head selection)
+    {:id (:thread selection) :head (get-in native [:pr :headRefOid])
      :root-comment-id (:root selection) :resolved? (get-in native [:thread :isResolved])
      :pr-author (get-in native [:pr :author :login]) :native-context native
      :context-manifest manifest :context-digest (sha (pr-str manifest))
@@ -121,10 +119,42 @@
     {:head head :thread thread :root (js/Number root) :proposal (js/Number proposal)}))
 (defn comment-tuple [c]
   (mapv c [:id :node_id :body :created_at :updated_at :html_url :user]))
+(defn sha40? [value]
+  (and (string? value) (boolean (re-matches #"[0-9a-f]{40}" value))))
+(defn validate-pr! [pr context]
+  (let [repo (:repository context) native-pr (:pr context)]
+    (ensure! (and (= "open" (:state pr)) (false? (:draft pr))
+                  (= (:pr selection) (:number pr) (:number native-pr))
+                  (string? (:node_id pr)) (not (str/blank? (:node_id pr))) (= (:node_id pr) (:id native-pr))
+                  (= (:repo selection) (:nameWithOwner repo)
+                     (get-in pr [:head :repo :full_name]) (get-in pr [:base :repo :full_name]))
+                  (false? (get-in pr [:head :repo :private])) (false? (get-in pr [:base :repo :private]))
+                  (integer? (:databaseId repo)) (pos? (:databaseId repo))
+                  (= (:databaseId repo) (get-in pr [:head :repo :id]) (get-in pr [:base :repo :id]))
+                  (string? (:id repo)) (not (str/blank? (:id repo)))
+                  (= (:id repo) (get-in pr [:head :repo :node_id]) (get-in pr [:base :repo :node_id]))
+                  (sha40? (get-in pr [:head :sha])) (sha40? (get-in pr [:base :sha]))
+                  (= "main" (get-in pr [:base :ref]))
+                  (= "OPEN" (:state native-pr)) (false? (:isDraft native-pr))
+                  (= (get-in pr [:head :sha]) (:headRefOid native-pr))
+                  (= (:thread selection) (get-in context [:thread :id]))
+                  (= (:root selection) (get-in context [:thread :comments :nodes 0 :databaseId])))
+             "Scoped PR/context changed")))
+(defn validate-base! [pr branch]
+  (let [sha (get-in branch [:object :sha])]
+    (ensure! (and (= "main" (get-in pr [:base :ref])) (sha40? (get-in pr [:base :sha]))
+                  (= "refs/heads/main" (:ref branch))
+                  (string? (:node_id branch)) (not (str/blank? (:node_id branch)))
+                  (= "commit" (get-in branch [:object :type])) (sha40? sha)
+                  (= (str "https://api.github.com/repos/open-hax/uxx/git/commits/" sha)
+                     (get-in branch [:object :url]))) "Invalid live main branch observation")
+    branch))
+(defn live-base! [api! pr]
+  (validate-base! pr (api! "GET" "repos/open-hax/uxx/git/ref/heads/main" nil)))
 (defn validate-intake!
   "Operational scope is a single already-verified native manifest, not another
    actionability classifier. Canonical disposition selects the latest proposal."
-  [{:keys [event live-pr context comments trigger authorized? policy coverage]}]
+  [{:keys [event live-pr live-base context comments trigger authorized? policy coverage]}]
   (let [cmd (command (:body trigger)) t (target context comments policy)
         proposal-id (:proposal-id (a/disposition t))
         proposal (first (filter #(= (:proposal cmd) (:id %)) comments))
@@ -133,20 +163,15 @@
                   (false? (get-in event [:repository :private]))
                   (= (:pr selection) (get-in event [:issue :number])) (map? (get-in event [:issue :pull_request]))
                   (= (comment-tuple (:comment event)) (comment-tuple trigger))) "Event/native trigger mismatch")
-    (ensure! (and (= "open" (:state live-pr)) (false? (:draft live-pr))
-                  (= (:repo selection) (get-in live-pr [:head :repo :full_name]))
-                  (= (:repo selection) (get-in live-pr [:base :repo :full_name]))
-                  (false? (get-in live-pr [:head :repo :private])) (false? (get-in live-pr [:base :repo :private]))
-                  (= (:head selection) (get-in live-pr [:head :sha]))
-                  (= "OPEN" (get-in context [:pr :state])) (false? (get-in context [:pr :isDraft]))
-                  (= (:head selection) (get-in context [:pr :headRefOid]))
-                  (= (:context selection) (:context-digest t))) "Scoped PR/context changed")
+    (validate-pr! live-pr context)
+    (validate-base! live-pr live-base)
     (ensure! (and authorized? (= "User" (get-in trigger [:user :type]))
                   (= (:created_at trigger) (:updated_at trigger))
                   (some #(= (comment-tuple trigger) (comment-tuple %)) comments)
-                  (= (select-keys cmd [:head :thread :root]) (select-keys selection [:head :thread :root]))
+                  (= (select-keys cmd [:thread :root]) (select-keys selection [:thread :root]))
+                  (= (:head t) (:head cmd))
                   (= (:proposal cmd) proposal-id) (= :proposal (:kind p))
-                  (= (:head selection) (:head p)) (= (a/context-binding t) (:payload p))
+                  (= (:head t) (:head p)) (= (a/context-binding t) (:payload p))
                   (:authorized? proposal) (= (:created_at proposal) (:updated_at proposal))
                   (= (:user proposal) (:user trigger))
                   (pos? (compare (:created_at trigger) (:updated_at proposal)))
@@ -154,12 +179,14 @@
                           (mapcat (fn [c] [(:updatedAt c) (get-in c [:pullRequestReview :updatedAt])])
                                   (get-in context [:thread :comments :nodes])))) "Invalid/latest proposal or writer chronology")
     (ensure! (not-any? #(and (a/assessor-identity? % policy)
-                            (str/starts-with? (:body %) (str "Actionability assessment v1 for " (:head selection) ":"))) comments)
+                            (str/starts-with? (:body %) (str "Actionability assessment v1 for " (:head t) ":"))) comments)
              "Existing native assessment requires canonical reconciliation; no duplicate invocation")
-    {:target t :proposal proposal :trigger trigger :base (get-in live-pr [:base :sha])
+    {:target t :proposal proposal :trigger trigger :base (get-in live-base [:object :sha])
+     :cached-pr-base (:base live-pr) :live-base live-base
      :coverage coverage
      :identity [(:context-manifest t) (a/context-binding t) (comment-tuple proposal)
-                (comment-tuple trigger) (get-in live-pr [:base :sha]) coverage policy-sha runtime-hash]}))
+                (comment-tuple trigger) (get-in live-base [:object :sha]) coverage policy-sha runtime-hash
+                (:base live-pr) live-base]}))
 (defn coverage! [base head]
   (cp/execFileSync "git" #js ["fetch" "--no-tags" "origin" base head]
                    #js {:stdio #js ["ignore" "pipe" "pipe"] :timeout 120000})
@@ -173,13 +200,17 @@
 (defn live!
   [api! event policy coverage-fn]
   (let [pr (api! "GET" "repos/open-hax/uxx/pulls/14" nil)
+        branch (live-base! api! pr)
         context (context! api!)
         trigger (api! "GET" (str "repos/open-hax/uxx/issues/comments/" (get-in event [:comment :id])) nil)
         rows (collect-pages! #(api! "GET" (str "repos/open-hax/uxx/issues/14/comments?per_page=100&page=" %) nil))
-        comments (authorize-comments! api! rows)]
-    (validate-intake! {:event event :live-pr pr :context context :comments comments :trigger trigger
-                      :authorized? (writer! api! trigger) :policy policy
-                      :coverage (coverage-fn (get-in pr [:base :sha]) (:head selection))})))
+        comments (authorize-comments! api! rows)
+        input {:event event :live-pr pr :live-base branch :context context :comments comments :trigger trigger
+               :authorized? (writer! api! trigger) :policy policy}
+        admitted (validate-intake! input)
+        coverage (coverage-fn (:base admitted) (get-in admitted [:target :head]))]
+    (ensure! (= branch (live-base! api! pr)) "Main changed during input collection")
+    (validate-intake! (assoc input :coverage coverage))))
 (defn execution-control!
   "Preserve the runner-owned observation across the artifact boundary. Derive
    requested controls/identity from its public request; no provider law copy."
@@ -200,9 +231,9 @@
   (let [body (:summary review) record (a/protocol {:body body}) payload (:payload record)
         coverage (:coverage snapshot) proposal (:proposal snapshot)]
     (execution-control! review)
-    (ensure! (and (= (:head selection) (:head review)) (= (:diff-sha256 coverage) (:diffSha256 review))
+    (ensure! (and (= (get-in snapshot [:target :head]) (:head review)) (= (:diff-sha256 coverage) (:diffSha256 review))
                   (= (:files coverage) (:coveredFiles review)) (= [] (:comments review))) "Incomplete structured input binding")
-    (ensure! (and (= :assessment (:kind record)) (= (:head selection) (:head record)) (nil? (:footer-repo record))
+    (ensure! (and (= :assessment (:kind record)) (= (get-in snapshot [:target :head]) (:head record)) (nil? (:footer-repo record))
                   (= 13 (count payload)) (= (a/context-binding (:target snapshot)) (subvec payload 0 7))
                   (= [(:id proposal) (:body-sha256 proposal)] (subvec payload 7 9))
                   (contains? #{"informational" "finding" "uncertain"} (nth payload 9))
@@ -223,7 +254,7 @@
          "Vector = the seven binding fields below, proposal ID, proposal body SHA256, YOUR decision, YOUR scope assertion, YOUR independent substantive reason, YOUR source/test/docs evidence. "
          "Only informational permits the scope assertion complete-context/no-defect/no-request/no-question. Do not prefill a favorable verdict. "
          "No markdown fences/footer or other summary prose. Native qualification remains separate from this output.\n"
-         "Head: " (:head selection) "\nBinding: " (pr-str (a/context-binding t))
+         "Head: " (:head t) "\nBinding: " (pr-str (a/context-binding t))
          "\nProposal ID: " (:id p) "\nProposal SHA256: " (:body-sha256 p)
          "\nComplete native context: " (pr-str (:native-context t)) "\nWriter proposal: " (:body p)
          "\nDiff SHA256: " (get-in snapshot [:coverage :diff-sha256])
@@ -250,9 +281,9 @@
     (fs/mkdirSync workspace) (fs/mkdirSync home)
     (try
       (.assertRuntimeVersion runner (opencode-version!))
-      (.sourceSnapshot runner (:head selection) workspace (:base snapshot))
+      (.sourceSnapshot runner (get-in snapshot [:target :head]) workspace (:base snapshot))
       (-> (.executeStructured runner (prompt snapshot) (model-env home) workspace
-                              (:head selection) #js {:diffSha256 (:diff-sha256 coverage) :coveredFiles (clj->js (:files coverage))})
+                              (get-in snapshot [:target :head]) #js {:diffSha256 (:diff-sha256 coverage) :coveredFiles (clj->js (:files coverage))})
           (.then (fn [review] (let [value (js->clj review :keywordize-keys true)] (submission! snapshot value) value)))
           (.finally #(fs/rmSync root #js {:recursive true :force true})))
       (catch :default e (fs/rmSync root #js {:recursive true :force true}) (throw e)))))
@@ -283,9 +314,12 @@
           comments (authorize-comments! api! rows)
           fresh (target fresh-context comments (:actionability-policy t))
           pr (api! "GET" "repos/open-hax/uxx/pulls/14" nil)
+          branch (live-base! api! pr)
           disposition (a/disposition fresh) decision (get-in (a/protocol observed) [:payload 9])]
+      (validate-pr! pr fresh-context)
       (ensure! (and (= (:context-digest t) (:context-digest fresh)) (= "open" (:state pr)) (false? (:draft pr))
-                    (= (:head selection) (get-in pr [:head :sha])) (= (:base current) (get-in pr [:base :sha]))
+                    (= (:head t) (get-in pr [:head :sha])) (= (:base current) (get-in branch [:object :sha]))
+                    (= (:cached-pr-base current) (:base pr)) (= (:live-base current) branch)
                     (= (:repo selection) (get-in pr [:head :repo :full_name]))
                     (= (:repo selection) (get-in pr [:base :repo :full_name]))
                     (false? (get-in pr [:head :repo :private])) (false? (get-in pr [:base :repo :private])))
