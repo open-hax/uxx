@@ -298,13 +298,35 @@
                 (= (:coverage original) (:coverage current))) "Native/Git input changed after model execution")
   (ensure! (and (= (sha (pr-str original)) (:input-sha256 result)) (= runtime-hash (:runner-sha256 result))) "Result provenance changed")
   (submission! current (:review result)))
+(defn write-publication-checkpoint!
+  "Operational reconciliation artifact, never approval or a provenance ledger.
+   Atomic replacement retains the last known native ID if a later write fails."
+  [file value]
+  (ensure! (and (string? file) (not (str/blank? file))) "Missing publication checkpoint path")
+  (let [directory (fs/mkdtempSync (path/join (path/dirname file) ".assessment-checkpoint-"))
+        temporary (path/join directory "readback.edn")]
+    (try
+      (fs/writeFileSync temporary (pr-str value) #js {:mode 384 :flag "wx"})
+      (fs/renameSync temporary file)
+      (finally (fs/rmSync directory #js {:recursive true :force true})))))
+
 (defn publish!
   "Fresh read before the only POST, then actual native readback and canonical
    disposition. Finding/uncertain remain findings. No thread settlement/approval."
-  [api! original result current!]
+  ([api! original result current!]
+   (publish! api! original result current! (fn [_] nil)))
+  ([api! original result current! checkpoint!]
   (let [current (current!) body (final-check! original current result)
+        ;; Preflight the actual artifact destination before the only native POST.
+        _ (checkpoint! {:publication-state :publication-unconfirmed :qualification :not-established})
         created (api! "POST" "repos/open-hax/uxx/issues/14/comments" {:body body})
         _ (ensure! (and (integer? (:id created)) (pos? (:id created))) "Missing native publication ID")
+        checkpoint {:native-id (:id created)
+                    :native-url (str "https://github.com/open-hax/uxx/pull/14#issuecomment-" (:id created))
+                    :head (get-in current [:target :head]) :body-sha256 (sha body)
+                    :input-sha256 (:input-sha256 result) :runner-sha256 runtime-hash
+                    :publication-state :published-unverified :qualification :not-established}
+        _ (checkpoint! checkpoint)
         readback (api! "GET" (str "repos/open-hax/uxx/issues/comments/" (:id created)) nil)
         observed (native-comment readback false) t (:target current)]
     (ensure! (and (= (:id created) (:id observed)) (= body (:body observed))
@@ -314,6 +336,7 @@
                   (pos? (compare (:created_at observed) (get-in current [:trigger :created_at])))
                   (= (str "https://github.com/open-hax/uxx/pull/14#issuecomment-" (:id observed)) (:html_url observed)))
              "Native App readback failed; retain published evidence for operator reconciliation")
+    (checkpoint! (assoc checkpoint :publication-state :readback-verified :native-node-id (:node_id observed)))
     ;; Refresh complete context *after* publication as well. Existing-assessment
     ;; dedup deliberately blocks intake, so use the fresh collector directly.
     (let [fresh-context (context! api!)
@@ -335,12 +358,15 @@
       (ensure! (and (some #(= (comment-tuple observed) (comment-tuple %)) comments)
                     (some #(= (comment-tuple (:trigger current)) (comment-tuple %)) comments))
                "Publication/trigger missing or changed in complete native readback")
+      (checkpoint! (assoc checkpoint :publication-state :canonical-disposition-observed
+                          :native-node-id (:node_id observed) :decision decision :disposition disposition))
       (when (= "informational" decision)
         (ensure! (and (= :qualified (:status disposition)) (= (:id observed) (:assessment-id disposition)))
                  "Canonical law refused informational evidence; no qualification claimed"))
-      {:native-id (:id observed) :native-url (:html_url observed)
-       :decision decision :disposition disposition
-       :execution-control (:executionControl (:review result))})))
+      (let [out (merge checkpoint {:publication-state :complete :qualification :verified-scoped-assessment
+                                   :native-node-id (:node_id observed) :decision decision :disposition disposition
+                                   :execution-control (:executionControl (:review result))})]
+        (checkpoint! out) out)))))
 
 (defn main! []
   (let [mode (aget js/process.env "ASSESSMENT_COMMAND")
@@ -358,9 +384,13 @@
                                                                   :runner-sha256 runtime-hash :review %}) #js {:mode 384}))))
       "check" (final-check! (edn/read-string (read-bounded input-file)) (current!)
                             (edn/read-string (read-bounded result-file)))
-      "publish" (let [out (publish! gh-api! (edn/read-string (read-bounded input-file))
-                                    (edn/read-string (read-bounded result-file)) current!)]
-                  (fs/writeFileSync (aget js/process.env "ASSESSMENT_READBACK") (pr-str out) #js {:mode 384})
+      "publish" (let [file (aget js/process.env "ASSESSMENT_READBACK")
+                      checkpoint! #(write-publication-checkpoint!
+                                     file (if (and (= :publication-unconfirmed (:publication-state %)) (fs/existsSync file))
+                                            (let [prior (edn/read-string (read-bounded file))]
+                                              (ensure! (map? prior) "Malformed prior publication checkpoint") prior) %))
+                      out (publish! gh-api! (edn/read-string (read-bounded input-file))
+                                    (edn/read-string (read-bounded result-file)) current! checkpoint!)]
                   (println (pr-str (select-keys out [:native-id :decision]))))
       (throw (ex-info "Unsupported transport operation" {})))))
 (when (aget js/process.env "ASSESSMENT_COMMAND")

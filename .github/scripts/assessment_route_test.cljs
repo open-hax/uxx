@@ -1189,6 +1189,204 @@
           (.catch (fn [error] (is false (ex-message error))))
           (.finally done)))))
 
+
+(defn checkpoint-review [input decision]
+  (if (= decision "informational") (scoped-review input)
+    (let [value (-> (select-keys (scoped-review input) [:head :diffSha256 :coveredFiles :summary :comments])
+                    (update :summary str/replace "\"informational\"" (pr-str decision))
+                    (update :summary str/replace "complete-context/no-defect/no-request/no-question"
+                            "scope-incomplete-or-finding")) c (:coverage input)]
+      (js->clj (.parseStructured (r/runtime!) (native-response value "low") (get-in input [:target :head])
+                                #js {:diffSha256 (:diff-sha256 c) :coveredFiles (clj->js (:files c))})
+               :keywordize-keys true))))
+
+(defn publication-checkpoint-observation
+  ([failure decision destination] (publication-checkpoint-observation failure decision destination nil))
+  ([failure decision destination prior-bytes]
+  ;; Real main!/live!/final-check!/publish! and filesystem; only native API,
+  ;; policy and Git reads are local fixtures. The model spy must never run.
+  (let [directory (fs/mkdtempSync (path/join (os/tmpdir) "uxx-publication-checkpoint-"))
+        input-file (path/join directory "input.edn") result-file (path/join directory "result.edn")
+        event-file (path/join directory "event.json")
+        readback-file (case destination
+                        :missing-parent (path/join directory "missing" "readback.edn")
+                        :directory directory
+                        (path/join directory "readback.edn"))
+        fixture (scoped-fixture head) input (r/validate-intake! fixture)
+        value (checkpoint-review input decision)
+        frozen {:input-sha256 (r/sha (pr-str input)) :runner-sha256 r/runtime-hash :review value}
+        settings {"ASSESSMENT_COMMAND" "publish" "ASSESSMENT_POLICY" "fixture-policy"
+                  "GITHUB_EVENT_PATH" event-file "ASSESSMENT_INPUT" input-file
+                  "ASSESSMENT_RESULT" result-file "ASSESSMENT_READBACK" readback-file}
+        previous (into {} (for [[k _] settings] [k (aget js/process.env k)]))
+        state (atom (if (= failure :duplicate-before-post)
+                      (update fixture :comments conj
+                              (fixture-comment 7104 (:summary value) "2026-10-04T12:10:00Z" bot)) fixture))
+        calls (atom []) posts (atom 0) model-spy (atom 0)
+        post-entry-checkpoint (atom nil)
+        mutate (case failure
+                 :live-base advance-main
+                 :head #(assoc-in % [:live-pr :head :sha] (apply str (repeat 40 "8")))
+                 :context #(update-in % [:context :thread :comments :nodes 0 :body] str " changed")
+                 :repository-id #(assoc-in % [:live-pr :base :repo :id] 1)
+                 :missing-trigger #(update % :comments (fn [rows] (vec (remove (fn [c] (= 7102 (:id c))) rows))))
+                 :canonical-conflict #(update % :comments conj
+                                              (fixture-comment 7106 (:summary (checkpoint-review input "finding"))
+                                                               "2026-10-04T12:11:00Z" bot))
+                 identity)
+        fixture-api (scoped-api state calls posts mutate)
+        api! (fn [method endpoint payload]
+               (when (= [method endpoint] ["POST" "repos/open-hax/uxx/issues/14/comments"])
+                 (when (and (fs/existsSync readback-file) (.isFile (fs/statSync readback-file)))
+                   (reset! post-entry-checkpoint (try (edn/read-string (fs/readFileSync readback-file "utf8"))
+                                                    (catch :default _ nil)))))
+               (when (and (= failure :collector) (= endpoint "graphql"))
+                 (throw (js/Error. "PRIVATE_COLLECTOR_ERROR_SENTINEL")))
+               (if (and (= failure :readback-api) (= endpoint "repos/open-hax/uxx/issues/comments/7104"))
+                 (throw (js/Error. "PRIVATE_RESPONSE_ERROR_SENTINEL"))
+                 (let [out (fixture-api method endpoint payload)]
+                   ;; Simulate remote creation followed by an ambiguous response;
+                   ;; the publisher cannot infer absence or invent the fixture ID.
+                   (when (and (= failure :post-exception)
+                              (= [method endpoint] ["POST" "repos/open-hax/uxx/issues/14/comments"]))
+                     (throw (js/Error. "PRIVATE_RESPONSE_POST_ERROR_SENTINEL")))
+                   (if (and (= failure :post-missing-id)
+                            (= [method endpoint] ["POST" "repos/open-hax/uxx/issues/14/comments"]))
+                     (dissoc out :id)
+                     (if (= endpoint "repos/open-hax/uxx/issues/comments/7104")
+                     (case failure
+                       :readback-identity (assoc-in out [:user :id] 1)
+                       :readback-body (assoc out :body "PRIVATE_RESPONSE_BODY_SENTINEL")
+                       out) out)))))]
+    (try
+      (fs/writeFileSync input-file (pr-str input)) (fs/writeFileSync result-file (pr-str frozen))
+      (fs/writeFileSync event-file (js/JSON.stringify (clj->js (:event fixture))))
+      (when prior-bytes (fs/writeFileSync readback-file prior-bytes))
+      (doseq [[k v] settings] (aset js/process.env k v))
+      (let [refused (refuses? #(with-redefs [r/policy! (fn [_] policy) r/gh-api! api!
+                                            r/coverage! (fn [& _] (:coverage @state))
+                                            r/model! (fn [& _] (swap! model-spy inc)
+                                                       (throw (js/Error. "Fixture model must not run")))]
+                                 (r/main!)))
+            exists? (and (fs/existsSync readback-file) (.isFile (fs/statSync readback-file)))
+            bytes (when exists? (fs/readFileSync readback-file "utf8"))
+            record (when bytes (try (edn/read-string bytes) (catch :default _ nil)))
+            out {:prior-bytes-retained (= prior-bytes bytes)
+                 :failure failure :decision decision :destination destination :refused refused
+                 :posts @posts :model-spy @model-spy :record record
+                 :synthetic-remote-created (some? (:published @state))
+                 :native-readback-attempts (count (filter #(= "repos/open-hax/uxx/issues/comments/7104" (second %)) @calls))
+                 :post-entry-checkpoint @post-entry-checkpoint
+                 :input-retained (= (pr-str input) (fs/readFileSync input-file "utf8"))
+                 :no-sensitive-content (not (or (str/includes? (or bytes "") (:summary value))
+                                               (str/includes? (or bytes "") "PRIVATE_RESPONSE")))
+                 :no-temporary-residue (not-any? #(str/starts-with? % ".assessment-checkpoint-")
+                                                (js->clj (fs/readdirSync directory)))
+                 :artifact-mode (when exists? (bit-and 511 (.-mode (fs/statSync readback-file))))
+                 :expected-body-sha256 (r/sha (:summary value)) :expected-input-sha256 (:input-sha256 frozen)}]
+        (println "[publication-checkpoint-main]" (pr-str out)) out)
+      (finally
+        (doseq [[k v] previous] (if v (aset js/process.env k v) (js-delete js/process.env k)))
+        (fs/rmSync directory #js {:recursive true :force true}))))))
+
+(deftest actual-main-publication-checkpoints-retain-positive-id-through-later-refusals
+  (doseq [[failure expected-stage] [[:readback-api :published-unverified]
+                                   [:readback-identity :published-unverified]
+                                   [:readback-body :published-unverified]
+                                   [:live-base :readback-verified] [:head :readback-verified]
+                                   [:context :readback-verified] [:repository-id :readback-verified]
+                                   [:missing-trigger :readback-verified]
+                                   [:canonical-conflict :canonical-disposition-observed]
+                                   [:none :complete]]]
+    (let [out (publication-checkpoint-observation failure "informational" :file) record (:record out)]
+      (is (= (not= failure :none) (:refused out)))
+      (is (= 1 (:posts out))) (is (zero? (:model-spy out))) (is (:input-retained out))
+      (is (:no-sensitive-content out)) (is (:no-temporary-residue out))
+      (is (= :publication-unconfirmed (get-in out [:post-entry-checkpoint :publication-state])))
+      (is (= :not-established (get-in out [:post-entry-checkpoint :qualification])))
+      (is (some? record))
+      (when record
+        (is (= 7104 (:native-id record)))
+        (is (= "https://github.com/open-hax/uxx/pull/14#issuecomment-7104" (:native-url record)))
+        (is (= head (:head record))) (is (= r/runtime-hash (:runner-sha256 record)))
+        (is (= (:expected-body-sha256 out) (:body-sha256 record)))
+        (is (= (:expected-input-sha256 out) (:input-sha256 record)))
+        (is (= 384 (:artifact-mode out)))
+        (is (not-any? #(contains? record %) [:body :error :credentials :token]))
+        (is (= expected-stage (:publication-state record)))
+        (is (= (if (= failure :none) :verified-scoped-assessment :not-established) (:qualification record)))
+        (when (= failure :none)
+          (is (= :informational (get-in record [:disposition :kind])))
+          (is (map? (:execution-control record)))))))
+  (doseq [decision ["finding" "uncertain"]]
+    (let [out (publication-checkpoint-observation :none decision :file) record (:record out)]
+      (is (false? (:refused out))) (is (= 1 (:posts out))) (is (zero? (:model-spy out)))
+      (is (= :complete (:publication-state record)))
+      (is (= :verified-scoped-assessment (:qualification record)))
+      (is (= decision (:decision record))) (is (= :finding (get-in record [:disposition :kind]))))))
+
+(deftest actual-main-preflights-publication-artifact-before-the-only-post
+  (doseq [destination [:missing-parent :directory]]
+    (let [out (publication-checkpoint-observation :none "informational" destination)]
+      (is (:refused out)) (is (zero? (:posts out))) (is (zero? (:model-spy out)))
+      (is (nil? (:record out))) (is (:input-retained out)) (is (:no-temporary-residue out)))))
+
+(deftest atomic-publication-checkpoint-write-retains-prior-evidence-on-replacement-failure
+  (let [writer-var (resolve 'assessment-route/write-publication-checkpoint!)]
+    (is (some? writer-var))
+    (when writer-var
+      (let [writer @writer-var directory (fs/mkdtempSync (path/join (os/tmpdir) "uxx-checkpoint-atomic-"))
+            file (path/join directory "readback.edn")
+            record {:native-id 7104 :publication-state :published-unverified :qualification :not-established}]
+        (try
+          (writer file record)
+          (let [bytes (fs/readFileSync file "utf8")]
+            ;; Same artifact path, actual filesystem permission failure on the
+            ;; next replacement: the last positive native checkpoint must survive.
+            (fs/chmodSync directory 320)
+            (is (refuses? #(writer file (assoc record :publication-state :readback-verified))))
+            (is (= bytes (fs/readFileSync file "utf8")))
+            (is (= ["readback.edn"] (js->clj (fs/readdirSync directory)))))
+          (finally (fs/chmodSync directory 448)
+                   (fs/rmSync directory #js {:recursive true :force true})))))))
+
+(deftest existing-publication-checkpoint-survives-retry-preflight-and-collector-dedup-refusals
+  (let [prior {:native-id 7099 :native-url "https://github.com/open-hax/uxx/pull/14#issuecomment-7099"
+               :head head :body-sha256 (r/sha "earlier synthetic publication")
+               :input-sha256 (r/sha "earlier frozen input")
+               :publication-state :published-unverified :qualification :not-established}
+        prior-bytes (str "  " (pr-str prior) "\n")]
+    (doseq [failure [:collector :duplicate-before-post]]
+      (let [out (publication-checkpoint-observation failure "informational" :file prior-bytes)]
+        (is (:refused out)) (is (zero? (:posts out))) (is (zero? (:model-spy out)))
+        (is (:prior-bytes-retained out)) (is (= prior (:record out)))
+        (is (nil? (:post-entry-checkpoint out))) (is (:no-temporary-residue out))))
+    (let [out (publication-checkpoint-observation :none "informational" :file prior-bytes)]
+      (is (false? (:refused out))) (is (= 1 (:posts out))) (is (zero? (:model-spy out)))
+      (is (= prior (:post-entry-checkpoint out)))
+      (is (= 7104 (get-in out [:record :native-id])))
+      (is (= :complete (get-in out [:record :publication-state]))))
+    (doseq [malformed ["[" "[:not-a-checkpoint]" "42"]]
+      (let [out (publication-checkpoint-observation :none "informational" :file malformed)]
+        (is (:refused out)) (is (zero? (:posts out))) (is (zero? (:model-spy out)))
+        (is (:prior-bytes-retained out)) (is (:no-temporary-residue out))))))
+
+(deftest actual-main-ambiguous-post-retains-unconfirmed-checkpoint-without-invented-id
+  (doseq [failure [:post-exception :post-missing-id]]
+    (let [out (publication-checkpoint-observation failure "informational" :file) record (:record out)]
+      (is (:refused out)) (is (= 1 (:posts out))) (is (:synthetic-remote-created out))
+      (is (zero? (:native-readback-attempts out))) (is (zero? (:model-spy out)))
+      (is (:input-retained out)) (is (:no-sensitive-content out)) (is (:no-temporary-residue out))
+      (is (= 384 (:artifact-mode out)))
+      (is (= {:publication-state :publication-unconfirmed :qualification :not-established} record))
+      (is (not-any? #(contains? record %) [:native-id :native-url :native-node-id :body :error :credentials :token]))
+      (is (= record (:post-entry-checkpoint out)))))
+  (let [prior {:native-id 7099 :publication-state :published-unverified :qualification :not-established}
+        out (publication-checkpoint-observation :post-exception "informational" :file (pr-str prior))]
+    (is (:refused out)) (is (= 1 (:posts out))) (is (:synthetic-remote-created out))
+    (is (zero? (:native-readback-attempts out))) (is (zero? (:model-spy out)))
+    (is (= prior (:record out))) (is (= prior (:post-entry-checkpoint out)))))
+
 (defmethod test/report [:cljs.test/default :end-run-tests] [summary]
   (when (pos? (+ (:fail summary) (:error summary))) (set! (.-exitCode js/process) 1)))
 (run-tests)
