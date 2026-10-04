@@ -750,7 +750,7 @@
     (is (= base (get-in input [:cached-pr-base :sha])))
     (is (= live-branch (:live-base input)))
     (is (some #{live-branch} (:identity input)))
-    (is (some #{(:base live-pr)} (:identity input)))
+    (is (some #{(select-keys (:base live-pr) [:ref :sha])} (:identity input)))
     (is (some #{["GET" "repos/open-hax/uxx/git/ref/heads/main"]} @calls))
     (is (zero? @posts))
     (when input
@@ -1083,6 +1083,111 @@
             (doseq [[k v] previous]
               (if v (aset js/process.env k v) (js-delete js/process.env k)))
             (fs/rmSync directory #js {:recursive true :force true})))))))
+
+(def volatile-base-fields
+  {:open_issues_count 7 :stargazers_count 3 :size 9012
+   :pushed_at "2026-10-04T13:00:00Z" :updated_at "2026-10-04T13:01:00Z"})
+
+(defn with-base-metadata [fixture]
+  (update-in fixture [:live-pr :base :repo] merge volatile-base-fields))
+
+(defn mutate-base-metadata [fixture field]
+  (update-in fixture [:live-pr :base :repo field]
+             #(if (number? %) (inc %) "2026-10-04T13:02:00Z")))
+
+(defn cached-base-main-observation [original current mode after-readback]
+  ;; Actual main!/live!/publish!, event, EDN and filesystem. Native API/Git/
+  ;; policy reads and a synthetic completed model are the only fixture seams.
+  (let [directory (fs/mkdtempSync (path/join (os/tmpdir) "uxx-base-metadata-"))
+        input-file (path/join directory "input.edn") event-file (path/join directory "event.json")
+        result-file (path/join directory "result.edn") readback-file (path/join directory "readback.edn")
+        input (r/validate-intake! original) value (scoped-review input)
+        frozen {:input-sha256 (r/sha (pr-str input)) :runner-sha256 r/runtime-hash :review value}
+        settings {"ASSESSMENT_COMMAND" mode "ASSESSMENT_POLICY" "fixture-policy"
+                  "GITHUB_EVENT_PATH" event-file "ASSESSMENT_INPUT" input-file
+                  "ASSESSMENT_RESULT" result-file "ASSESSMENT_READBACK" readback-file}
+        previous (into {} (for [[k _] settings] [k (aget js/process.env k)]))
+        state (atom current) calls (atom []) posts (atom 0) model-spy (atom 0)
+        observed-input (atom nil) mint-sentinel (atom 0)]
+    (fs/writeFileSync input-file (pr-str input))
+    (fs/writeFileSync event-file (js/JSON.stringify (clj->js (:event original))))
+    (fs/writeFileSync result-file (pr-str frozen))
+    (doseq [[k v] settings] (aset js/process.env k v))
+    (let [execution (try
+                      (with-redefs [r/policy! (fn [_] policy)
+                                    r/gh-api! (scoped-api state calls posts after-readback)
+                                    r/coverage! (fn [& _] (:coverage @state))
+                                    r/model! (fn [snapshot]
+                                               (swap! model-spy inc) (reset! observed-input snapshot)
+                                               (js/Promise.resolve value))]
+                        (js/Promise.resolve (r/main!)))
+                      (catch :default e (js/Promise.reject e)))]
+      (-> execution
+          (.then (fn [_] (when (= mode "check") (swap! mint-sentinel inc)) nil))
+          (.catch ex-message)
+          (.then (fn [error]
+                   (let [observation {:mode mode :error error :model-spy @model-spy :posts @posts
+                                      :downstream-mint-sentinel @mint-sentinel
+                                      :readback-artifact (fs/existsSync readback-file)
+                                      :input-retained (= (pr-str input) (fs/readFileSync input-file "utf8"))
+                                      :full-cached-base-retained (= (:base (:live-pr original)) (:cached-pr-base input))
+                                      :model-full-cached-base-retained
+                                      (when @observed-input (= (:cached-pr-base input) (:cached-pr-base @observed-input)))}]
+                     (println "[cached-base-main]" (pr-str observation)) observation)))
+          (.finally (fn []
+                      (doseq [[k v] previous]
+                        (if v (aset js/process.env k v) (js-delete js/process.env k)))
+                      (fs/rmSync directory #js {:recursive true :force true})))))))
+
+(deftest cached-base-identity-projects-authoritative-fields-and-retains-provenance
+  (let [fixture (with-base-metadata (scoped-fixture head))
+        input (r/validate-intake! fixture)]
+    (is (= (select-keys (:base (:live-pr fixture)) [:ref :sha]) (get-in input [:identity 8])))
+    (is (= (:base (:live-pr fixture)) (:cached-pr-base input)))
+    (doseq [field (keys volatile-base-fields)]
+      (let [changed (r/validate-intake! (mutate-base-metadata fixture field))]
+        (is (not= (:cached-pr-base input) (:cached-pr-base changed)))))))
+
+(deftest actual-main-accepts-only-volatile-base-metadata-drift
+  (async done
+    (let [fixture (with-base-metadata (scoped-fixture head))
+          valid (concat (for [field (keys volatile-base-fields) mode ["model" "check" "publish"]]
+                          {:field field :mode mode :fresh (mutate-base-metadata fixture field) :after identity})
+                        (for [field (keys volatile-base-fields)]
+                          {:field field :mode "publish" :fresh fixture
+                           :after #(mutate-base-metadata % field)}))
+          safety [(assoc-in fixture [:live-pr :base :repo :id] 1)
+                  (assoc-in fixture [:live-pr :base :repo :node_id] "R_other")
+                  (assoc-in fixture [:live-pr :base :repo :private] true)
+                  (assoc-in fixture [:live-pr :base :repo :full_name] "fork/uxx")
+                  (assoc-in fixture [:live-pr :base :ref] "staging")
+                  (assoc-in fixture [:live-pr :base :sha] (apply str (repeat 40 "8")))
+                  (advance-main fixture)
+                  (update-in fixture [:coverage :diff] str " changed raw diff, same declared digest/files")]
+          cases (concat (map #(assoc % :admitted? true) valid)
+                        (for [changed safety mode ["model" "check" "publish"]]
+                          {:mode mode :fresh changed :after identity :admitted? false}))]
+      (-> (reduce
+            (fn [chain {:keys [mode fresh after admitted?]}]
+              (.then chain
+                (fn [_]
+                  (-> (cached-base-main-observation fixture fresh mode after)
+                      (.then (fn [out]
+                               (is (:input-retained out)) (is (:full-cached-base-retained out))
+                               (if admitted?
+                                 (do (is (nil? (:error out)))
+                                     (is (= (if (= mode "model") 1 0) (:model-spy out)))
+                                     (is (= (if (= mode "publish") 1 0) (:posts out)))
+                                     (is (= (if (= mode "check") 1 0) (:downstream-mint-sentinel out)))
+                                     (is (= (= mode "publish") (:readback-artifact out)))
+                                     (when (= mode "model") (is (:model-full-cached-base-retained out))))
+                                 (do (is (some? (:error out)))
+                                     (is (zero? (:model-spy out))) (is (zero? (:posts out)))
+                                     (is (zero? (:downstream-mint-sentinel out)))
+                                     (is (false? (:readback-artifact out)))))))))))
+            (js/Promise.resolve nil) cases)
+          (.catch (fn [error] (is false (ex-message error))))
+          (.finally done)))))
 
 (defmethod test/report [:cljs.test/default :end-run-tests] [summary]
   (when (pos? (+ (:fail summary) (:error summary))) (set! (.-exitCode js/process) 1)))

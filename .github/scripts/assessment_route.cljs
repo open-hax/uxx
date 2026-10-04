@@ -192,7 +192,7 @@
      :identity [(:context-manifest t) (a/context-binding t) (comment-tuple proposal)
                 (comment-tuple trigger) (get-in live-base [:object :sha])
                 (select-keys coverage [:diff-sha256 :files]) policy-sha runtime-hash
-                (:base live-pr) live-base]}))
+                (select-keys (:base live-pr) [:ref :sha]) live-base]}))
 (defn coverage! [base head]
   (cp/execFileSync "git" #js ["fetch" "--no-tags" "origin" base head]
                    #js {:stdio #js ["ignore" "pipe" "pipe"] :timeout 120000})
@@ -326,7 +326,8 @@
       (validate-pr! pr fresh-context)
       (ensure! (and (= (:context-digest t) (:context-digest fresh)) (= "open" (:state pr)) (false? (:draft pr))
                     (= (:head t) (get-in pr [:head :sha])) (= (:base current) (get-in branch [:object :sha]))
-                    (= (:cached-pr-base current) (:base pr)) (= (:live-base current) branch)
+                    (= (select-keys (:cached-pr-base current) [:ref :sha])
+                       (select-keys (:base pr) [:ref :sha])) (= (:live-base current) branch)
                     (= (:repo selection) (get-in pr [:head :repo :full_name]))
                     (= (:repo selection) (get-in pr [:base :repo :full_name]))
                     (false? (get-in pr [:head :repo :private])) (false? (get-in pr [:base :repo :private])))
