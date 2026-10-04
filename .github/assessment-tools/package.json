@@ -1,0 +1,9 @@
+{
+  "name": "uxx-scoped-assessment-tools",
+  "version": "1.0.0",
+  "private": true,
+  "license": "GPL-3.0-or-later",
+  "dependencies": {
+    "nbb": "1.3.204"
+  }
+}
