@@ -27,3 +27,11 @@ RED old runner: 13 tests/149 assertions, 7 failures/0 errors, exit1. GREEN corre
 Preserve authentic native approval without upgrading omitted input to complete coverage. Reuse the qualified shared pipeline rather than a provenance-only repin or copied law. Credential-bearing runtime startup imports require a complete integrity lock even when lifecycle scripts are disabled. An ordering assertion must reject absent boundaries before comparing their indexes.
 
 Meaningful ordering RED18/200 with1failure, corrected affected GREEN21/236; actual Node22 frozen install/startup and mismatch refusal, four upstream interface fixtures, analysis/actionlint/diff pass. Initial harness/cache/YAML environment failures remain inspectable; only corrected meaningful results receive credit. Read-token endpoint diagnostic and next-head full review remain native-pending; parent owns all effects. Full26173receipt/2388reflection prefixes retained. Evidence: /tmp/uxx16-full-input-lock-au6ufzh4.
+
+2026-10-04T16:35:13.481Z — Native environment intake repair; p-efficiency0.86, p-friction0.30, p-skill-candidate0.22; no spore/promotion.
+
+Native startup tests using plain JS fixtures did not exercise process.env. A regression should cross the real runtime boundary: actual environment, actual entrypoint and actual output write, with only external reads substituted. The local intake RED22/239/3fail, model boundary RED23/249/4fail and final GREEN23/249/0fail explain the native before-model failure; masked native cause remains narrower evidence. No assessment or approval credit and no unqualified model retry. Receipt: Uxx14 native run37216159595 and central uxx-native-env-successor packet.
+
+2026-10-04T17:01:39.950Z — Actual caller environment regression; p-efficiency0.89, p-friction0.26, p-skill-candidate0.20; no spore/promotion.
+
+Security boundary tests must reach the actual caller. Helper-only filtering tests can miss a caller that passes the full host environment. Capture exactly the child arguments, reject before provider execution, assert direct native fields with benign values, and verify actual cleanup. Meaningful model! caller mutantRED24/258/4fail and filteredGREEN24/258/0fail; nativebody5407234082 remains actualreview evidence, not a model invocation by this test.

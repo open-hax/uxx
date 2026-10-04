@@ -228,22 +228,29 @@
          "\nDiff SHA256: " (get-in snapshot [:coverage :diff-sha256])
          "\nAll changed files: " (pr-str (get-in snapshot [:coverage :files]))
          "\nComplete UTF8 Git diff:\n" (get-in snapshot [:coverage :diff]))))
-(defn model-env [home env]
+(defn model-env
+  ([home]
+   (model-env home (into {} (keep (fn [key]
+                                  (when-some [value (aget js/process.env key)] [key value])))
+                        ["PATH" "LANG" "TMPDIR" "KIMI_API_KEY"])))
+  ([home env]
   (clj->js (merge (select-keys env ["PATH" "LANG" "TMPDIR" "KIMI_API_KEY"])
                  {"HOME" home "XDG_CONFIG_HOME" (str home "/config") "XDG_DATA_HOME" (str home "/data")
                   "XDG_CACHE_HOME" (str home "/cache") "XDG_STATE_HOME" (str home "/state")
                   "OPENCODE_SERVER_PASSWORD" (.toString (crypto/randomBytes 32) "hex")
                   "OPENCODE_DISABLE_PROJECT_CONFIG" "true"
-                  "OPENCODE_CONFIG_CONTENT" (js/JSON.stringify (.reviewConfig (runtime!)))})))
+                  "OPENCODE_CONFIG_CONTENT" (js/JSON.stringify (.reviewConfig (runtime!)))}))))
+(defn opencode-version! []
+  (str/trim (cp/execFileSync "opencode" #js ["--version"]
+                             #js {:encoding "utf8" :timeout 5000 :stdio #js ["ignore" "pipe" "ignore"]})))
 (defn model! [snapshot]
   (let [runner (runtime!) root (fs/mkdtempSync (str (os/tmpdir) "/uxx-assessment-"))
         workspace (str root "/workspace") home (str root "/home") coverage (:coverage snapshot)]
     (fs/mkdirSync workspace) (fs/mkdirSync home)
     (try
-      (.assertRuntimeVersion runner (str/trim (cp/execFileSync "opencode" #js ["--version"]
-                                                             #js {:encoding "utf8" :timeout 5000 :stdio #js ["ignore" "pipe" "ignore"]})))
+      (.assertRuntimeVersion runner (opencode-version!))
       (.sourceSnapshot runner (:head selection) workspace (:base snapshot))
-      (-> (.executeStructured runner (prompt snapshot) (model-env home (js->clj js/process.env)) workspace
+      (-> (.executeStructured runner (prompt snapshot) (model-env home) workspace
                               (:head selection) #js {:diffSha256 (:diff-sha256 coverage) :coveredFiles (clj->js (:files coverage))})
           (.then (fn [review] (let [value (js->clj review :keywordize-keys true)] (submission! snapshot value) value)))
           (.finally #(fs/rmSync root #js {:recursive true :force true})))
@@ -293,10 +300,10 @@
        :execution-control (:executionControl (:review result))})))
 
 (defn main! []
-  (let [env (js->clj js/process.env) mode (get env "ASSESSMENT_COMMAND")
-        policy (policy! (get env "ASSESSMENT_POLICY"))
-        event (js->clj (js/JSON.parse (read-bounded (get env "GITHUB_EVENT_PATH"))) :keywordize-keys true)
-        input-file (get env "ASSESSMENT_INPUT") result-file (get env "ASSESSMENT_RESULT")
+  (let [mode (aget js/process.env "ASSESSMENT_COMMAND")
+        policy (policy! (aget js/process.env "ASSESSMENT_POLICY"))
+        event (js->clj (js/JSON.parse (read-bounded (aget js/process.env "GITHUB_EVENT_PATH"))) :keywordize-keys true)
+        input-file (aget js/process.env "ASSESSMENT_INPUT") result-file (aget js/process.env "ASSESSMENT_RESULT")
         current! #(live! gh-api! event policy coverage!)]
     (case mode
       "intake" (fs/writeFileSync input-file (pr-str (current!)) #js {:mode 384})
@@ -309,7 +316,7 @@
                             (edn/read-string (read-bounded result-file)))
       "publish" (let [out (publish! gh-api! (edn/read-string (read-bounded input-file))
                                     (edn/read-string (read-bounded result-file)) current!)]
-                  (fs/writeFileSync (get env "ASSESSMENT_READBACK") (pr-str out) #js {:mode 384})
+                  (fs/writeFileSync (aget js/process.env "ASSESSMENT_READBACK") (pr-str out) #js {:mode 384})
                   (println (pr-str (select-keys out [:native-id :decision]))))
       (throw (ex-info "Unsupported transport operation" {})))))
 (when (aget js/process.env "ASSESSMENT_COMMAND")
