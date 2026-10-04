@@ -4,7 +4,8 @@
             [clojure.string :as str]
             [pr-flow.actionability :as a]
             [assessment-route :as r]
-            ["node:fs" :as fs] ["node:os" :as os] ["node:path" :as path]))
+            ["node:fs" :as fs] ["node:os" :as os] ["node:path" :as path]
+            ["node:child_process" :as cp]))
 
 (def context (js->clj (js/JSON.parse (fs/readFileSync ".github/scripts/fixtures/uxx14-native-context.json" "utf8")) :keywordize-keys true))
 (def user {:login "riatzukiza" :id 10676925 :node_id "MDQ6VXNlcjEwNjc2OTI1" :type "User"})
@@ -121,6 +122,120 @@
         js-expression (str/replace (or expression "false") "needs.scoped-assessment-read" "needs['scoped-assessment-read']")
         fnc (js/Function. "github" "needs" "startsWith" (str "return (" js-expression ");"))]
     (fnc (clj->js github) (clj->js needs) (fn [value prefix] (str/starts-with? value prefix)))))
+
+(deftest actual-coverage-matches-pinned-helper-for-renames-and-utf8-binary
+  (let [directory (fs/mkdtempSync (path/join (os/tmpdir) "uxx-coverage-"))
+        original (.cwd js/process)
+        runner (r/runtime!) saved-runtime (aget js/process.env "ASSESSMENT_RUNTIME")
+        runtime-directory (path/resolve (or saved-runtime ".assessment-runtime"))
+        git! (fn [& args]
+               (str/trim (cp/execFileSync "git" (clj->js args)
+                                         #js {:cwd directory :encoding "utf8" :stdio #js ["ignore" "pipe" "pipe"]})))
+        commit! (fn []
+                  (git! "add" ".")
+                  (git! "-c" "core.hooksPath=/dev/null" "-c" "commit.gpgsign=false"
+                        "-c" "user.name=Local coverage fixture" "-c" "user.email=fixture@example.invalid"
+                        "commit" "-qm" "disposable local coverage fixture")
+                  (git! "rev-parse" "HEAD"))
+        failure! (fn [base head]
+                   (try (r/coverage! base head) ""
+                        (catch :default error (ex-message error))))]
+    (try
+      (git! "init" "-q")
+      (git! "config" "diff.renames" "true")
+      ;; Fetch in the real coverage! path uses this local fixture, never GitHub.
+      (git! "remote" "add" "origin" directory)
+      (fs/writeFileSync (path/join directory "before.txt") "unchanged rename content\n")
+      (fs/writeFileSync (path/join directory "binary.txt") "before α\u0000\n")
+      (let [base (commit!)]
+        (fs/renameSync (path/join directory "before.txt") (path/join directory "after.txt"))
+        (fs/writeFileSync (path/join directory "binary.txt") "after β\u0000\n")
+        (let [head (commit!)]
+          (aset js/process.env "ASSESSMENT_RUNTIME" runtime-directory)
+          (.chdir js/process directory)
+          (let [expected (.diffCoverage runner base head)
+                bare (cp/execFileSync "git" #js ["diff" (str base "..." head)] #js {:encoding "utf8"})
+                observed (try {:value (r/coverage! base head)}
+                              (catch :default error {:failure (ex-message error)}))]
+            (is (str/includes? bare "rename from before.txt"))
+            (is (str/includes? bare "Binary files"))
+            (is (not= bare (.-diff expected)))
+            (is (= ["after.txt" "before.txt" "binary.txt"] (js->clj (.-coveredFiles expected))))
+            (is (nil? (:failure observed)) (:failure observed))
+            (when-let [actual (:value observed)]
+              (is (= (.-diff expected) (:diff actual)))
+              (is (= (.-diffSha256 expected) (:diff-sha256 actual)))
+              (is (= (js->clj (.-coveredFiles expected)) (:files actual)))
+              (is (str/includes? (:diff actual) "after β\u0000"))))
+          ;; Keep the actual decoder, path guard and prompt-size guard in use.
+          (fs/writeFileSync (path/join directory "binary.txt") (js/Buffer.from #js [255 0 10]))
+          (is (re-find #"not valid for encoding utf-8" (failure! base (commit!))))
+          (fs/writeFileSync (path/join directory "binary.txt") "valid UTF8 again\n")
+          (fs/writeFileSync (path/join directory ".env") "synthetic fixture only\n")
+          (is (re-find #"sensitive changed paths" (failure! base (commit!))))
+          (fs/unlinkSync (path/join directory ".env"))
+          (fs/writeFileSync (path/join directory "binary.txt")
+                            (str "\u0000" (str/join (repeat (* 1100 1024) "x"))))
+          (is (= "Full diff exceeds scoped prompt budget" (failure! base (commit!))))))
+      (finally
+        (.chdir js/process original)
+        (if saved-runtime (aset js/process.env "ASSESSMENT_RUNTIME" saved-runtime)
+            (js-delete js/process.env "ASSESSMENT_RUNTIME"))
+        (fs/rmSync directory #js {:recursive true :force true})))))
+
+(defn workflow-value [text github needs steps]
+  ;; Evaluate the real artifact expressions, including dashed output names.
+  (str/replace (or text "") #"\$\{\{ (.*?) \}\}"
+               (fn [[_ expression]]
+                 (let [expression (str/replace expression #"\.([a-zA-Z0-9_-]+)" "['$1']")
+                       evaluate (js/Function. "github" "needs" "steps" (str "return (" expression ");"))]
+                   (or (evaluate (clj->js github) (clj->js needs) (clj->js steps)) "")))))
+
+(deftest publisher-downloads-successful-producer-artifact-across-attempts
+  (let [workflow (fs/readFileSync ".github/workflows/opencode-issue-agent.yml" "utf8")
+        reader (second (re-find #"(?s)\n  scoped-assessment-read:(.*?)\n  scoped-assessment-publish:" workflow))
+        publisher (second (re-find #"(?s)\n  scoped-assessment-publish:(.*?)(?:\n  [a-z][a-z0-9-]*:|$)" workflow))
+        output (second (re-find #"(?m)^    outputs:\n      artifact-name: ([^\n]+)" reader))
+        producer (re-find #"(?s)      - name: Record producer artifact name\n        id: assessment-artifact\n        env:\n          ASSESSMENT_ARTIFACT_NAME: ([^\n]+)\n        run: ([^\n]+)" reader)
+        upload (second (re-find #"(?s)uses: actions/upload-artifact@[^\n]+\n        with:\n          name: ([^\n]+)" reader))
+        download (second (re-find #"(?s)uses: actions/download-artifact@[^\n]+\n        with:\n          name: ([^\n]+)" publisher))
+        requirement (re-find #"(?s)      - name: Require successful producer artifact name\n        env:\n          ASSESSMENT_ARTIFACT_NAME: ([^\n]+)\n        run: ([^\n]+)" publisher)
+        directory (fs/mkdtempSync (path/join (os/tmpdir) "uxx-artifact-output-"))]
+    (try
+      (is (= "${{ steps.assessment-artifact.outputs.name }}" output))
+      (is (= "${{ steps.assessment-artifact.outputs.name }}" upload))
+      (is (= "${{ needs.scoped-assessment-read.outputs.artifact-name }}" download))
+      (is (some? producer))
+      (is (some? requirement))
+      (doseq [[producer-attempt consumer-attempt] [[1 2] [2 2]]]
+        (let [github {:run_id 12345 :run_attempt producer-attempt}
+              file (path/join directory (str "output-" producer-attempt))
+              name (workflow-value (second producer) github {} {})
+              _ (when producer
+                  (cp/execFileSync "bash" #js ["-e" "-c" (nth producer 2)]
+                                   #js {:env #js {:ASSESSMENT_ARTIFACT_NAME name :GITHUB_OUTPUT file}}))
+              emitted (if (fs/existsSync file)
+                        (second (re-find #"(?m)^name=(.*)$" (fs/readFileSync file "utf8"))) "")
+              steps {:assessment-artifact {:outputs {:name emitted}}}
+              uploaded (workflow-value upload github {} steps)
+              produced-output (workflow-value output github {} steps)
+              needs {:scoped-assessment-read {:result "success" :outputs {:artifact-name produced-output}}}
+              consumer {:run_id 12345 :run_attempt consumer-attempt}]
+          (is (= (str "scoped-assessment-12345-" producer-attempt) emitted))
+          (is (= emitted uploaded produced-output))
+          (is (= uploaded (workflow-value download consumer needs {})))
+          (when requirement
+            (is (not (refuses? #(cp/execFileSync "bash" #js ["-e" "-c" (nth requirement 2)]
+                                               #js {:env #js {:ASSESSMENT_ARTIFACT_NAME
+                                                             (workflow-value (second requirement) consumer needs {})}})))))))
+      (let [github {:run_id 12345 :run_attempt 2}
+            missing {:scoped-assessment-read {:result "success" :outputs {}}}]
+        (is (= "" (workflow-value download github missing {})))
+        (when requirement
+          (is (refuses? #(cp/execFileSync "bash" #js ["-e" "-c" (nth requirement 2)]
+                                        #js {:env #js {:ASSESSMENT_ARTIFACT_NAME
+                                                      (workflow-value (second requirement) github missing {})}})))))
+      (finally (fs/rmSync directory #js {:recursive true :force true})))))
 
 (deftest only-eligible-assessment-jobs-own-concurrency
   (let [workflow (fs/readFileSync ".github/workflows/opencode-issue-agent.yml" "utf8")

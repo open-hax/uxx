@@ -164,7 +164,8 @@
   (cp/execFileSync "git" #js ["fetch" "--no-tags" "origin" base head]
                    #js {:stdio #js ["ignore" "pipe" "pipe"] :timeout 120000})
   (let [runner (runtime!) result (.diffCoverage runner base head)
-        diff (utf8 (cp/execFileSync "git" (clj->js ["diff" (str base "..." head)]) #js {:maxBuffer (* 2 1024 1024)}))]
+        diff (utf8 (cp/execFileSync "git" (clj->js ["diff" "--no-ext-diff" "--no-textconv" "--text" "--no-renames"
+                                                  (str base "..." head)]) #js {:maxBuffer (* 2 1024 1024)}))]
     (.assertReviewablePaths runner (.-coveredFiles result))
     (ensure! (= diff (.-diff result)) "Lossy Git diff decoding")
     (ensure! (<= (.-length (js/Buffer.from diff "utf8")) (* 1024 1024)) "Full diff exceeds scoped prompt budget")
