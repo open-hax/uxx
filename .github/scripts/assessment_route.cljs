@@ -240,13 +240,15 @@
                   "OPENCODE_SERVER_PASSWORD" (.toString (crypto/randomBytes 32) "hex")
                   "OPENCODE_DISABLE_PROJECT_CONFIG" "true"
                   "OPENCODE_CONFIG_CONTENT" (js/JSON.stringify (.reviewConfig (runtime!)))}))))
+(defn opencode-version! []
+  (str/trim (cp/execFileSync "opencode" #js ["--version"]
+                             #js {:encoding "utf8" :timeout 5000 :stdio #js ["ignore" "pipe" "ignore"]})))
 (defn model! [snapshot]
   (let [runner (runtime!) root (fs/mkdtempSync (str (os/tmpdir) "/uxx-assessment-"))
         workspace (str root "/workspace") home (str root "/home") coverage (:coverage snapshot)]
     (fs/mkdirSync workspace) (fs/mkdirSync home)
     (try
-      (.assertRuntimeVersion runner (str/trim (cp/execFileSync "opencode" #js ["--version"]
-                                                             #js {:encoding "utf8" :timeout 5000 :stdio #js ["ignore" "pipe" "ignore"]})))
+      (.assertRuntimeVersion runner (opencode-version!))
       (.sourceSnapshot runner (:head selection) workspace (:base snapshot))
       (-> (.executeStructured runner (prompt snapshot) (model-env home) workspace
                               (:head selection) #js {:diffSha256 (:diff-sha256 coverage) :coveredFiles (clj->js (:files coverage))})

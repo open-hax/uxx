@@ -1,6 +1,6 @@
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 (ns assessment-route-test
-  (:require [cljs.test :as test :refer [deftest is run-tests]]
+  (:require [cljs.test :as test :refer [deftest is run-tests async]]
             [clojure.string :as str]
             [pr-flow.actionability :as a]
             [assessment-route :as r]
@@ -415,6 +415,39 @@
     (is (refuses? #(.parseStructured runner #js {:info #js {:role "assistant" :providerID "kimi-code-plan-global"
                                                           :modelID "kimi-for-coding" :structured value} :parts #js []}
                                     (:head r/selection) #js {:diffSha256 (:diff-sha256 coverage) :coveredFiles (clj->js (:files coverage))})))))
+
+(deftest actual-model-caller-excludes-publisher-credentials
+  (async done
+    (let [settings {"KIMI_API_KEY" "synthetic-fixture-only" "GH_TOKEN" "synthetic-must-not-pass"
+                    "GITHUB_TOKEN" "synthetic-must-not-pass" "ACTIONS_ID_TOKEN_REQUEST_TOKEN" "synthetic-must-not-pass"
+                    "ACTIONS_ID_TOKEN_REQUEST_URL" "synthetic-must-not-pass"}
+          previous (into {} (for [[k _] settings] [k (aget js/process.env k)]))
+          seen (atom nil) refusal (js/Error. "fixture stops before model execution")
+          runner #js {:reviewConfig (fn [] #js {})
+                      :assertRuntimeVersion (fn [version] (is (= "fixture-version" version)))
+                      :sourceSnapshot (fn [& _])
+                      :executeStructured (fn [_ env workspace head _]
+                                           (reset! seen {:env env :workspace workspace :head head})
+                                           (js/Promise.reject refusal))}
+          restore! #(doseq [[k v] previous]
+                      (if (nil? v) (js-delete js/process.env k) (aset js/process.env k v)))]
+      (doseq [[k v] settings] (aset js/process.env k v))
+      (try
+        (let [result (with-redefs [r/runtime! (constantly runner)
+                                  r/opencode-version! (constantly "fixture-version")]
+                       (r/model! {:coverage coverage :base (apply str (repeat 40 "b"))}))]
+          (-> result
+              (.then (fn [_] (is false "Fixture must stop before model output")))
+              (.catch (fn [error]
+                        (is (identical? refusal error))
+                        (is (= (:head r/selection) (:head @seen)))
+                        (is (= "synthetic-fixture-only" (aget (:env @seen) "KIMI_API_KEY")))
+                        (doseq [key ["GH_TOKEN" "GITHUB_TOKEN" "ACTIONS_ID_TOKEN_REQUEST_TOKEN" "ACTIONS_ID_TOKEN_REQUEST_URL"]]
+                          (is (nil? (aget (:env @seen) key))))
+                        (is (not (fs/existsSync (path/dirname (:workspace @seen)))))))
+              (.finally (fn [] (restore!) (done)))))
+        (catch :default error
+          (restore!) (is false (ex-message error)) (done))))))
 
 (deftest model-child-consumes-only-allowed-real-node-environment
   (let [settings {"PATH" "/synthetic/fixture/bin" "LANG" "C.fixture" "TMPDIR" "/synthetic/fixture/tmp"
