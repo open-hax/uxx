@@ -294,7 +294,8 @@
           (.finally #(fs/rmSync root #js {:recursive true :force true})))
       (catch :default e (fs/rmSync root #js {:recursive true :force true}) (throw e)))))
 (defn final-check! [original current result]
-  (ensure! (= (:identity original) (:identity current)) "Native/Git input changed after model execution")
+  (ensure! (and (= (:identity original) (:identity current))
+                (= (:coverage original) (:coverage current))) "Native/Git input changed after model execution")
   (ensure! (and (= (sha (pr-str original)) (:input-sha256 result)) (= runtime-hash (:runner-sha256 result))) "Result provenance changed")
   (submission! current (:review result)))
 (defn publish!
@@ -348,8 +349,9 @@
         current! #(live! gh-api! event policy coverage!)]
     (case mode
       "intake" (fs/writeFileSync input-file (serialize-bounded (current!)) #js {:mode 384})
-      "model" (let [input (edn/read-string (read-bounded input-file))]
-                (ensure! (= (:identity input) (:identity (current!))) "Input changed before model")
+      "model" (let [input (edn/read-string (read-bounded input-file)) current (current!)]
+                (ensure! (and (= (:identity input) (:identity current))
+                              (= (:coverage input) (:coverage current))) "Input changed before model")
                 (-> (model! input)
                     (.then #(fs/writeFileSync result-file (pr-str {:input-sha256 (sha (pr-str input))
                                                                   :runner-sha256 runtime-hash :review %}) #js {:mode 384}))))

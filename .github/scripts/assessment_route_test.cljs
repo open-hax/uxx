@@ -1009,6 +1009,81 @@
               (is (= (:expected-sha256 out) (get-in out [:readback :sha256]))))
           (is (some? (:error out))))))))
 
+(deftest full-coverage-refuses-raw-diff-mutation-with-unchanged-identity
+  (let [mutated (update-in snapshot [:coverage :diff] str "\nmutated artifact bytes")]
+    (is (= (:identity snapshot) (:identity mutated)))
+    (is (= (select-keys (:coverage snapshot) [:diff-sha256 :files])
+           (select-keys (:coverage mutated) [:diff-sha256 :files])))
+    (is (not= (:coverage snapshot) (:coverage mutated)))
+    (doseq [[original current] [[mutated snapshot] [snapshot mutated]]]
+      ;; Recompute the frozen result hash so its self-consistency check cannot
+      ;; hide the missing comparison against freshly collected complete bytes.
+      (let [frozen (assoc (result (review "informational"))
+                          :input-sha256 (r/sha (pr-str original)))
+            posts (atom 0)
+            final-refused (refuses? #(r/final-check! original current frozen))
+            publish-refused (refuses? #(r/publish! (fn [& _] (swap! posts inc))
+                                                  original frozen (constantly current)))]
+        (is (= (:input-sha256 frozen) (r/sha (pr-str original))))
+        (is final-refused)
+        (is publish-refused)
+        (is (zero? @posts))
+        (println "[full-coverage-final]" (pr-str {:final-refused final-refused
+                  :publish-refused publish-refused :posts @posts
+                  :identity-unchanged (= (:identity original) (:identity current))}))))))
+
+(deftest actual-main-refuses-mutated-input-before-model-mint-and-post
+  (let [fixture (scoped-fixture head)
+        original (r/validate-intake! fixture)
+        mutated (update-in original [:coverage :diff] str "\nmutated frozen UTF8 diff")
+        frozen {:input-sha256 (r/sha (pr-str mutated)) :runner-sha256 r/runtime-hash
+                :review (scoped-review original)}
+        workflow (fs/readFileSync ".github/workflows/opencode-issue-agent.yml" "utf8")
+        publisher (second (re-find #"(?s)\n  scoped-assessment-publish:(.*?)(?:\n  [a-z][a-z0-9-]*:|$)" workflow))]
+    (is (= (:identity original) (:identity mutated)))
+    (is (= (:input-sha256 frozen) (r/sha (pr-str mutated))))
+    (is (not= (:input-sha256 frozen) (r/sha (pr-str original))))
+    (is (true? (publisher-check-before-mint? publisher)))
+    (doseq [mode ["model" "check" "publish"]]
+      (let [directory (fs/mkdtempSync (path/join (os/tmpdir) "uxx-coverage-binding-"))
+            input-file (path/join directory "input.edn") event-file (path/join directory "event.json")
+            result-file (path/join directory "result.edn") readback-file (path/join directory "readback.edn")
+            settings {"ASSESSMENT_COMMAND" mode "ASSESSMENT_POLICY" "fixture-policy"
+                      "GITHUB_EVENT_PATH" event-file "ASSESSMENT_INPUT" input-file
+                      "ASSESSMENT_RESULT" result-file "ASSESSMENT_READBACK" readback-file}
+            previous (into {} (for [[k _] settings] [k (aget js/process.env k)]))
+            state (atom fixture) calls (atom []) posts (atom 0) models (atom 0) mint-sentinel (atom 0)]
+        (try
+          (fs/writeFileSync input-file (pr-str mutated))
+          (fs/writeFileSync event-file (js/JSON.stringify (clj->js (:event fixture))))
+          (fs/writeFileSync result-file (pr-str frozen))
+          (doseq [[k v] settings] (aset js/process.env k v))
+          (let [error (try
+                        (with-redefs [r/policy! (fn [_] policy)
+                                      r/gh-api! (scoped-api state calls posts identity)
+                                      r/coverage! (fn [& _] (:coverage fixture))
+                                      r/model! (fn [& _] (swap! models inc)
+                                                 (throw (js/Error. "Model spy must remain unreachable")))]
+                          (r/main!)
+                          ;; The real workflow runs check before App mint. This
+                          ;; sentinel records reachability, never invokes App.
+                          (when (= mode "check") (swap! mint-sentinel inc)))
+                        nil (catch :default e (ex-message e)))]
+            (is (= (if (= mode "model") "Input changed before model"
+                       "Native/Git input changed after model execution") error))
+            (is (zero? @models)) (is (zero? @posts)) (is (zero? @mint-sentinel))
+            (is (false? (fs/existsSync readback-file)))
+            (is (= (pr-str mutated) (fs/readFileSync input-file "utf8")))
+            (is (= (pr-str frozen) (fs/readFileSync result-file "utf8")))
+            (is (= 1 (count (filter #(= ["GET" "repos/open-hax/uxx/pulls/14"] %) @calls))))
+            (println "[full-coverage-main]" (pr-str {:mode mode :error error :models @models
+                      :posts @posts :downstream-mint-sentinel @mint-sentinel
+                      :readback-artifact (fs/existsSync readback-file)})))
+          (finally
+            (doseq [[k v] previous]
+              (if v (aset js/process.env k v) (js-delete js/process.env k)))
+            (fs/rmSync directory #js {:recursive true :force true})))))))
+
 (defmethod test/report [:cljs.test/default :end-run-tests] [summary]
   (when (pos? (+ (:fail summary) (:error summary))) (set! (.-exitCode js/process) 1)))
 (run-tests)
