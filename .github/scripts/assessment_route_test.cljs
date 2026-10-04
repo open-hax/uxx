@@ -245,35 +245,56 @@
                                                       (workflow-value (second requirement) github missing {})}})))))
       (finally (fs/rmSync directory #js {:recursive true :force true})))))
 
-(deftest only-eligible-assessment-jobs-own-concurrency
+(defn workflow-concurrency [github]
+  ;; Execute the configured group expression, not GitHub's scheduling behavior.
   (let [workflow (fs/readFileSync ".github/workflows/opencode-issue-agent.yml" "utf8")
-        job-text (fn [job]
-                   (or (second (re-find
-                                (re-pattern (str "(?s)\n  " job ":(.*?)(?=\n  [a-z][a-z0-9-]*:|$)"))
-                                workflow)) ""))
-        github {:event_name "issue_comment" :event event}]
-    ;; A skipped issue_comment must not reserve a workflow-wide group.
-    (is (not (re-find #"(?m)^concurrency:" workflow)))
-    (doseq [job ["scoped-assessment-read" "scoped-assessment-publish"]]
-      (let [concurrency (second (re-find #"(?m)^    concurrency:\n((?:      [^\n]*\n)+)" (job-text job)))]
-        (is (= "opencode-kimi-assessment-14"
-               (second (re-find #"(?m)^      group: ([^\n]+)$" (or concurrency "")))))
-        (is (= "false"
-               (second (re-find #"(?m)^      cancel-in-progress: ([^\n]+)$" (or concurrency "")))))))
-    (doseq [job ["issue-triage" "scoped-assessment-contract" "daily-issue-sweep"]]
-      (is (not (str/includes? (job-text job) "    concurrency:"))))
+        expression (second (re-find #"(?m)^  group: \$\{\{ (.*?) \}\}$" workflow))
+        evaluate (js/Function. "github" "startsWith" "format"
+                              (str "return (" (or expression "null") ");"))]
+    (evaluate (clj->js github)
+              (fn [value prefix] (str/starts-with? value prefix))
+              (fn [template value] (str/replace template "{0}" (str value))))))
+
+(deftest eligible-workflow-holds-reader-and-publisher-together
+  (let [workflow (fs/readFileSync ".github/workflows/opencode-issue-agent.yml" "utf8")
+        reader-guard (second (re-find #"(?s)\n  scoped-assessment-read:.*?    if: \$\{\{ (.*?) \}\}" workflow))
+        group-guard (second (re-find #"(?m)^  group: \$\{\{ \((.*?)\) && 'opencode-kimi-assessment-14' \|\| format\('opencode-kimi-assessment-14-ineligible-\{0\}', github.run_id\) \}\}$" workflow))
+        github {:event_name "issue_comment" :event event :run_id "101"}]
+    ;; One root lock spans the read job and its separate App publisher.
+    (is (= 1 (count (re-seq #"(?m)^concurrency:$" workflow))))
+    (is (= reader-guard group-guard))
+    (is (not (re-find #"(?m)^    concurrency:" workflow)))
+    (is (= 1 (count (re-seq #"(?m)^  cancel-in-progress: false$" workflow))))
+    (is (not (re-find #"(?m)^\s*queue:" workflow)))
+    (is (boolean (re-find #"(?s)\n  scoped-assessment-publish:.*?    needs: scoped-assessment-read\n" workflow)))
+    (is (= "opencode-kimi-assessment-14" (workflow-concurrency github)))
+    (is (= "opencode-kimi-assessment-14" (workflow-concurrency (assoc github :run_id "102"))))
     (is (true? (workflow-guard "scoped-assessment-read" github {})))
     (is (true? (workflow-guard "scoped-assessment-publish" github {:scoped-assessment-read {:result "success"}})))
-    ;; Execute the actual if expressions. This does not emulate GitHub's queue.
+    ;; Ineligible events cannot replace an eligible pending workflow. This
+    ;; verifies configuration; it claims neither backlog retention nor order.
     (doseq [excluded [(assoc github :event_name "pull_request")
                       (assoc github :event_name "workflow_dispatch")
+                      (assoc github :event_name "schedule")
+                      (assoc github :event_name "issues")
                       (assoc-in github [:event :action] "edited")
+                      (assoc-in github [:event :action] "deleted")
                       (assoc-in github [:event :issue :number] 15)
                       (assoc-in github [:event :issue :pull_request] nil)
                       (assoc-in github [:event :comment :user :type] "Bot")
-                      (assoc-in github [:event :comment :body] "ordinary discussion")]]
+                      (assoc-in github [:event :comment :body] "ordinary discussion")
+                      (assoc-in github [:event :comment :body] "/opencode assess-actionability")
+                      (assoc-in github [:event :comment :body] " /opencode assess-actionability old")]]
       (is (false? (workflow-guard "scoped-assessment-read" excluded {})))
-      (is (false? (workflow-guard "scoped-assessment-publish" excluded {:scoped-assessment-read {:result "skipped"}}))))))
+      (is (false? (workflow-guard "scoped-assessment-publish" excluded {:scoped-assessment-read {:result "skipped"}})))
+      (is (= "opencode-kimi-assessment-14-ineligible-101" (workflow-concurrency excluded)))
+      (is (= "opencode-kimi-assessment-14-ineligible-102"
+             (workflow-concurrency (assoc excluded :run_id "102")))))
+    ;; Dispatch and PR event shapes lack comment fields; short-circuiting keeps
+    ;; them in unique groups without attempting the command-prefix read.
+    (doseq [other [{:event_name "workflow_dispatch" :event {} :run_id "103"}
+                  {:event_name "pull_request" :event {:action "opened"} :run_id "103"}]]
+      (is (= "opencode-kimi-assessment-14-ineligible-103" (workflow-concurrency other))))))
 
 (deftest hosted-route-is-enabled
   ;; RED runs against the actual existing workflow, before a transport exists.

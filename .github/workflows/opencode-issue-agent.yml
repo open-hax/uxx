@@ -12,6 +12,14 @@ on:
       - '.github/assessment-tools/**'
       - '.github/workflows/eta-mu-review.yml'
 
+# Hold each eligible reader and its separate publisher in one workflow group.
+# Ineligible runs use unique groups. Only one pending eligible workflow is
+# retained; a newer eligible trigger can replace it before model execution.
+# This does not guarantee backlog retention or execution order.
+concurrency:
+  group: ${{ (github.event_name == 'issue_comment' && github.event.action == 'created' && github.event.issue.number == 14 && github.event.issue.pull_request != null && github.event.comment.user.type == 'User' && startsWith(github.event.comment.body, '/opencode assess-actionability ')) && 'opencode-kimi-assessment-14' || format('opencode-kimi-assessment-14-ineligible-{0}', github.run_id) }}
+  cancel-in-progress: false
+
 jobs:
   issue-triage:
     name: Triage issue with OpenCode
@@ -116,9 +124,6 @@ jobs:
   scoped-assessment-read:
     name: Independent bounded Uxx14 assessment
     if: ${{ github.event_name == 'issue_comment' && github.event.action == 'created' && github.event.issue.number == 14 && github.event.issue.pull_request != null && github.event.comment.user.type == 'User' && startsWith(github.event.comment.body, '/opencode assess-actionability ') }}
-    concurrency:
-      group: opencode-kimi-assessment-14
-      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 30
     outputs:
@@ -203,9 +208,6 @@ jobs:
     name: Fresh OpenCode App scoped publisher
     needs: scoped-assessment-read
     if: ${{ github.event_name == 'issue_comment' && needs.scoped-assessment-read.result == 'success' }}
-    concurrency:
-      group: opencode-kimi-assessment-14
-      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
