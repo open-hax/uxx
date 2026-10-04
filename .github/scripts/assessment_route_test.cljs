@@ -1,6 +1,7 @@
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 (ns assessment-route-test
   (:require [cljs.test :as test :refer [deftest is run-tests async]]
+            [clojure.edn :as edn]
             [clojure.string :as str]
             [pr-flow.actionability :as a]
             [assessment-route :as r]
@@ -878,6 +879,135 @@
                       (is (= main-sha (:source-base @seen)))
                       (is (str/includes? (:prompt @seen) (str "Head: " successor)))))
           (.finally done)))))
+
+(defn budget-context [fixture padding]
+  (let [native (update-in (:context fixture) [:thread :comments :nodes 0 :body] str padding)
+        target (r/target native [] policy)
+        proposal (r/native-comment (fixture-comment 7101
+                    (str "Actionability proposal v1 for " head ":\n" (pr-str (a/context-binding target)))
+                    "2026-10-04T12:00:00Z" user) true)]
+    (assoc fixture :context native :comments [proposal (r/native-comment (:trigger fixture) true)])))
+
+(defn intake-budget-observation [fixture]
+  ;; Keep actual main!, live collector, EDN serialization and filesystem. Only
+  ;; native API/policy/Git reads are synthetic; model and publisher never run.
+  (let [directory (fs/mkdtempSync (path/join (os/tmpdir) "uxx-input-budget-"))
+        event-file (path/join directory "event.json") input-file (path/join directory "input.edn")
+        result-file (path/join directory "result.edn") readback-file (path/join directory "readback.edn")
+        settings {"ASSESSMENT_COMMAND" "intake" "ASSESSMENT_POLICY" "fixture-policy"
+                  "GITHUB_EVENT_PATH" event-file "ASSESSMENT_INPUT" input-file
+                  "ASSESSMENT_RESULT" result-file "ASSESSMENT_READBACK" readback-file}
+        previous (into {} (for [[k _] settings] [k (aget js/process.env k)]))
+        state (atom fixture) calls (atom []) posts (atom 0) models (atom 0) publishers (atom 0)
+        expected (r/validate-intake! fixture) serialized (pr-str expected)]
+    (try
+      (fs/writeFileSync event-file (js/JSON.stringify (clj->js (:event fixture))))
+      (doseq [[k v] settings] (aset js/process.env k v))
+      (let [error (try
+                    (with-redefs [r/policy! (fn [_] policy)
+                                  r/gh-api! (scoped-api state calls posts identity)
+                                  r/coverage! (fn [& _] (:coverage fixture))
+                                  r/model! (fn [& _] (swap! models inc) (throw (js/Error. "No fixture model")))
+                                  r/publish! (fn [& _] (swap! publishers inc) (throw (js/Error. "No fixture App")))]
+                      (r/main!))
+                    nil (catch :default e (ex-message e)))
+            exists (fs/existsSync input-file)
+            readback (when exists
+                       (try
+                         (let [text (r/read-bounded input-file) value (edn/read-string text)]
+                           {:sha256 (r/sha text) :coverage-sha256 (get-in value [:coverage :diff-sha256])
+                            :diff-sha256 (r/sha (get-in value [:coverage :diff]))
+                            :identity-coverage (get-in value [:identity 5])})
+                         (catch :default e {:error (ex-message e)})))
+            observation {:error error :artifact exists :readback readback
+                         :serialized-bytes (.-length (js/Buffer.from serialized "utf8"))
+                         :serialized-UTF16-units (.-length serialized) :expected-sha256 (r/sha serialized)
+                         :artifact-bytes (when exists (.-size (fs/statSync input-file)))
+                         :result-artifact (fs/existsSync result-file) :readback-artifact (fs/existsSync readback-file)
+                         :models @models :publishers @publishers :posts @posts}]
+        (println "[serialized-intake-budget]"
+                 (pr-str (dissoc observation :readback :expected-sha256)))
+        observation)
+      (finally
+        (doseq [[k v] previous]
+          (if v (aset js/process.env k v) (js-delete js/process.env k)))
+        (fs/rmSync directory #js {:recursive true :force true})))))
+
+(deftest coverage-identity-is-compact-with-authoritative-digest-and-files
+  (let [original (r/validate-intake! intake)
+        compact (select-keys coverage [:diff-sha256 :files])
+        diff "different complete fixture diff"
+        changed (r/validate-intake! (assoc intake :coverage
+                                         (assoc coverage :diff diff :diff-sha256 (r/sha diff))))
+        files (r/validate-intake! (assoc-in intake [:coverage :files] [".github/scripts/assessment_route.cljs"]))]
+    (is (= compact (get-in original [:identity 5])))
+    (is (= coverage (:coverage original)))
+    (is (str/includes? (r/prompt original) (:diff coverage)))
+    (is (not= (:identity original) (:identity changed)))
+    (is (not= (:identity original) (:identity files)))
+    (is (refuses? #(r/final-check! original changed (result (review "informational")))))
+    (is (refuses? #(r/final-check! original files (result (review "informational")))))
+    ;; Full frozen input hash remains sensitive to all bytes, beyond identity.
+    (is (not= (r/sha (pr-str original)) (r/sha (pr-str (assoc-in original [:coverage :diff] diff)))))))
+
+(deftest real-intake-handoff-admits-readable-near-budget-and-refuses-serialized-overhead
+  (let [mib (* 1024 1024) transport (* 2 mib)
+        fixture (fn [diff padding]
+                  (budget-context (assoc (scoped-fixture head) :coverage
+                                         {:diff diff :diff-sha256 (r/sha diff) :files (:files coverage)}) padding))
+        cases [["near1MiB ASCII" (fixture (.repeat "x" mib) "") true]
+               ["near1MiB multibyte" (fixture (.repeat "世" (quot mib 3)) "") true]
+               ["EDN escaping overhead" (fixture (.repeat "\"" mib) "") false]
+               ["multibyte context overhead" (fixture (.repeat "世" 300000) (.repeat "世" 500000)) false]
+               ["ASCII context overlimit" (fixture "small diff" (.repeat "x" transport)) false]]]
+    (doseq [[label input admitted?] cases]
+      (let [out (intake-budget-observation input)]
+        (is (<= (.-length (js/Buffer.from (get-in input [:coverage :diff]) "utf8")) mib) label)
+        (is (= admitted? (:artifact out)) label)
+        (is (zero? (:models out))) (is (zero? (:publishers out))) (is (zero? (:posts out)))
+        (is (false? (:result-artifact out))) (is (false? (:readback-artifact out)))
+        (if admitted?
+          (do
+            (is (nil? (:error out)) label)
+            (is (nil? (get-in out [:readback :error])) label)
+            (is (<= (:serialized-bytes out) transport) label)
+            (is (= (:serialized-bytes out) (:artifact-bytes out)) label)
+            (is (= (:expected-sha256 out) (get-in out [:readback :sha256])) label)
+            (is (= (get-in input [:coverage :diff-sha256])
+                   (get-in out [:readback :coverage-sha256]) (get-in out [:readback :diff-sha256])) label))
+          (do
+            (is (some? (:error out)) label)
+            (is (> (:serialized-bytes out) transport) label)
+            (is (nil? (:artifact-bytes out)) label)))
+        (when (= "multibyte context overhead" label)
+          (is (< (:serialized-UTF16-units out) transport)
+              "UTF16 length would admit an unreadable UTF8-byte payload"))))))
+
+(deftest actual-intake-write-and-read-share-inclusive-UTF8-byte-boundary
+  (let [limit (* 2 1024 1024)
+        extend-diff (fn [fixture]
+                      (let [diff (str (get-in fixture [:coverage :diff]) "x")]
+                        (assoc fixture :coverage (assoc (:coverage fixture) :diff diff :diff-sha256 (r/sha diff)))))
+        initial (budget-context (scoped-fixture head) "")
+        initial-size (.-length (js/Buffer.from (pr-str (r/validate-intake! initial)) "utf8"))
+        fixture (if (odd? initial-size) (extend-diff initial) initial)
+        size (.-length (js/Buffer.from (pr-str (r/validate-intake! fixture)) "utf8"))
+        step (- (.-length (js/Buffer.from (pr-str (r/validate-intake! (budget-context fixture "x"))) "utf8")) size)
+        padding (quot (- limit size) step)]
+    ;; Derive context repetition from actual serialization, retaining all fields.
+    (is (even? size)) (is (= 2 step))
+    (is (pos? padding))
+    (doseq [extra [0 1]]
+      (let [input (budget-context (if (zero? extra) fixture (extend-diff fixture)) (.repeat "x" padding))
+            out (intake-budget-observation input)]
+        (is (= (+ limit extra) (:serialized-bytes out)))
+        (is (= (zero? extra) (:artifact out)))
+        (is (zero? (:models out))) (is (zero? (:publishers out))) (is (zero? (:posts out)))
+        (if (zero? extra)
+          (do (is (nil? (:error out)))
+              (is (nil? (get-in out [:readback :error])))
+              (is (= (:expected-sha256 out) (get-in out [:readback :sha256]))))
+          (is (some? (:error out))))))))
 
 (defmethod test/report [:cljs.test/default :end-run-tests] [summary]
   (when (pos? (+ (:fail summary) (:error summary))) (set! (.-exitCode js/process) 1)))
