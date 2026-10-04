@@ -35,3 +35,7 @@ Native startup tests using plain JS fixtures did not exercise process.env. A reg
 2026-10-04T17:01:39.950Z — Actual caller environment regression; p-efficiency0.89, p-friction0.26, p-skill-candidate0.20; no spore/promotion.
 
 Security boundary tests must reach the actual caller. Helper-only filtering tests can miss a caller that passes the full host environment. Capture exactly the child arguments, reject before provider execution, assert direct native fields with benign values, and verify actual cleanup. Meaningful model! caller mutantRED24/258/4fail and filteredGREEN24/258/0fail; nativebody5407234082 remains actualreview evidence, not a model invocation by this test.
+
+2026-10-04T18:20:48.450Z — Scoped assessment concurrency; p-efficiency0.93, p-friction0.12, p-skill-candidate0.18; no spore/promotion.
+
+Native Proxx452 CR4178717727/review5407441214 also exposes Uxx's workflow-level concurrency defect: a skipped/unrelated comment run can compete with an eligible pending assessment. Move the same group onto the existing guarded read/publish jobs. Execute actual if expressions in regression tests and preserve every native/App/input/pin boundary; do not emulate GitHub scheduling or promise ordering/capacity. Meaningful actual-workflow RED25/282/5fail and corrected GREEN25/282/0fail on Node22.20.0/NBB1.3.204; actionlint and selected kondo clean. Source only, unstaged, no provider/model/native effects or Uxx14 assessment credit; parent owns publication and source qualification before retry.

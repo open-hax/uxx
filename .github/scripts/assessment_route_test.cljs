@@ -122,6 +122,36 @@
         fnc (js/Function. "github" "needs" "startsWith" (str "return (" js-expression ");"))]
     (fnc (clj->js github) (clj->js needs) (fn [value prefix] (str/starts-with? value prefix)))))
 
+(deftest only-eligible-assessment-jobs-own-concurrency
+  (let [workflow (fs/readFileSync ".github/workflows/opencode-issue-agent.yml" "utf8")
+        job-text (fn [job]
+                   (or (second (re-find
+                                (re-pattern (str "(?s)\n  " job ":(.*?)(?=\n  [a-z][a-z0-9-]*:|$)"))
+                                workflow)) ""))
+        github {:event_name "issue_comment" :event event}]
+    ;; A skipped issue_comment must not reserve a workflow-wide group.
+    (is (not (re-find #"(?m)^concurrency:" workflow)))
+    (doseq [job ["scoped-assessment-read" "scoped-assessment-publish"]]
+      (let [concurrency (second (re-find #"(?m)^    concurrency:\n((?:      [^\n]*\n)+)" (job-text job)))]
+        (is (= "opencode-kimi-assessment-14"
+               (second (re-find #"(?m)^      group: ([^\n]+)$" (or concurrency "")))))
+        (is (= "false"
+               (second (re-find #"(?m)^      cancel-in-progress: ([^\n]+)$" (or concurrency "")))))))
+    (doseq [job ["issue-triage" "scoped-assessment-contract" "daily-issue-sweep"]]
+      (is (not (str/includes? (job-text job) "    concurrency:"))))
+    (is (true? (workflow-guard "scoped-assessment-read" github {})))
+    (is (true? (workflow-guard "scoped-assessment-publish" github {:scoped-assessment-read {:result "success"}})))
+    ;; Execute the actual if expressions. This does not emulate GitHub's queue.
+    (doseq [excluded [(assoc github :event_name "pull_request")
+                      (assoc github :event_name "workflow_dispatch")
+                      (assoc-in github [:event :action] "edited")
+                      (assoc-in github [:event :issue :number] 15)
+                      (assoc-in github [:event :issue :pull_request] nil)
+                      (assoc-in github [:event :comment :user :type] "Bot")
+                      (assoc-in github [:event :comment :body] "ordinary discussion")]]
+      (is (false? (workflow-guard "scoped-assessment-read" excluded {})))
+      (is (false? (workflow-guard "scoped-assessment-publish" excluded {:scoped-assessment-read {:result "skipped"}}))))))
+
 (deftest hosted-route-is-enabled
   ;; RED runs against the actual existing workflow, before a transport exists.
   (let [workflow (fs/readFileSync ".github/workflows/opencode-issue-agent.yml" "utf8")]
