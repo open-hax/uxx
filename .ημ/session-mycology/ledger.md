@@ -181,3 +181,10 @@ Append correction to typed event5cd2f054-b83f-48b4-b3d0-9488c69b8077: CLJS integ
 - Actual protected source20 merge c526 was qualified before integration. New43 real Git/runner tests pass; identical predecessor tests expose four retained-object recovery failures and two tag-versus-exact-commit failures, while all25 inherited tests pass. Original head-only checkout premise remains false. GitHub unadvertised-object serving and any actual ref race remain unobserved.
 - Preserve the child's entire published ledger prefix and append only the new other-parent tail. A Git merge-base need not be the physical prefix after a prior union merge; verify reconstruction from the actual older shared prefix and imported tails. The initial overstrict assertion stopped before writes.
 - Fresh current-head full reviews, mandatory checks and genuine independent actionability classification remain required. p-efficiency=0.86; p-friction=0.25; p-skill-candidate=0.49. Existing discipline covers the lesson; no new spore or promotion.
+
+
+## 2026-10-05T10:29:09.588Z — Match publication permissions to actual API use
+
+- Full current CodeRabbit review found one unused Issues write grant. Remove the single permission line and keep the actual Pull Requests publication interface and every existing regression definition unchanged;43/43 and actionlint pass.
+- A complete generic Kimi transport proof remains distinct from admitted approving identity. Successor commits require fresh qualification even when the source fix removes only a permission.
+- p-efficiency=0.94; p-friction=0.08; p-skill-candidate=0.19. Existing least-privilege and exact-head discipline covers the change; no new spore or promotion.
