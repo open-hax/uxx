@@ -379,6 +379,17 @@
                                    :execution-control (:executionControl (:review result))})]
         (checkpoint! out) out)))))
 
+(defn failure-message
+  "Expose only the immutable runner's bounded native phase or exact deadline.
+   Provider/model prose, subprocess stderr and arbitrary exception text stay private."
+  [error]
+  (cond
+    (= "Kimi model execution exceeded the bounded 20-minute budget" (.-message error))
+    "Scoped assessment failed closed at the native model deadline; no qualification claimed"
+    (contains? #{"startup" "capability" "session" "events" "submit" "status" "messages" "validation"} (.-phase error))
+    (str "Scoped assessment failed closed at native model phase " (.-phase error) "; no qualification claimed")
+    :else "Scoped assessment failed closed; no qualification claimed"))
+
 (defn main! []
   (let [mode (aget js/process.env "ASSESSMENT_COMMAND")
         policy (policy! (aget js/process.env "ASSESSMENT_POLICY"))
@@ -407,5 +418,5 @@
 (when (aget js/process.env "ASSESSMENT_COMMAND")
   (try
     (-> (js/Promise.resolve (main!))
-        (.catch (fn [_] (println "Scoped assessment failed closed; no qualification claimed") (set! (.-exitCode js/process) 1))))
-    (catch :default _ (println "Scoped assessment failed closed; no qualification claimed") (set! (.-exitCode js/process) 1))))
+        (.catch (fn [error] (println (failure-message error)) (set! (.-exitCode js/process) 1))))
+    (catch :default error (println (failure-message error)) (set! (.-exitCode js/process) 1))))

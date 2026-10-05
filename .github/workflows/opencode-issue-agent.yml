@@ -168,6 +168,7 @@ jobs:
       - name: Verify transport contract before intake
         run: nbb -cp .github/scripts:.assessment-policy/skills/pr-flow/scripts .github/scripts/assessment_route_test.cljs
       - name: Capture complete current native and Git context
+        id: native-input
         env:
           GH_TOKEN: ${{ github.token }}
           ASSESSMENT_COMMAND: intake
@@ -201,6 +202,17 @@ jobs:
           path: |
             ${{ runner.temp }}/assessment-input.edn
             ${{ runner.temp }}/assessment-result.edn
+          if-no-files-found: error
+          retention-days: 14
+
+      # Public native context and a bounded immutable diff contain no model environment.
+      # A failed assessment is still failed; retained input supplies no publication credit.
+      - name: Retain admitted input after a failed model step
+        if: ${{ failure() && steps.native-input.outcome == 'success' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: scoped-assessment-failure-input-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/assessment-input.edn
           if-no-files-found: error
           retention-days: 14
 

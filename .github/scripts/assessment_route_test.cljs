@@ -1579,4 +1579,41 @@
 
 (defmethod test/report [:cljs.test/default :end-run-tests] [summary]
   (when (pos? (+ (:fail summary) (:error summary))) (set! (.-exitCode js/process) 1)))
+
+(deftest model-failure-reporter-retains-only-bounded-native-phase
+  (let [fallback "Scoped assessment failed closed; no qualification claimed"
+        report! (fn [error]
+                  (r/failure-message error))]
+    (doseq [phase ["startup" "capability" "session" "events" "submit" "status" "messages" "validation"]]
+      (let [error (js/Error. "SYNTHETIC_SECRET_MARKER raw provider response must not escape")]
+        (aset error "phase" phase)
+        (is (= (str "Scoped assessment failed closed at native model phase " phase "; no qualification claimed")
+               (report! error)))))
+    (doseq [phase [nil "SYNTHETIC_SECRET_MARKER" "validation\nSYNTHETIC_SECRET_MARKER" :validation 42 {}]]
+      (let [error (js/Error. "SYNTHETIC_SECRET_MARKER")]
+        (aset error "phase" phase)
+        (is (= fallback (report! error)))))
+    (let [error (js/Error. "Kimi model execution exceeded the bounded 20-minute budget")]
+      (aset error "phase" "messages")
+      (is (= "Scoped assessment failed closed at the native model deadline; no qualification claimed" (report! error))))
+    ;; The actual main Promise and synchronous refusal paths consume the same safe reporter.
+    (let [source (fs/readFileSync ".github/scripts/assessment_route.cljs" "utf8")]
+      (is (= 2 (count (re-seq #"\(println \(failure-message error\)\)" source)))))))
+
+
+(deftest failed-input-retention-condition-is-bounded-to-admitted-failures
+  (let [source (fs/readFileSync ".github/workflows/opencode-issue-agent.yml" "utf8")
+        block (second (re-find #"(?s)- name: Retain admitted input after a failed model step\n(.*?)\n  scoped-assessment-publish:" source))
+        expression (second (re-find #"if: \$\{\{ (.*?) \}\}" (or block "")))
+        evaluate (when expression (js/Function. "failure" "steps"
+                       (str "return (" (-> expression (str/replace "steps.native-input" "steps['native-input']")
+                                           (str/replace " == " " === ")) ");")))]
+    (is (some? evaluate))
+    (doseq [failed? [false true] outcome ["success" "failure" "skipped" "cancelled" nil]]
+      (is (= (and failed? (= "success" outcome))
+             (boolean (when evaluate (evaluate (fn [] failed?) #js {"native-input" #js {:outcome outcome}}))))))
+    (is (str/includes? (or block "") "path: ${{ runner.temp }}/assessment-input.edn"))
+    (is (str/includes? (or block "") "if-no-files-found: error"))
+    (is (not (str/includes? (or block "") "assessment-result.edn")))))
+
 (run-tests)
