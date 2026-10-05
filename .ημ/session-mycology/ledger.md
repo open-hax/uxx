@@ -87,3 +87,15 @@ Append correction to typed event5cd2f054-b83f-48b4-b3d0-9488c69b8077: CLJS integ
   p-skill-candidate: 0.4
   spore: none
   note: Parent local environment masked a new fixture setup gap; hosted job reproduced six admissions failing before policy loading. Bind and restore the actual policy path within the fixture and run the same workflow-style layout with that variable initially unset. Preserve the original source seal and failing native log. Production identity code remains unchanged.
+
+
+## 2026-10-05T02:35:51.271037Z — Select native comment ID before strict membership identity
+
+- Origin: historical MiMo5409357042 f2/current5409413857 c1 and independently verified b8 availability RED; immutable native49check and source assessment packets retained.
+- Lesson: strict selected identity validation follows exact comment-ID selection in inventory membership. Unrelated raw rows remain provenance and canonical latest-proposal/dedup input; a null-author ordinary record must not become selected identity authority. All six comment fields, safe actor tuple, source/freshness/fullcoverage/App/checkpoint boundaries remain strict.
+- Evidence: identical finaltests b8 RED51tests1432assertions9failures0errors, candidate GREEN51/1435/0/0; only two new availability tests fail on b8, all48 originaltests byteexact/pass. Delta3 is conditional input checks after successful restored intake. Environment initiallyunset, actual Node22.20.0/NBB1.3.204 hosteddefault source layout. Intake model/publisher/POST spies0; publication local seam1 simulatedPOST, actual model/App/native effects0. Kondo0warnings/errors, actionlint0, diffcheck0.
+- Receipt: 3ff89669-790d-46d4-910b-68d1d22a8a70, exact upstream45ec builders/law; new manifest/refs/tests/decisions vectors. Validate new record only, no full historical ledger validity assertion. Preserve88293receipt18565reflection/root/all11313unowned and sealed packets. Initial receipt-builder sourcepath setup refused before any append; diagnostic preserved, corrected to actual src/cljs paths.
+- Scores: p-efficiency=0.91, p-friction=0.37, p-skill-candidate=0.61. No spore/promotion/plugin effects; bounded membership discipline suffices.
+- Boundary: parent owns ordinary successor publication and fresh native qualification. Current b8 MiMo APPROVED/fullinput is historical after push; no approval/actionability transfer. No stage/commit/push/model/App/native write/request/rerun/settlement/merge/board effects by worker.
+
+- Append-only cardinality correction 33919c11-9b37-4954-9412-f1635ddb4ba0: exact b8 tree has11316 tracked entries, current4 owned paths leave11312 unowned. The earlier three-path fixture correction counted11313 including the adapter now explicitly owned; no tracked entry is omitted. Initial count assertion refused before freeze, diagnostic preserved, no runtime/source changes beyond the already authorized repair.

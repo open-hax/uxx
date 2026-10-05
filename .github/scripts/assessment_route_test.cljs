@@ -1518,6 +1518,65 @@
         (is (empty? (:coverage-calls observed)))
         (is (zero? (:models observed))) (is (zero? (:publishers observed))) (is (zero? (:posts observed)))))))
 
+(def unrelated-null-actor
+  (fixture-comment 9001001 "Unrelated ordinary comment; no protocol header."
+                   "2026-10-05T00:10:23Z" nil))
+
+(deftest unrelated-native-actor-does-not-bind-selected-intake
+  (let [fixture (captured-actor-fixture)]
+    (doseq [rows [(vec (cons unrelated-null-actor (:comments fixture)))
+                 (conj (:comments fixture) unrelated-null-actor)]]
+      (let [observed (captured-actor-intake-observation (assoc fixture :comments rows))]
+        (is (nil? (:failure observed))) (is (true? (:artifact observed)))
+        (is (= 1 (count (:coverage-calls observed))))
+        (is (zero? (:models observed))) (is (zero? (:publishers observed))) (is (zero? (:posts observed)))
+        (when-let [frozen (:frozen observed)]
+          (is (= (mapv :id rows) (mapv :id (get-in frozen [:target :issue-comments]))))
+          (is (nil? (get-in (first (filter #(= 9001001 (:id %)) (get-in frozen [:target :issue-comments]))) [:user])))
+          (is (= 5985894261 (:proposal-id (a/disposition (:target frozen))))))))))
+
+(deftest unrelated-native-actor-does-not-bind-publication-membership
+  ;; Actual publisher guard with synthetic existing native-seam API only.
+  ;; One simulated POST is expected; no actual App/native/provider execution.
+  (doseq [alter-rows [#(vec (cons unrelated-null-actor %))
+                     #(conj % unrelated-null-actor)
+                     #(vec (concat (take 2 %) [unrelated-null-actor] (drop 2 %)))]]
+    (let [{:keys [run calls]} (native-seam "informational" identity alter-rows)
+          out (try (run) (catch :default _ nil))]
+      (is (= 7004 (:native-id out)))
+      (is (= :complete (:publication-state out)))
+      (is (= :qualified (get-in out [:disposition :status])))
+      (is (= 1 (count (filter #(= ["POST" "repos/open-hax/uxx/issues/14/comments"] (subvec % 0 2)) @calls)))))))
+
+(deftest selected-membership-still-requires-complete-native-binding
+  (let [fixture (captured-actor-fixture)
+        bad-actors [nil (dissoc user :id) (assoc user :id (+ js/Number.MAX_SAFE_INTEGER 1))
+                    (dissoc user :node_id) (dissoc user :login) (assoc user :type "Organization")]]
+    (doseq [index [0 1] actor bad-actors]
+      (let [bad (-> fixture
+                    (assoc-in [:comments index :user] actor)
+                    (update :comments #(vec (cons unrelated-null-actor %))))
+            observed (captured-actor-intake-observation bad)]
+        (is (some? (:failure observed))) (is (false? (:artifact observed)))
+        (is (zero? (:models observed))) (is (zero? (:publishers observed))) (is (zero? (:posts observed))))))
+  ;; Both published readback and original trigger must still match by all tuple
+  ;; fields even when an unrelated null actor occurs before either selected row.
+  (doseq [selected-id [7002 7004]
+          mutation [#(assoc % :user nil)
+                    #(assoc-in % [:user :id] (+ js/Number.MAX_SAFE_INTEGER 1))
+                    #(update % :id inc) #(assoc % :node_id "IC_changed")
+                    #(update % :body str " changed") #(assoc % :created_at "2026-10-05T00:10:24Z")
+                    #(assoc % :updated_at "2026-10-05T00:10:24Z")
+                    #(assoc % :html_url "https://github.com/open-hax/uxx/pull/14#issuecomment-9001002")
+                    #(assoc-in % [:user :node_id] "NODE_changed")
+                    #(assoc-in % [:user :login] "other-writer")
+                    #(assoc-in % [:user :type] "Organization")]]
+    (let [alter-rows #(vec (cons unrelated-null-actor
+                                (map (fn [c] (if (= selected-id (:id c)) (mutation c) c)) %)))
+          {:keys [run calls]} (native-seam "informational" identity alter-rows)]
+      (is (refuses? run))
+      (is (= 1 (count (filter #(= ["POST" "repos/open-hax/uxx/issues/14/comments"] (subvec % 0 2)) @calls)))))))
+
 (defmethod test/report [:cljs.test/default :end-run-tests] [summary]
   (when (pos? (+ (:fail summary) (:error summary))) (set! (.-exitCode js/process) 1)))
 (run-tests)
