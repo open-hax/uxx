@@ -174,3 +174,10 @@ Append correction to typed event5cd2f054-b83f-48b4-b3d0-9488c69b8077: CLJS integ
 - Whole-job failure after admitted intake does not identify model failure. Explicit model outcome now excludes installation failure and failure after model success.
 - Same final55/1514 suite proves five old failures and candidate pass. Original test/history bytes and immutable publication boundaries stay inspectable.
 - Friction2/5: wrong local environment labels retained as harness diagnostic; use the actual runtime/policy names. Local tests do not establish hosted retention or recover the original hidden exception. No new spore or promotion.
+
+
+## 2026-10-05T09:48:55.579Z — Qualified diagnostics and exact captured-base recovery
+
+- Actual protected source20 merge c526 was qualified before integration. New43 real Git/runner tests pass; identical predecessor tests expose four retained-object recovery failures and two tag-versus-exact-commit failures, while all25 inherited tests pass. Original head-only checkout premise remains false. GitHub unadvertised-object serving and any actual ref race remain unobserved.
+- Preserve the child's entire published ledger prefix and append only the new other-parent tail. A Git merge-base need not be the physical prefix after a prior union merge; verify reconstruction from the actual older shared prefix and imported tails. The initial overstrict assertion stopped before writes.
+- Fresh current-head full reviews, mandatory checks and genuine independent actionability classification remain required. p-efficiency=0.86; p-friction=0.25; p-skill-candidate=0.49. Existing discipline covers the lesson; no new spore or promotion.

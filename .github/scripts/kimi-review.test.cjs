@@ -542,3 +542,107 @@ for (const seam of ['coverage', 'mkdir']) {
     }
   });
 }
+
+for (const preparation of ['Prepare immutable review runtime', 'Prepare immutable publisher runtime']) {
+  for (const scenario of ['advertised-behind-base', 'ordinary-fast-forward', 'retained-unadvertised-base',
+    'deleted-base-branch', 'pruned-base', 'malformed-base', 'blob-base', 'annotated-tag-base', 'runtime-not-base-ancestor']) {
+    test(`${preparation}: exact captured base ${scenario}`, t => {
+      const fs = require('node:fs'), os = require('node:os'), path = require('node:path');
+      const { execFileSync, spawnSync } = require('node:child_process');
+      const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'kimi-captured-base-'));
+      const origin = path.join(directory, 'origin.git'), client = path.join(directory, 'client');
+      const env = { PATH: `${path.dirname(process.execPath)}${path.delimiter}${process.env.PATH}`,
+        LANG: 'C.UTF-8', GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: '/dev/null', GIT_TERMINAL_PROMPT: '0',
+        GIT_AUTHOR_NAME: 'fixture', GIT_AUTHOR_EMAIL: 'fixture@example.invalid',
+        GIT_COMMITTER_NAME: 'fixture', GIT_COMMITTER_EMAIL: 'fixture@example.invalid',
+        GIT_AUTHOR_DATE: '2026-10-05T00:00:00Z', GIT_COMMITTER_DATE: '2026-10-05T00:00:00Z' };
+      const git = (cwd, args, input) => execFileSync('git', args, { cwd, env, input,
+        encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
+      const objectPresent = (cwd, value) => spawnSync('git', ['cat-file', '-e', `${value}^{commit}`],
+        { cwd, env, stdio: 'ignore' }).status === 0;
+      try {
+        fs.mkdirSync(origin); fs.mkdirSync(client); git(origin, ['init', '--bare', '-q']);
+        const blob = text => git(origin, ['hash-object', '-w', '--stdin'], text);
+        const tree = entries => git(origin, ['mktree'], entries.join('\n') + '\n');
+        // Runtime is data only: even accidental execution would fail, while node --check is allowed.
+        const runtimeBytes = 'throw new Error("Fixture runtime must never execute");\n';
+        const scripts = tree([`100644 blob ${blob(runtimeBytes)}\tkimi-review.cjs`]);
+        const github = tree([`040000 tree ${scripts}\tscripts`]);
+        const commit = (label, parent) => {
+          const root = tree([`040000 tree ${github}\t.github`,
+            `100644 blob ${blob(`governing ${label}\n`)}\tAGENTS.md`,
+            `100644 blob ${blob(`(def fixture-value "${label}")\n`)}\tfixture-source.cljc`]);
+          return git(origin, ['commit-tree', root, ...(parent ? ['-p', parent] : [])], label + '\n');
+        };
+        const runtime = commit('runtime'), captured = commit('captured-base', runtime), head = commit('PR-head', runtime);
+        const forward = commit('forward-main', captured), replacement = commit('replacement-main', runtime);
+        git(origin, ['update-ref', 'refs/heads/main', captured]);
+        git(origin, ['update-ref', 'refs/heads/feature', head]);
+        let base = captured;
+        if (scenario === 'ordinary-fast-forward') git(origin, ['update-ref', 'refs/heads/main', forward, captured]);
+        if (['retained-unadvertised-base', 'pruned-base'].includes(scenario)) {
+          git(origin, ['update-ref', 'refs/heads/main', replacement, captured]);
+        }
+        if (scenario === 'deleted-base-branch') git(origin, ['update-ref', '-d', 'refs/heads/main', captured]);
+        if (scenario === 'pruned-base') {
+          git(origin, ['reflog', 'expire', '--expire=now', '--all']); git(origin, ['gc', '--prune=now']);
+          assert.equal(objectPresent(origin, captured), false, 'Pruned server really lacks captured base');
+        } else assert.equal(objectPresent(origin, captured), true, 'Retained server really has captured base');
+        if (scenario === 'malformed-base') base = 'main';
+        if (scenario === 'blob-base') base = blob('not a commit\n');
+        if (scenario === 'annotated-tag-base') {
+          base = git(origin, ['mktag'], `object ${captured}\ntype commit\ntag fixture-tag\ntagger fixture <fixture@example.invalid> 1791158400 +0000\n\nnot the native commit SHA\n`);
+          git(origin, ['update-ref', 'refs/tags/fixture-tag', base]);
+        }
+        git(client, ['init', '-q']);
+        git(client, ['remote', 'add', 'origin', require('node:url').pathToFileURL(origin).href]);
+        // Exact depth-zero heads/tags refspec observed in both pinned checkout job logs.
+        git(client, ['-c', 'protocol.version=2', 'fetch', '--no-tags', '--prune', '--no-recurse-submodules',
+          'origin', '+refs/heads/*:refs/remotes/origin/*', '+refs/tags/*:refs/tags/*']);
+        git(client, ['checkout', '--detach', '-q', head]);
+        assert.notEqual(spawnSync('git', ['merge-base', '--is-ancestor', captured, head],
+          { cwd: origin, env, stdio: 'ignore' }).status, 0, 'Base is genuinely outside PR-head ancestry');
+        const missing = ['retained-unadvertised-base', 'deleted-base-branch', 'pruned-base'].includes(scenario);
+        assert.equal(objectPresent(client, captured), !missing, 'Fetch genuinely includes or omits captured base');
+        const workflow = fs.readFileSync(path.join(__dirname, '../workflows/opencode-code-review.yml'), 'utf8');
+        const block = workflow.split(`      - name: ${preparation}\n`)[1].split('\n      - ')[0];
+        assert.match(block, /PR_BASE_SHA: \$\{\{ github.event.pull_request.base.sha \}\}/);
+        const script = block.split('        run: |\n')[1].split('\n').map(line => line.replace(/^          /, '')).join('\n');
+        const temporary = path.join(directory, 'runner-temp'), trace = path.join(directory, 'preparation.trace');
+        fs.mkdirSync(temporary);
+        const refs = git(client, ['for-each-ref', '--format=%(refname) %(objectname)']);
+        const result = spawnSync('bash', ['-c', script], { cwd: client, encoding: 'utf8',
+          env: { ...env, RUNNER_TEMP: temporary, PR_BASE_SHA: base,
+            KIMI_RUNTIME_SHA: scenario === 'runtime-not-base-ancestor' ? head : runtime, GIT_TRACE: trace } });
+        const prepared = path.join(temporary, 'kimi-review.cjs');
+        const traceBytes = fs.existsSync(trace) ? fs.readFileSync(trace, 'utf8') : '';
+        const fetched = [...traceBytes.matchAll(/trace: built-in: git fetch .* origin ([0-9a-f]{40})(?:\n|$)/g)].map(match => match[1]);
+        t.diagnostic(JSON.stringify({ preparation, scenario, captured, head, suppliedBase: base,
+          capturedPresentAfterCheckout: !missing, prepareExit: result.status, fetched, runtimeWritten: fs.existsSync(prepared) }));
+        assert.equal(git(client, ['rev-parse', 'HEAD']), head, 'Preparation preserves immutable head');
+        assert.equal(git(client, ['for-each-ref', '--format=%(refname) %(objectname)']), refs, 'Recovery does not replace advertised refs');
+        const succeeds = ['advertised-behind-base', 'ordinary-fast-forward', 'retained-unadvertised-base', 'deleted-base-branch'].includes(scenario);
+        if (!succeeds) {
+          assert.notEqual(result.status, 0, 'Invalid or unavailable native base/runtime must deny');
+          assert.equal(fs.existsSync(prepared), false, 'Denied preparation never extracts an executable runtime');
+          if (scenario === 'malformed-base') assert.deepEqual(fetched, [], 'Format denial occurs before fetch');
+          return;
+        }
+        assert.equal(result.status, 0, 'Retained exact captured base must prepare without substituting live main');
+        assert.deepEqual(fetched, missing ? [captured] : [], 'Fetch only the exact missing captured base');
+        assert.equal(git(client, ['rev-parse', `${base}^{commit}`]), captured);
+        assert.equal(fs.readFileSync(prepared, 'utf8'), runtimeBytes, 'Extract exactly the base-ancestor runtime bytes');
+        const prior = process.cwd();
+        try {
+          process.chdir(client);
+          const helper = require('./kimi-review.cjs'), snapshot = path.join(directory, 'snapshot'); fs.mkdirSync(snapshot);
+          const coverage = helper.diffCoverage(base, head);
+          assert.ok(coverage.coveredFiles.includes('fixture-source.cljc')); assert.match(coverage.diff, /PR-head/);
+          helper.sourceSnapshot(head, snapshot, base);
+          assert.equal(fs.readFileSync(path.join(snapshot, 'AGENTS.md'), 'utf8'), 'governing captured-base\n');
+          assert.equal(fs.readFileSync(path.join(snapshot, 'fixture-source.cljc'), 'utf8'), '(def fixture-value "PR-head")\n');
+        } finally { process.chdir(prior); }
+      } finally { fs.rmSync(directory, { recursive: true, force: true }); }
+    });
+  }
+}

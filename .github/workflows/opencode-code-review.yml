@@ -66,6 +66,10 @@ jobs:
           set -euo pipefail
           [[ "$KIMI_RUNTIME_SHA" =~ ^[0-9a-f]{40}$ ]]
           [[ "$PR_BASE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          if ! git cat-file -e "${PR_BASE_SHA}^{commit}" 2>/dev/null; then
+            git fetch --no-tags --no-recurse-submodules origin "$PR_BASE_SHA"
+          fi
+          [[ "$(git rev-parse --verify "${PR_BASE_SHA}^{commit}")" == "$PR_BASE_SHA" ]]
           git merge-base --is-ancestor "$KIMI_RUNTIME_SHA" "$PR_BASE_SHA"
           git show "${KIMI_RUNTIME_SHA}:.github/scripts/kimi-review.cjs" > "$RUNNER_TEMP/kimi-review.cjs"
           node --check "$RUNNER_TEMP/kimi-review.cjs"
@@ -167,6 +171,10 @@ jobs:
           set -euo pipefail
           [[ "$KIMI_RUNTIME_SHA" =~ ^[0-9a-f]{40}$ ]]
           [[ "$PR_BASE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          if ! git cat-file -e "${PR_BASE_SHA}^{commit}" 2>/dev/null; then
+            git fetch --no-tags --no-recurse-submodules origin "$PR_BASE_SHA"
+          fi
+          [[ "$(git rev-parse --verify "${PR_BASE_SHA}^{commit}")" == "$PR_BASE_SHA" ]]
           git merge-base --is-ancestor "$KIMI_RUNTIME_SHA" "$PR_BASE_SHA"
           git show "${KIMI_RUNTIME_SHA}:.github/scripts/kimi-review.cjs" > "$RUNNER_TEMP/kimi-review.cjs"
           node --check "$RUNNER_TEMP/kimi-review.cjs"
