@@ -113,3 +113,10 @@ Append correction to typed event5cd2f054-b83f-48b4-b3d0-9488c69b8077: CLJS integ
 - A source count missed exit-status removal. The actual shared CLI wrapper now exercises both throw and Promise rejection; an exit-assignment mutation fails four assertions.
 - Original tests and published receipt prefixes stay exact. Local runtime evidence does not establish hosted retention or recover the unknown provider exception.
 - p-efficiency=0.89, p-friction=0.27, p-skill-candidate=0.34; no new spore or promotion.
+
+
+## 2026-10-05T08:26:04.692Z — Bind retained diagnostics to the failing step
+
+- Whole-job failure after admitted intake does not identify model failure. Explicit model outcome now excludes installation failure and failure after model success.
+- Same final55/1514 suite proves five old failures and candidate pass. Original test/history bytes and immutable publication boundaries stay inspectable.
+- Friction2/5: wrong local environment labels retained as harness diagnostic; use the actual runtime/policy names. Local tests do not establish hosted retention or recover the original hidden exception. No new spore or promotion.

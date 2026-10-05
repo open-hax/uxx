@@ -1606,11 +1606,22 @@
         expression (second (re-find #"if: \$\{\{ (.*?) \}\}" (or block "")))
         evaluate (when expression (js/Function. "failure" "steps"
                        (str "return (" (-> expression (str/replace "steps.native-input" "steps['native-input']")
+                                           (str/replace "steps.model-assessment" "steps['model-assessment']")
                                            (str/replace " == " " === ")) ");")))]
     (is (some? evaluate))
-    (doseq [failed? [false true] outcome ["success" "failure" "skipped" "cancelled" nil]]
-      (is (= (and failed? (= "success" outcome))
-             (boolean (when evaluate (evaluate (fn [] failed?) #js {"native-input" #js {:outcome outcome}}))))))
+    ;; This local expression fixture follows documented steps.outcome/status values;
+    ;; it does not claim actual hosted failure-artifact execution.
+    (is (str/includes? source
+          "- name: Produce independent structured assessment with read-only tools\n        id: model-assessment\n"))
+    (doseq [failed? [false true]
+            outcome ["success" "failure" "skipped" "cancelled" nil]
+            model-outcome ["success" "failure" "skipped" "cancelled" nil]]
+      (is (= (and failed? (= "success" outcome) (= "failure" model-outcome))
+             (boolean (when evaluate
+                        (evaluate (fn [] failed?)
+                          #js {"native-input" #js {:outcome outcome}
+                               "model-assessment" #js {:outcome model-outcome}}))))
+          (str "job failure=" failed? "; admitted input=" outcome "; model=" model-outcome)))
     (is (str/includes? (or block "") "path: ${{ runner.temp }}/assessment-input.edn"))
     (is (str/includes? (or block "") "if-no-files-found: error"))
     (is (not (str/includes? (or block "") "assessment-result.edn")))))
