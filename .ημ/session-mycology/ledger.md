@@ -153,3 +153,24 @@ Append correction to typed event5cd2f054-b83f-48b4-b3d0-9488c69b8077: CLJS integ
 - Actual19 merge verified exact tree/two parents. Original14 inherits only two reviewed source files plus byte-exact historical ledger tails; original workflow/runner/root receipts stay exact. Local51/1435 and25/25 pass. The first local setup missed pinned flow.edn and was corrected without source changes.
 - Preserve the published child's entire prefix and append the other parent's exact tail; both originals remain actual Git parents. State which full physical prefix survives rather than claiming impossible simultaneous distinct prefixes.
 - Fresh successor full reviews/CI and real independent native assessment remain required; no approval transfer or hosted-cause inference. p-efficiency=0.9, p-friction=0.27, p-skill-candidate=0.35; no new spore or promotion.
+
+
+## 2026-10-05T06:59:07.089Z — Preserve a safe failure boundary rather than guessing the provider cause
+
+- Actual intake progressed after reviewed19; model73second failure lost already-sanitized helper phase. Surface only known phase/deadline constants and retain admitted public input after failure, with denial and all native source guards intact.
+- Samefinal source tests establish absence versus bounded reporting; original51 definitions and MAIN prefixes stay exact. Missingruntimepath and lintdiagnostics retained without being called causalRED.
+- Source preparation is not hosteddiagnostic success, cause repair, provider delisting or approval. Freshreview/CI/protectedsource merge precedes justified new native assessment. p-efficiency=0.88, p-friction=0.31, p-skill-candidate=0.38; no spore or promotion.
+
+
+## 2026-10-05T07:30:10.891Z — Test the failure effect, not reporter source spelling
+
+- A source count missed exit-status removal. The actual shared CLI wrapper now exercises both throw and Promise rejection; an exit-assignment mutation fails four assertions.
+- Original tests and published receipt prefixes stay exact. Local runtime evidence does not establish hosted retention or recover the unknown provider exception.
+- p-efficiency=0.89, p-friction=0.27, p-skill-candidate=0.34; no new spore or promotion.
+
+
+## 2026-10-05T08:26:04.692Z — Bind retained diagnostics to the failing step
+
+- Whole-job failure after admitted intake does not identify model failure. Explicit model outcome now excludes installation failure and failure after model success.
+- Same final55/1514 suite proves five old failures and candidate pass. Original test/history bytes and immutable publication boundaries stay inspectable.
+- Friction2/5: wrong local environment labels retained as harness diagnostic; use the actual runtime/policy names. Local tests do not establish hosted retention or recover the original hidden exception. No new spore or promotion.

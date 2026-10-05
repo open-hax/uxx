@@ -1579,4 +1579,87 @@
 
 (defmethod test/report [:cljs.test/default :end-run-tests] [summary]
   (when (pos? (+ (:fail summary) (:error summary))) (set! (.-exitCode js/process) 1)))
+
+(deftest model-failure-reporter-retains-only-bounded-native-phase
+  (let [fallback "Scoped assessment failed closed; no qualification claimed"
+        report! (fn [error]
+                  (r/failure-message error))]
+    (doseq [phase ["startup" "capability" "session" "events" "submit" "status" "messages" "validation"]]
+      (let [error (js/Error. "SYNTHETIC_SECRET_MARKER raw provider response must not escape")]
+        (aset error "phase" phase)
+        (is (= (str "Scoped assessment failed closed at native model phase " phase "; no qualification claimed")
+               (report! error)))))
+    (doseq [phase [nil "SYNTHETIC_SECRET_MARKER" "validation\nSYNTHETIC_SECRET_MARKER" :validation 42 {}]]
+      (let [error (js/Error. "SYNTHETIC_SECRET_MARKER")]
+        (aset error "phase" phase)
+        (is (= fallback (report! error)))))
+    (let [error (js/Error. "Kimi model execution exceeded the bounded 20-minute budget")]
+      (aset error "phase" "messages")
+      (is (= "Scoped assessment failed closed at the native model deadline; no qualification claimed" (report! error))))
+    ;; Both entry-point catches invoke the named effectful handler tested below.
+    ))
+
+
+(deftest failed-input-retention-condition-is-bounded-to-admitted-failures
+  (let [source (fs/readFileSync ".github/workflows/opencode-issue-agent.yml" "utf8")
+        block (second (re-find #"(?s)- name: Retain admitted input after a failed model step\n(.*?)\n  scoped-assessment-publish:" source))
+        expression (second (re-find #"if: \$\{\{ (.*?) \}\}" (or block "")))
+        evaluate (when expression (js/Function. "failure" "steps"
+                       (str "return (" (-> expression (str/replace "steps.native-input" "steps['native-input']")
+                                           (str/replace "steps.model-assessment" "steps['model-assessment']")
+                                           (str/replace " == " " === ")) ");")))]
+    (is (some? evaluate))
+    ;; This local expression fixture follows documented steps.outcome/status values;
+    ;; it does not claim actual hosted failure-artifact execution.
+    (is (str/includes? source
+          "- name: Produce independent structured assessment with read-only tools\n        id: model-assessment\n"))
+    (doseq [failed? [false true]
+            outcome ["success" "failure" "skipped" "cancelled" nil]
+            model-outcome ["success" "failure" "skipped" "cancelled" nil]]
+      (is (= (and failed? (= "success" outcome) (= "failure" model-outcome))
+             (boolean (when evaluate
+                        (evaluate (fn [] failed?)
+                          #js {"native-input" #js {:outcome outcome}
+                               "model-assessment" #js {:outcome model-outcome}}))))
+          (str "job failure=" failed? "; admitted input=" outcome "; model=" model-outcome)))
+    (is (str/includes? (or block "") "path: ${{ runner.temp }}/assessment-input.edn"))
+    (is (str/includes? (or block "") "if-no-files-found: error"))
+    (is (not (str/includes? (or block "") "assessment-result.edn")))))
+
+
+(deftest failure-handler-reports-bounded-input-and-unsuccessful-exit
+  (let [saved (.-exitCode js/process)
+        error (js/Error. "SYNTHETIC_SECRET_MARKER")
+        observed (atom [])]
+    (try
+      (set! (.-exitCode js/process) 0)
+      (let [output (with-out-str (r/report-failure! error))]
+        (is (= "Scoped assessment failed closed; no qualification claimed\n" output))
+        (is (= 1 (.-exitCode js/process))))
+      (set! (.-exitCode js/process) 0)
+      (with-redefs [r/failure-message (fn [input] (swap! observed conj input) "bounded test response")]
+        (is (= "bounded test response\n" (with-out-str (r/report-failure! error)))))
+      (is (= [error] @observed))
+      (is (= 1 (.-exitCode js/process)))
+      (finally (set! (.-exitCode js/process) saved)))))
+
+(deftest top-level-synchronous-and-promise-failures-retain-exit-one
+  (async done
+    (let [saved (.-exitCode js/process)
+          error (js/Error. "SYNTHETIC_SECRET_MARKER")]
+      (set! (.-exitCode js/process) 0)
+      (is (= "Scoped assessment failed closed; no qualification claimed\n"
+             (with-out-str (r/run-main! #(throw error)))))
+      (is (= 1 (.-exitCode js/process)))
+      (set! (.-exitCode js/process) 0)
+      (-> (r/run-main! #(js/Promise.reject error))
+          (.then (fn [_]
+                   (is (= 1 (.-exitCode js/process)))
+                   (set! (.-exitCode js/process) saved)
+                   (done)))
+          (.catch (fn [_]
+                    (is false "The rejection handler must consume failure and set exit one")
+                    (set! (.-exitCode js/process) saved)
+                    (done)))))))
+
 (run-tests)
