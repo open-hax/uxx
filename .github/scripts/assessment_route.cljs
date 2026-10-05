@@ -122,8 +122,16 @@
   (when-let [[_ head thread root proposal]
              (re-matches #"/opencode assess-actionability ([0-9a-f]{40}) (PRRT_[a-zA-Z0-9_-]+) comment([1-9][0-9]*) proposal([1-9][0-9]*)" (or body ""))]
     {:head head :thread thread :root (js/Number root) :proposal (js/Number proposal)}))
+(defn native-actor-tuple [actor]
+  (let [{:keys [id node_id login type]} actor]
+    (ensure! (and (map? actor) (js/Number.isSafeInteger id) (pos? id)
+                  (string? node_id) (not (str/blank? node_id))
+                  (string? login) (not (str/blank? login))
+                  (contains? #{"User" "Bot"} type)) "Incomplete native actor identity")
+    [id node_id login type]))
 (defn comment-tuple [c]
-  (mapv c [:id :node_id :body :created_at :updated_at :html_url :user]))
+  (conj (mapv c [:id :node_id :body :created_at :updated_at :html_url])
+        (native-actor-tuple (:user c))))
 (defn sha40? [value]
   (and (string? value) (boolean (re-matches #"[0-9a-f]{40}" value))))
 (defn validate-pr! [pr context]
@@ -172,13 +180,14 @@
     (validate-base! live-pr live-base)
     (ensure! (and authorized? (= "User" (get-in trigger [:user :type]))
                   (= (:created_at trigger) (:updated_at trigger))
-                  (some #(= (comment-tuple trigger) (comment-tuple %)) comments)
+                  (some #(and (= (:id trigger) (:id %))
+                              (= (comment-tuple trigger) (comment-tuple %))) comments)
                   (= (select-keys cmd [:thread :root]) (select-keys selection [:thread :root]))
                   (= (:head t) (:head cmd))
                   (= (:proposal cmd) proposal-id) (= :proposal (:kind p))
                   (= (:head t) (:head p)) (= (a/context-binding t) (:payload p))
                   (:authorized? proposal) (= (:created_at proposal) (:updated_at proposal))
-                  (= (:user proposal) (:user trigger))
+                  (= (native-actor-tuple (:user proposal)) (native-actor-tuple (:user trigger)))
                   (pos? (compare (:created_at trigger) (:updated_at proposal)))
                   (every? #(pos? (compare (:created_at proposal) %))
                           (mapcat (fn [c] [(:updatedAt c) (get-in c [:pullRequestReview :updatedAt])])
@@ -355,8 +364,10 @@
                     (= (:repo selection) (get-in pr [:base :repo :full_name]))
                     (false? (get-in pr [:head :repo :private])) (false? (get-in pr [:base :repo :private])))
                "Context changed during publication; no qualification claimed")
-      (ensure! (and (some #(= (comment-tuple observed) (comment-tuple %)) comments)
-                    (some #(= (comment-tuple (:trigger current)) (comment-tuple %)) comments))
+      (ensure! (and (some #(and (= (:id observed) (:id %))
+                               (= (comment-tuple observed) (comment-tuple %))) comments)
+                    (some #(and (= (get-in current [:trigger :id]) (:id %))
+                               (= (comment-tuple (:trigger current)) (comment-tuple %))) comments))
                "Publication/trigger missing or changed in complete native readback")
       (checkpoint! (assoc checkpoint :publication-state :canonical-disposition-observed
                           :native-node-id (:node_id observed) :decision decision :disposition disposition))
