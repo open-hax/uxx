@@ -1427,7 +1427,10 @@
   ;; external reads are replaced. A throwing model/publisher spy must stay idle.
   (let [directory (fs/mkdtempSync (path/join (os/tmpdir) "uxx-native-actor-"))
         event-file (path/join directory "event.json") input-file (path/join directory "input.edn")
-        settings {"ASSESSMENT_COMMAND" "intake" "GITHUB_EVENT_PATH" event-file
+        settings {"ASSESSMENT_COMMAND" "intake"
+                  "ASSESSMENT_POLICY" (or (aget js/process.env "ASSESSMENT_POLICY")
+                                          ".assessment-policy/skills/pr-flow")
+                  "GITHUB_EVENT_PATH" event-file
                   "ASSESSMENT_INPUT" input-file "ASSESSMENT_RESULT" (path/join directory "result.edn")}
         previous (into {} (for [[k _] settings] [k (aget js/process.env k)]))
         calls (atom []) posts (atom 0) models (atom 0) publishers (atom 0) coverage-calls (atom [])]

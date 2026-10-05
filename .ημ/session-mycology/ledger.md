@@ -79,3 +79,11 @@ Authentic direct and issue-inventory records for trigger5985900029/proposal59858
 2026-10-05T01:34:15.973Z — Safe numeric native actor IDs; p-efficiency0.96,p-friction0.10,p-skill-candidate0.30; no spore/promotion.
 
 Append correction to typed event5cd2f054-b83f-48b4-b3d0-9488c69b8077: CLJS integer? accepts unsafe JavaScript integers, which can collapse adjacent native identities. Require Number.isSafeInteger plus positivity without changing the four-field tuple, raw provenance or any native/canonical/User/Bot guard. One new unsafe-ID case alongside existing missing/invalid-ID refusals produces sealed prior-candidate RED48/1301/1fail0error and corrected GREEN48/1301/zero under actual Node22.20.0/NBB1.3.204; all45 original tests remain byte-identical, prior48 tests change only by that inserted case. Kondo/actionlint/diff clean. Preserve full81662receipt16813reflection prior prefixes including all MAIN77450/14991, all11312unowned and original48audit/5seal plus separate Proxx15audit/5seal packets. Local source only, no Proxx edits/models/App/native effects/publication, canonical law copy or approval transfer; parent owns reviewed/default-MAIN qualification before activation. Receiptf2069777-e1e9-4c5d-9060-531e88d239da; central .ημ/uxx-native-actor-binding-safe-id-411-source.
+
+- ts: "2026-10-05T01:50:07.251190Z"
+  origin: uxx19/hosted-captured-fixture-policy-path
+  p-efficiency: 0.79
+  p-friction: 0.35
+  p-skill-candidate: 0.4
+  spore: none
+  note: Parent local environment masked a new fixture setup gap; hosted job reproduced six admissions failing before policy loading. Bind and restore the actual policy path within the fixture and run the same workflow-style layout with that variable initially unset. Preserve the original source seal and failing native log. Production identity code remains unchanged.
