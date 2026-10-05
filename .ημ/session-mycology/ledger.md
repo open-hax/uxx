@@ -106,3 +106,10 @@ Append correction to typed event5cd2f054-b83f-48b4-b3d0-9488c69b8077: CLJS integ
 - Actual intake progressed after reviewed19; model73second failure lost already-sanitized helper phase. Surface only known phase/deadline constants and retain admitted public input after failure, with denial and all native source guards intact.
 - Samefinal source tests establish absence versus bounded reporting; original51 definitions and MAIN prefixes stay exact. Missingruntimepath and lintdiagnostics retained without being called causalRED.
 - Source preparation is not hosteddiagnostic success, cause repair, provider delisting or approval. Freshreview/CI/protectedsource merge precedes justified new native assessment. p-efficiency=0.88, p-friction=0.31, p-skill-candidate=0.38; no spore or promotion.
+
+
+## 2026-10-05T07:30:10.891Z — Test the failure effect, not reporter source spelling
+
+- A source count missed exit-status removal. The actual shared CLI wrapper now exercises both throw and Promise rejection; an exit-assignment mutation fails four assertions.
+- Original tests and published receipt prefixes stay exact. Local runtime evidence does not establish hosted retention or recover the unknown provider exception.
+- p-efficiency=0.89, p-friction=0.27, p-skill-candidate=0.34; no new spore or promotion.

@@ -1596,9 +1596,8 @@
     (let [error (js/Error. "Kimi model execution exceeded the bounded 20-minute budget")]
       (aset error "phase" "messages")
       (is (= "Scoped assessment failed closed at the native model deadline; no qualification claimed" (report! error))))
-    ;; The actual main Promise and synchronous refusal paths consume the same safe reporter.
-    (let [source (fs/readFileSync ".github/scripts/assessment_route.cljs" "utf8")]
-      (is (= 2 (count (re-seq #"\(println \(failure-message error\)\)" source)))))))
+    ;; Both entry-point catches invoke the named effectful handler tested below.
+    ))
 
 
 (deftest failed-input-retention-condition-is-bounded-to-admitted-failures
@@ -1615,5 +1614,41 @@
     (is (str/includes? (or block "") "path: ${{ runner.temp }}/assessment-input.edn"))
     (is (str/includes? (or block "") "if-no-files-found: error"))
     (is (not (str/includes? (or block "") "assessment-result.edn")))))
+
+
+(deftest failure-handler-reports-bounded-input-and-unsuccessful-exit
+  (let [saved (.-exitCode js/process)
+        error (js/Error. "SYNTHETIC_SECRET_MARKER")
+        observed (atom [])]
+    (try
+      (set! (.-exitCode js/process) 0)
+      (let [output (with-out-str (r/report-failure! error))]
+        (is (= "Scoped assessment failed closed; no qualification claimed\n" output))
+        (is (= 1 (.-exitCode js/process))))
+      (set! (.-exitCode js/process) 0)
+      (with-redefs [r/failure-message (fn [input] (swap! observed conj input) "bounded test response")]
+        (is (= "bounded test response\n" (with-out-str (r/report-failure! error)))))
+      (is (= [error] @observed))
+      (is (= 1 (.-exitCode js/process)))
+      (finally (set! (.-exitCode js/process) saved)))))
+
+(deftest top-level-synchronous-and-promise-failures-retain-exit-one
+  (async done
+    (let [saved (.-exitCode js/process)
+          error (js/Error. "SYNTHETIC_SECRET_MARKER")]
+      (set! (.-exitCode js/process) 0)
+      (is (= "Scoped assessment failed closed; no qualification claimed\n"
+             (with-out-str (r/run-main! #(throw error)))))
+      (is (= 1 (.-exitCode js/process)))
+      (set! (.-exitCode js/process) 0)
+      (-> (r/run-main! #(js/Promise.reject error))
+          (.then (fn [_]
+                   (is (= 1 (.-exitCode js/process)))
+                   (set! (.-exitCode js/process) saved)
+                   (done)))
+          (.catch (fn [_]
+                    (is false "The rejection handler must consume failure and set exit one")
+                    (set! (.-exitCode js/process) saved)
+                    (done)))))))
 
 (run-tests)
