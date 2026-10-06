@@ -81,7 +81,7 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           repository: riatzukiza/.agents
-          ref: 0f95afe56fb01fbcf9d7934b72ce31fe96baf451
+          ref: b67bce04b7ed7749513c27b5718b543752d4649a
           path: .assessment-policy
           persist-credentials: false
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
@@ -144,7 +144,7 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           repository: riatzukiza/.agents
-          ref: 0f95afe56fb01fbcf9d7934b72ce31fe96baf451
+          ref: b67bce04b7ed7749513c27b5718b543752d4649a
           path: .assessment-policy
           persist-credentials: false
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
@@ -239,7 +239,7 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           repository: riatzukiza/.agents
-          ref: 0f95afe56fb01fbcf9d7934b72ce31fe96baf451
+          ref: b67bce04b7ed7749513c27b5718b543752d4649a
           path: .assessment-policy
           persist-credentials: false
       # Same reviewed runtime/auth bytes as the read job; no local broker.

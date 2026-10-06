@@ -1662,4 +1662,129 @@
                     (set! (.-exitCode js/process) saved)
                     (done)))))))
 
+
+;; Lossless native C5 protocol/review and the exact fields consumed by submission!
+;; from retained input 37301744462; this projection grants no native credit.
+(def captured-c5-details-input {:base "c526d45199d117654d9c87793344774adeeec94b", :identity [[1 ["R_kgDOR5O5HA" 1200863516 "open-hax/uxx"] ["PR_kwDOR5O5HM8AAAABGXQN_A" 14 "c5dc68ec30e07534c2a60ccbbc5e1c34370f492a" ["MDQ6VXNlcjEwNjc2OTI1" 10676925 "riatzukiza" "User"]] ["PRRT_kwDOR5O5HM6omklO" true false ".github/workflows/opencode-code-review.yml" 246] [["PRRC_kwDOR5O5HM74t3-s" 4172775340 "https://github.com/open-hax/uxx/pull/14#discussion_r4172775340" ["MDQ6VXNlcjEwNjc2OTI1" 10676925 "riatzukiza" "User"] "2026-10-03T10:25:12Z" "2026-10-03T10:25:12Z" "c5dc68ec30e07534c2a60ccbbc5e1c34370f492a" "68eeefdca9d840571e2dec911085b782dc5c4ed2" "338d05b4bd8c8e778ff87df515366767310c21e97ecded2e833bd1cf9f0d811f" "e5660350e064169d6dc805442a8c223157e5fd02276cdda58d8f39d855093d89" ["PRR_kwDOR5O5HM8AAAABQeHYew" 5400287355 "COMMENTED" "2026-10-03T10:25:12Z" ["MDQ6VXNlcjEwNjc2OTI1" 10676925 "riatzukiza" "User"] "68eeefdca9d840571e2dec911085b782dc5c4ed2" "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"]] ["PRRC_kwDOR5O5HM74t4x9" 4172778621 "https://github.com/open-hax/uxx/pull/14#discussion_r4172778621" ["MDQ6VXNlcjEwNjc2OTI1" 10676925 "riatzukiza" "User"] "2026-10-03T10:25:54Z" "2026-10-03T10:25:54Z" "c5dc68ec30e07534c2a60ccbbc5e1c34370f492a" "68eeefdca9d840571e2dec911085b782dc5c4ed2" "69b18fbc7132acedf5f27754eeaf0915fe9f8ae8d3718ba72264d830ce44de7a" "e5660350e064169d6dc805442a8c223157e5fd02276cdda58d8f39d855093d89" ["PRR_kwDOR5O5HM8AAAABQeHlow" 5400290723 "COMMENTED" "2026-10-03T10:25:54Z" ["MDQ6VXNlcjEwNjc2OTI1" 10676925 "riatzukiza" "User"] "68eeefdca9d840571e2dec911085b782dc5c4ed2" "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"]]]] ["actionability/v1" "R_kgDOR5O5HA" "PR_kwDOR5O5HM8AAAABGXQN_A" "PRRT_kwDOR5O5HM6omklO" 4172775340 "b7306bf00fcc7a888728c29e0aecf6c6bda2b7239fcd38922782eedbc0104b88" "resolved-author-only-empty-reviews"] [5993311862 "IC_kwDOR5O5HM8AAAABZTqudg" "Actionability proposal v1 for c5dc68ec30e07534c2a60ccbbc5e1c34370f492a:\n[\"actionability/v1\" \"R_kgDOR5O5HA\" \"PR_kwDOR5O5HM8AAAABGXQN_A\" \"PRRT_kwDOR5O5HM6omklO\" 4172775340 \"b7306bf00fcc7a888728c29e0aecf6c6bda2b7239fcd38922782eedbc0104b88\" \"resolved-author-only-empty-reviews\"]" "2026-10-05T11:14:26Z" "2026-10-05T11:14:26Z" "https://github.com/open-hax/uxx/pull/14#issuecomment-5993311862" [10676925 "MDQ6VXNlcjEwNjc2OTI1" "riatzukiza" "User"]] [5993322555 "IC_kwDOR5O5HM8AAAABZTrYOw" "/opencode assess-actionability c5dc68ec30e07534c2a60ccbbc5e1c34370f492a PRRT_kwDOR5O5HM6omklO comment4172775340 proposal5993311862" "2026-10-05T11:15:09Z" "2026-10-05T11:15:09Z" "https://github.com/open-hax/uxx/pull/14#issuecomment-5993322555" [10676925 "MDQ6VXNlcjEwNjc2OTI1" "riatzukiza" "User"]] "c526d45199d117654d9c87793344774adeeec94b" {:diff-sha256 "a54346dd10d89e42c87d490c0ddc8388d19ce733fa1d6f819230ed9c193a4d0a", :files [".github/scripts/kimi-review.test.cjs" ".github/workflows/opencode-code-review.yml" ".ημ/receipts.edn" ".ημ/session-mycology/ledger.md" "receipts.edn"]} "0f95afe56fb01fbcf9d7934b72ce31fe96baf451" "0fa9d7838df3f0718d971beb972a48d2bf73fce6d90f09411a656e57ce3960d7" {:ref "main", :sha "c526d45199d117654d9c87793344774adeeec94b"} {:ref "refs/heads/main", :node_id "REF_kwDOR5O5HK9yZWZzL2hlYWRzL21haW4", :url "https://api.github.com/repos/open-hax/uxx/git/refs/heads/main", :object {:sha "c526d45199d117654d9c87793344774adeeec94b", :type "commit", :url "https://api.github.com/repos/open-hax/uxx/git/commits/c526d45199d117654d9c87793344774adeeec94b"}}], :target {:head "c5dc68ec30e07534c2a60ccbbc5e1c34370f492a", :id "PRRT_kwDOR5O5HM6omklO", :root-comment-id 4172775340, :context-digest "b7306bf00fcc7a888728c29e0aecf6c6bda2b7239fcd38922782eedbc0104b88", :native-context {:repository {:id "R_kgDOR5O5HA"}, :pr {:id "PR_kwDOR5O5HM8AAAABGXQN_A"}}}, :coverage {:diff-sha256 "a54346dd10d89e42c87d490c0ddc8388d19ce733fa1d6f819230ed9c193a4d0a", :files [".github/scripts/kimi-review.test.cjs" ".github/workflows/opencode-code-review.yml" ".ημ/receipts.edn" ".ημ/session-mycology/ledger.md" "receipts.edn"]}, :proposal {:id 5993311862, :body-sha256 "f537a8920195603ac04ebf8aec23dfbc04d192878c7afa9ad48df4b4325bdffd"}})
+(def captured-c5-details-review {:head "c5dc68ec30e07534c2a60ccbbc5e1c34370f492a", :diffSha256 "a54346dd10d89e42c87d490c0ddc8388d19ce733fa1d6f819230ed9c193a4d0a", :coveredFiles [".github/scripts/kimi-review.test.cjs" ".github/workflows/opencode-code-review.yml" ".ημ/receipts.edn" ".ημ/session-mycology/ledger.md" "receipts.edn"], :summary "Actionability assessment v1 for c5dc68ec30e07534c2a60ccbbc5e1c34370f492a:\n[\"actionability/v1\" \"R_kgDOR5O5HA\" \"PR_kwDOR5O5HM8AAAABGXQN_A\" \"PRRT_kwDOR5O5HM6omklO\" 4172775340 \"b7306bf00fcc7a888728c29e0aecf6c6bda2b7239fcd38922782eedbc0104b88\" \"resolved-author-only-empty-reviews\" 5993311862 \"f537a8920195603ac04ebf8aec23dfbc04d192878c7afa9ad48df4b4325bdffd\" \"informational\" \"complete-context/no-defect/no-request/no-question\" \"The disputed root is a resolved thread whose two comments are author-only, empty-review (COMMENTED, body '') walkthrough/handled notes on the exact workflow diff hunk; no reviewer raised a defect, request or question, and the diff itself (producer/publisher split with pinned immutable runtime f2ca216e..., ancestry guard, bounded body provenance projection, per-attempt artifact, retry verification) contains no independently identifiable correctness or security defect at line 246 or elsewhere in the shown source.\" \"Evidence: immutable native context shows thread PRRT_kwDOR5O5HM6omklO isResolved true, isOutdated false, two nodes both authored by riatzukiza with empty review bodies (sha256 e3b0c44...) and identical diff-hunk hash e5660350...; complete diff SHA256 a54346dd... over the five covered files; workflow source extracts helper via git show at pinned KIMI_RUNTIME_SHA with git merge-base --is-ancestor base guard and node --check; publisher verifies artifact identity, full coverage equality, model identity and byte-equal runtime before POST with body metadata bounded to 4096 and total body to 65536; tests in .github/scripts/kimi-review.test.cjs cover ancestry refusal, body budget, producer-artifact reuse and captured-base scenarios per appended receipt/ledger records; no defect, request or question remains.\"]", :comments [], :executionControl {:requested {:variant "low"}, :advertisedNativeControl {:apiNpm "@ai-sdk/openai-compatible", :reasoningEffort "low"}, :opencodeVersion "1.18.34", :observedAssistantVariant "low", :executedIdentity {:providerID "kimi-code-plan-global", :modelID "kimi-for-coding"}, :underlyingProviderModel nil, :binding "Pinned OpenCode catalog low mapping and assistant variant; not a provider reasoning-budget attestation"}})
+
+(defn captured-c5-details-result [value]
+  {:input-sha256 (r/sha (pr-str captured-c5-details-input)) :runner-sha256 r/runtime-hash :review value})
+
+(defn captured-c5-details-value [decision reason evidence]
+  ;; Mutations are explicit local negatives, never a replacement native body.
+  (let [record (a/protocol {:body (:summary captured-c5-details-review)})
+        payload (-> (:payload record) (assoc 9 decision)
+                    (assoc 10 (if (= "informational" decision)
+                                "complete-context/no-defect/no-request/no-question" "scope-incomplete-or-finding"))
+                    (assoc 11 reason) (assoc 12 evidence))]
+    (assoc captured-c5-details-review :summary
+           (str "Actionability assessment v1 for " (:head captured-c5-details-review) ":\n" (pr-str payload)))))
+
+(def captured-c5-details-reason
+  (get-in (a/protocol {:body (:summary captured-c5-details-review)}) [:payload 11]))
+
+(deftest retained-c5-commonjs-evidence-consumes-proposed-canonical-api
+  ;; Candidate canonical API is a local prerequisite; this is no native admission.
+  (let [value captured-c5-details-review input captured-c5-details-input
+        payload (:payload (a/protocol {:body (:summary value)}))]
+    (is (= 5993311862 (get-in input [:proposal :id])))
+    (is (= 516 (count (nth payload 11))))
+    (is (= 13 (count payload)))
+    (is (str/includes? (nth payload 12) ".github/scripts/kimi-review.test.cjs"))
+    (is (a/details? (nth payload 11) (nth payload 12)))
+    (is (= (:summary value) (r/submission! input value)))
+    (is (= (:summary value) (r/final-check! input input (captured-c5-details-result value))))
+    (doseq [evidence ["source.js" "test.cjs" "loader.mjs" "prior.cljs" "prior.cljc" "notes.md"
+                      "https://github.com/open-hax/uxx/blob/c5dc68ec30e07534c2a60ccbbc5e1c34370f492a/.github/scripts/kimi-review.test.cjs"]]
+      (let [value (captured-c5-details-value "informational" captured-c5-details-reason evidence)]
+        (is (= (:summary value) (r/submission! input value)))))))
+
+(deftest informational-submission-refuses-incompatible-nonblank-details
+  (doseq [[reason evidence] [[captured-c5-details-reason "The source was carefully reviewed without an explicit source reference."]
+                            [captured-c5-details-reason "test.unsupported-extension"]
+                            [captured-c5-details-reason " "]
+                            [captured-c5-details-reason 42]
+                            [captured-c5-details-reason nil]
+                            ["Too short." ".github/scripts/kimi-review.test.cjs"]]]
+    (let [value (captured-c5-details-value "informational" reason evidence)]
+      (is (false? (boolean (a/details? reason evidence))))
+      (is (refuses? #(r/submission! captured-c5-details-input value)))
+      (is (refuses? #(r/final-check! captured-c5-details-input captured-c5-details-input
+                                    (captured-c5-details-result value)))))))
+
+(deftest finding-and-uncertain-retain-existing-submission-semantics
+  (doseq [decision ["finding" "uncertain"]]
+    (let [value (captured-c5-details-value decision captured-c5-details-reason
+                                           "Context is incomplete; independent source evidence is still unavailable.")]
+      (with-redefs [a/details? (fn [& _] (throw (js/Error. "Informational minimum must not alter finding/uncertain semantics")))]
+        (is (= (:summary value) (r/submission! captured-c5-details-input value)))
+        (is (= (:summary value) (r/final-check! captured-c5-details-input captured-c5-details-input
+                                               (captured-c5-details-result value))))))))
+
+(deftest actual-final-and-publisher-callers-deny-before-mint-and-post
+  (doseq [[reason evidence] [[captured-c5-details-reason "No source reference was supplied in this otherwise nonblank explanation."]
+                            [captured-c5-details-reason "test.unsupported-extension"]
+                            ["Too short." ".github/scripts/kimi-review.test.cjs"]]]
+    (let [input captured-c5-details-input
+          value (captured-c5-details-value "informational" reason evidence)
+          frozen (captured-c5-details-result value) mint-sentinel (atom 0)
+          api-calls (atom []) checkpoints (atom [])]
+      ;; The workflow's existing check-before-mint order remains asserted by the
+      ;; original tests. This sentinel represents reaching that downstream boundary.
+      (is (refuses? #(do (r/final-check! input input frozen)
+                        (swap! mint-sentinel inc)
+                        (throw (js/Error. "Local sentinel stops before credential effects")))))
+      (is (zero? @mint-sentinel))
+      (is (refuses? #(r/publish! (fn [& args]
+                                 (swap! api-calls conj args)
+                                 (throw (js/Error. "Local sentinel stops before any native API")))
+                               input frozen (fn [] input) (fn [checkpoint] (swap! checkpoints conj checkpoint)))))
+      (is (empty? @api-calls))
+      (is (empty? @checkpoints)))))
+
+(deftest actual-model-result-caller-refuses-details-and-cleans-workspace
+  (async done
+    (-> (reduce
+         (fn [previous evidence]
+           (.then previous
+                  (fn [_]
+                    (let [value (captured-c5-details-value "informational" captured-c5-details-reason evidence)
+                          runner (r/runtime!) seen (atom nil) mint-sentinel (atom 0) api-calls (atom [])
+                          fake-runner (js/Object.assign #js {} runner
+                                      #js {:sourceSnapshot (fn [head workspace base]
+                                                            (reset! seen {:head head :base base :workspace workspace}))
+                                           :executeStructured (fn [_ _ workspace head full]
+                                                                (is (= workspace (:workspace @seen)))
+                                                                (is (= head (:head value)))
+                                                                (is (= (:diffSha256 value) (.-diffSha256 full)))
+                                                                (is (= (:coveredFiles value) (js->clj (.-coveredFiles full))))
+                                                                (js/Promise.resolve (clj->js value)))})
+                          result (with-redefs [r/runtime! (constantly fake-runner)
+                                               r/opencode-version! (constantly "1.18.34")]
+                                   (r/model! captured-c5-details-input))]
+                      (-> result
+                          (.then (fn [accepted]
+                                   ;; Old production reaches this boundary; no actual mint or POST occurs.
+                                   (r/final-check! captured-c5-details-input captured-c5-details-input
+                                                   (captured-c5-details-result accepted))
+                                   (swap! mint-sentinel inc)
+                                   (swap! api-calls conj :synthetic-post-boundary)
+                                   {:refused false}))
+                          (.catch (fn [error] {:refused true :message (ex-message error)}))
+                          (.then (fn [out]
+                                   (is (true? (:refused out)))
+                                   (is (= "Missing/mismatched independent scoped submission" (:message out)))
+                                   (is (zero? @mint-sentinel))
+                                   (is (empty? @api-calls))
+                                   (is (= (get-in captured-c5-details-input [:target :head]) (:head @seen)))
+                                   (is (= (:base captured-c5-details-input) (:base @seen)))
+                                   (is (not (fs/existsSync (path/dirname (:workspace @seen)))))
+                                   (println "[details-model-caller]" (pr-str (select-keys out [:refused :message]))))))))))
+         (js/Promise.resolve nil)
+         ["The source was considered; no explicit code, document or URL evidence is present."
+          "test.unsupported-extension"])
+        (.catch (fn [error] (is false (ex-message error))))
+        (.finally done))))
+
 (run-tests)
