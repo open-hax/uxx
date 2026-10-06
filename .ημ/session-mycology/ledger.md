@@ -133,3 +133,9 @@ Append correction to typed event5cd2f054-b83f-48b4-b3d0-9488c69b8077: CLJS integ
 
 - Correct the native5422811942 document finding with actual reviewedb67 and protected9354 provenance; preserve every other document byte and all runtime boundaries.
 - p-efficiency=0.91; p-friction=0.12; p-skill-candidate=0.29. No spore or promotion. Fresh successor qualification remains required.
+
+
+## 2026-10-06T02:45:55.855Z — Keep verification documentation tied to reviewed source
+
+- Correct native4191004567 by binding the repeatable-test example to reviewed Agents-b67; retain all other document bytes and runtime boundaries.
+- p-efficiency=0.91; p-friction=0.12; p-skill-candidate=0.29. No spore or promotion. Fresh successor qualification remains required.

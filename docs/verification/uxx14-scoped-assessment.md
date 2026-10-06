@@ -179,7 +179,7 @@ the repeatable test is:
 cd .github/assessment-tools
 npm ci --ignore-scripts --no-audit --no-fund
 cd ../..
-ASSESSMENT_RUNTIME=/path/to/Proxx281 .github/assessment-tools/node_modules/.bin/nbb -cp .github/scripts:/path/to/Agents0f95/skills/pr-flow/scripts .github/scripts/assessment_route_test.cljs
+ASSESSMENT_RUNTIME=/path/to/Proxx281 .github/assessment-tools/node_modules/.bin/nbb -cp .github/scripts:/path/to/Agents-b67/skills/pr-flow/scripts .github/scripts/assessment_route_test.cljs
 ```
 
 The genuine context/metadata fixtures and explicit synthetic causal API seams
