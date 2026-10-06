@@ -217,3 +217,13 @@ Append correction to typed event5cd2f054-b83f-48b4-b3d0-9488c69b8077: CLJS integ
   spore: none
   receipt-refs: uxx14-after-qualified21-integration-20261006T1429Z/new-source-receipt.edn
   note: Preserve the whole original child ledger and append exact new MAIN tails relative the actual common Git ancestor; both original streams remain recoverable from the merge parents. Locally tested integration does not transfer old native judgments. Fresh source and actual qualification remain required. No spore or promotion.
+
+
+- ts: "2026-10-06T17:05:55.062Z"
+  origin: actual protected-merged functional review caller advancement
+  p-efficiency: 0.83
+  p-friction: 0.29
+  p-skill-candidate: 0.51
+  spore: none
+  receipt-refs: uxx14-qualified-eta342-functional-caller-source-20261006T1705Z/new-source-receipt.edn
+  note: Advance only the functional caller after actual full native qualification and exact protected merge verification. Fresh consumer-head review and original author assessment remain required; preserve every historical byte and judgment. No spore or promotion.
