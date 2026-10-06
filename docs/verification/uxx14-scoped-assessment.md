@@ -24,7 +24,8 @@ proposal, trigger and assessment test records are explicitly synthetic. The
 separate native comment metadata fixture records actual PR comment URL shape.
 
 `pr-flow.actionability` and `flow.edn` are consumed from reviewed immutable
-[Agents 0f95](https://github.com/riatzukiza/.agents/tree/0f95afe56fb01fbcf9d7934b72ce31fe96baf451/skills/pr-flow).
+[Agents b67](https://github.com/riatzukiza/.agents/tree/b67bce04b7ed7749513c27b5718b543752d4649a/skills/pr-flow),
+qualified through protected Agents17 merge9354ac302d27bd7762575db526470361d84eba7a.
 The adapter hashes native bodies/hunks, invokes the canonical ordered manifest,
 protocol parser, latest-proposal selection, identity check and disposition.
 It does not install policy or copy the actionability classification law. The

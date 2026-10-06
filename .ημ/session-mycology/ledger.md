@@ -127,3 +127,9 @@ Append correction to typed event5cd2f054-b83f-48b4-b3d0-9488c69b8077: CLJS integ
 - Pin the complete consumer policy and its source hashes coherently to the actual reviewed protected source. Keep captured historical protocol identities literal.
 - Identical final adapter tests expose20 genuine old failures and pass60/1587 after the two-line preflight; all original55definitions/fullbytes remain intact. Helper ownership is Proxx281 for assessment, Uxxf2 for original review.
 - p-efficiency=0.90; p-friction=0.14; p-skill-candidate=0.35. No spore or promotion. Native consumer qualification and protected merge remain required.
+
+
+## 2026-10-06T02:25:31.917Z — Keep verification documentation tied to reviewed source
+
+- Correct the native5422811942 document finding with actual reviewedb67 and protected9354 provenance; preserve every other document byte and all runtime boundaries.
+- p-efficiency=0.91; p-friction=0.12; p-skill-candidate=0.29. No spore or promotion. Fresh successor qualification remains required.
