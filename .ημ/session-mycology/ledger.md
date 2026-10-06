@@ -120,3 +120,22 @@ Append correction to typed event5cd2f054-b83f-48b4-b3d0-9488c69b8077: CLJS integ
 - Whole-job failure after admitted intake does not identify model failure. Explicit model outcome now excludes installation failure and failure after model success.
 - Same final55/1514 suite proves five old failures and candidate pass. Original test/history bytes and immutable publication boundaries stay inspectable.
 - Friction2/5: wrong local environment labels retained as harness diagnostic; use the actual runtime/policy names. Local tests do not establish hosted retention or recover the original hidden exception. No new spore or promotion.
+
+
+## 2026-10-06T01:12:52.015Z — Consume the actual reviewed canonical API
+
+- Pin the complete consumer policy and its source hashes coherently to the actual reviewed protected source. Keep captured historical protocol identities literal.
+- Identical final adapter tests expose20 genuine old failures and pass60/1587 after the two-line preflight; all original55definitions/fullbytes remain intact. Helper ownership is Proxx281 for assessment, Uxxf2 for original review.
+- p-efficiency=0.90; p-friction=0.14; p-skill-candidate=0.35. No spore or promotion. Native consumer qualification and protected merge remain required.
+
+
+## 2026-10-06T02:25:31.917Z — Keep verification documentation tied to reviewed source
+
+- Correct the native5422811942 document finding with actual reviewedb67 and protected9354 provenance; preserve every other document byte and all runtime boundaries.
+- p-efficiency=0.91; p-friction=0.12; p-skill-candidate=0.29. No spore or promotion. Fresh successor qualification remains required.
+
+
+## 2026-10-06T02:45:55.855Z — Keep verification documentation tied to reviewed source
+
+- Correct native4191004567 by binding the repeatable-test example to reviewed Agents-b67; retain all other document bytes and runtime boundaries.
+- p-efficiency=0.91; p-friction=0.12; p-skill-candidate=0.29. No spore or promotion. Fresh successor qualification remains required.

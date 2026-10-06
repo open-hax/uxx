@@ -10,9 +10,9 @@
 (def selection
   {:repo "open-hax/uxx" :pr 14
    :thread "PRRT_kwDOR5O5HM6omklO" :root 4172775340})
-(def policy-sha "0f95afe56fb01fbcf9d7934b72ce31fe96baf451")
-(def law-hash "7af285c05816801608a1ce603f4f74ab7956d401bdb100c837b1470a13601404")
-(def flow-hash "7fb1e7656f5369970228651ee21ba4692e1296574a6baa478fcaf2e2ff642903")
+(def policy-sha "b67bce04b7ed7749513c27b5718b543752d4649a")
+(def law-hash "0a8b783a63b19bd7fb6cb9b32bf71ed9cb42312676bd3e23961b5e61c4a41e53")
+(def flow-hash "2430027740154bb6b7335d6a0a4f05c384378b6e59509b1683f5c248c4da99db")
 (def runtime-hash "0fa9d7838df3f0718d971beb972a48d2bf73fce6d90f09411a656e57ce3960d7")
 (def auth-hash "fd4d5630c462f0f202ac20e39ec1433fba4dfa13e12a6f6ffd5c0ec035d2a7e1")
 (def transport-byte-limit (* 2 1024 1024))
@@ -255,6 +255,8 @@
                   (string? (nth payload 10))
                   (or (not= "informational" (nth payload 9))
                       (= "complete-context/no-defect/no-request/no-question" (nth payload 10)))
+                  (or (not= "informational" (nth payload 9))
+                      (a/details? (nth payload 11) (nth payload 12)))
                   (<= 40 (count (str/trim (nth payload 11)))) (not (str/blank? (nth payload 12))))
              "Missing/mismatched independent scoped submission")
     body))
