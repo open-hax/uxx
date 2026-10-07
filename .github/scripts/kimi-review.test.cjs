@@ -25,7 +25,7 @@ test('bounded structured execution authenticates local API, rejects prose and cl
       assert.equal(options.headers.authorization, 'Basic ' + Buffer.from('opencode:private-local-auth').toString('base64'));
       assert.ok(url.endsWith('?directory=%2Fisolated%2Fworkspace'));
       if (++calls === 1) return { ok: true, json: async () => ({ id: 'ses_test123' }) };
-      if (url.includes('/event?')) return { ok: true, headers: new Headers({ 'content-type': 'text/event-stream' }), body: stream };
+      if (url.includes('/event?')) return { ok: true, headers: { get: name => name === 'content-type' ? 'text/event-stream' : null }, body: stream };
       if (options.method === 'POST') {
         assert.ok(url.includes('/prompt_async?'), 'Model submission must not wait on synchronous response headers');
         const request = JSON.parse(options.body);
@@ -294,3 +294,355 @@ test('diff path enumeration shares the bounded ten MiB buffer', () => {
   vm.runInNewContext(source, sandbox);
   sandbox.module.exports.diffCoverage(a, b); assert.equal(names, true);
 });
+
+test('secret-bearing workflow rejects a runtime present only on the PR branch', () => {
+  const fs = require('node:fs'), path = require('node:path'), os = require('node:os');
+  const { execFileSync, spawnSync } = require('node:child_process');
+  const workflow = fs.readFileSync(path.join(__dirname, '../workflows/opencode-code-review.yml'), 'utf8');
+  const prepare = workflow.split('      - name: Prepare immutable review runtime\n')[1].split('      - name: Run exact-head')[0];
+  const guard = prepare.split('        run: |\n')[1].split('          git show ')[0].split('\n').map(line => line.replace(/^          /, '')).join('\n');
+  assert.match(guard, /git merge-base --is-ancestor/);
+  assert.match(prepare, /PR_BASE_SHA: \$\{\{ github.event.pull_request.base.sha \}\}/);
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'kimi-trust-test-'));
+  try {
+    const git = args => execFileSync('git', args, { cwd: directory, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+    git(['init']); git(['config', 'user.name', 'test']); git(['config', 'user.email', 'test@example.invalid']);
+    git(['commit', '--allow-empty', '-m', 'trusted base']); const base = git(['rev-parse', 'HEAD']);
+    git(['commit', '--allow-empty', '-m', 'unreviewed PR runtime']); const prOnly = git(['rev-parse', 'HEAD']);
+    const run = runtime => spawnSync('bash', ['-c', guard], { cwd: directory, env: { ...process.env, KIMI_RUNTIME_SHA: runtime, PR_BASE_SHA: base }, encoding: 'utf8' });
+    assert.equal(run(base).status, 0);
+    assert.notEqual(run(prOnly).status, 0);
+    assert.notEqual(run('main').status, 0);
+  } finally { fs.rmSync(directory, { recursive: true, force: true }); }
+});
+
+
+test('publisher body stays bounded with large coverage while preserving full artifact', async () => {
+  const fs = require('node:fs'), os = require('node:os'), path = require('node:path');
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'kimi-body-'));
+  try {
+    const sha = 'a'.repeat(40), digest = 'b'.repeat(64);
+    const provenance = { origin: 'github-actions-native-execution', repository: 'open-hax/test',
+      head: sha, base: sha, runtimeSha: sha, runtimeBlobSha256: digest,
+      runtimeBaseAncestorVerified: true,
+      requestedModel: { providerID: 'kimi-code-plan-global', modelID: 'kimi-for-coding' },
+      executedModel: { providerID: 'kimi-code-plan-global', modelID: 'kimi-for-coding' },
+      runID: '12345', runAttempt: 2, workflowSha: sha, opencodeVersion: '1.18.34',
+      archiveSha256: digest, diffSha256: digest,
+      coveredFiles: Array.from({ length: 10000 }, (_, i) => `long-path/${i}/file.cljc`) };
+    const original = JSON.stringify(provenance);
+    fs.writeFileSync(path.join(root, 'kimi-provenance.json'), original);
+    assert.ok(60000 + JSON.stringify(provenance, null, 2).length > 65536);
+    fs.writeFileSync(path.join(root, 'kimi-review.cjs'),
+      "exports.publish=async ({github})=>github.rest.pulls.createReview({body:'x'.repeat(60000)});");
+    const workflow = fs.readFileSync(path.join(__dirname, '../workflows/opencode-code-review.yml'), 'utf8');
+    const script = workflow.split('          script: |\n')[1].split('\n').map(line => line.slice(12)).join('\n');
+    let published;
+    const github = { rest: { pulls: { createReview: async parameters => { published = parameters; } } } };
+    const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+    await new AsyncFunction('require', 'github', 'context', 'process', script)(
+      require, github, {}, { env: { RUNNER_TEMP: root } });
+    assert.ok(published.body.length <= 65536);
+    assert.ok(published.body.includes('"coveredFileCount": 10000'));
+    assert.ok(published.body.includes('kimi-code-plan-global'));
+    assert.equal(fs.readFileSync(path.join(root, 'kimi-provenance.json'), 'utf8'), original);
+  } finally { fs.rmSync(root, { recursive: true, force: true }); }
+});
+
+// These local Git/filesystem fixtures execute the workflow publisher; no model,
+// GitHub or Discord service is contacted. They model failed-job dependency reuse,
+// not GitHub's scheduler or exactly-once webhook delivery.
+function kimiRetryFixture() {
+  const fs = require('node:fs'), os = require('node:os'), path = require('node:path');
+  const { execFileSync } = require('node:child_process');
+  const helper = require('./kimi-review.cjs'); // Load the pinned-equal source before chdir.
+  const prior = process.cwd();
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'kimi-publication-retry-'));
+  try {
+  const source = fs.readFileSync(require.resolve('./kimi-review.cjs'));
+  const workflow = fs.readFileSync(path.join(__dirname, '../workflows/opencode-code-review.yml'), 'utf8');
+  const git = args => execFileSync('git', args, { cwd: directory, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+  git(['init']); git(['config', 'user.name', 'local fixture']); git(['config', 'user.email', 'fixture@example.invalid']);
+  fs.mkdirSync(path.join(directory, '.github/scripts'), { recursive: true });
+  fs.writeFileSync(path.join(directory, '.github/scripts/kimi-review.cjs'), source);
+  fs.writeFileSync(path.join(directory, 'source.cljc'), '(def fixture 1)\n');
+  git(['add', '--', '.github', 'source.cljc']); git(['commit', '-qm', 'trusted fixture runtime']); const base = git(['rev-parse', 'HEAD']);
+  fs.writeFileSync(path.join(directory, 'source.cljc'), '(def fixture 2)\n');
+  git(['add', '--', 'source.cljc']); git(['commit', '-qm', 'changed fixture source']); const head = git(['rev-parse', 'HEAD']);
+  const temp = path.join(directory, 'runner'); fs.mkdirSync(temp);
+  fs.writeFileSync(path.join(temp, 'kimi-review.cjs'), source);
+  process.chdir(directory);
+  const coverage = helper.diffCoverage(base, head);
+  const env = { RUNNER_TEMP: temp, GITHUB_REPOSITORY: 'open-hax/uxx', GITHUB_RUN_ID: '12345', GITHUB_RUN_ATTEMPT: '1',
+    GITHUB_WORKFLOW_SHA: head, GITHUB_WORKFLOW_REF: 'open-hax/uxx/.github/workflows/opencode-code-review.yml@refs/pull/14/merge',
+    KIMI_RUNTIME_SHA: base, PR_HEAD_SHA: head, PR_BASE_SHA: base, PR_NUMBER: '14',
+    KIMI_REVIEW_FILE: path.join(temp, 'kimi-review.json'), DISCORD_REVIEW_WEBHOOK_URL: 'https://fixture.invalid/webhook',
+    PRODUCER_ARTIFACT: `kimi-native-14-${head}-1`, PRODUCER_ATTEMPT: '1' };
+  const pr = { number: 14, state: 'open', draft: false, head: { sha: head, repo: { full_name: 'open-hax/uxx' } }, base: { sha: base } };
+  const records = [], counts = { model: 0, posts: 0, discord: 0 }; let notifyFail = true;
+  const github = { rest: { pulls: {
+    get: async () => ({ data: pr }), listFiles: function listFiles() {}, listReviews: function listReviews() {},
+    listCommentsForReview: function listCommentsForReview() {},
+    createReview: async parameters => { counts.posts++; const row = { ...parameters, id: counts.posts, state: 'COMMENTED',
+      user: { login: 'github-actions[bot]' }, html_url: `https://fixture.invalid/review/${counts.posts}` }; records.push(row); return { data: row }; },
+  } }, paginate: async (method, parameters) => {
+    if (method === github.rest.pulls.listFiles) return [{ filename: 'source.cljc', patch: '@@ -1 +1 @@\n-(def fixture 1)\n+(def fixture 2)' }];
+    if (method === github.rest.pulls.listReviews) return records;
+    assert.equal(method, github.rest.pulls.listCommentsForReview);
+    return [{ body: 'Synthetic local finding', path: 'source.cljc', line: 1, user: { login: 'github-actions[bot]' } }];
+  } };
+  const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+  function nodeStep(name) {
+    const block = workflow.split(`      - name: ${name}\n`)[1]?.split('\n      - ')[0];
+    if (!block) return null;
+    return block.split("          node <<'NODE'\n")[1]?.split('\n          NODE')[0].split('\n').map(line => line.slice(10)).join('\n');
+  }
+  function produce(attempt = 1) {
+    counts.model++;
+    const review = { head, diffSha256: coverage.diffSha256, coveredFiles: coverage.coveredFiles,
+      summary: `Synthetic model output ${counts.model}`, comments: [{ path: 'source.cljc', line: 1, body: 'Synthetic local finding' }] };
+    const model = helper.structuredRequest('', head, review).model;
+    const provenance = { origin: 'github-actions-native-execution', repository: env.GITHUB_REPOSITORY, head, base, runtimeSha: base,
+      runtimeBlobSha256: require('node:crypto').createHash('sha256').update(source).digest('hex'), runtimeBaseAncestorVerified: true,
+      requestedModel: model, executedModel: model, runID: env.GITHUB_RUN_ID, runAttempt: attempt,
+      workflowSha: env.GITHUB_WORKFLOW_SHA, workflowRef: env.GITHUB_WORKFLOW_REF, opencodeVersion: '1.18.34',
+      archiveSha256: '0f22479647226d1d2dd99595d20082ee7bda3870b62dc6a90b41efc1a71d7e9a',
+      diffSha256: review.diffSha256, coveredFiles: review.coveredFiles };
+    fs.writeFileSync(env.KIMI_REVIEW_FILE, JSON.stringify(review));
+    fs.writeFileSync(path.join(temp, 'kimi-provenance.json'), JSON.stringify(provenance));
+    return { review: fs.readFileSync(env.KIMI_REVIEW_FILE), provenance: fs.readFileSync(path.join(temp, 'kimi-provenance.json')) };
+  }
+  const verify = async () => {
+    const code = nodeStep('Verify producer artifact before publication');
+    assert.ok(code, 'Actual publisher must validate the reused producer artifact before POST');
+    await new AsyncFunction('require', 'process', code)(require, { env });
+  };
+  const publish = async () => {
+    const script = workflow.split('          script: |\n')[1].split('\n').map(line => line.slice(12)).join('\n');
+    const original = github.rest.pulls.createReview;
+    try {
+      await new AsyncFunction('require', 'github', 'context', 'process', script)(
+        id => id === path.join(temp, 'kimi-review.cjs') ? { publish: options => helper.publish({ ...options,
+          fetchImpl: async () => { counts.discord++; return { ok: !notifyFail, status: notifyFail ? 500 : 204 }; } }) } : require(id),
+        github, { repo: { owner: 'open-hax', repo: 'uxx' }, payload: { pull_request: pr } }, { env });
+    } finally { github.rest.pulls.createReview = original; }
+  };
+  return { workflow, env, temp, counts, records, produce, verify, publish, nodeStep,
+    allowNotifications: () => { notifyFail = false; },
+    cleanup: () => { process.chdir(prior); fs.rmSync(directory, { recursive: true, force: true }); } };
+  } catch (error) {
+    process.chdir(prior); fs.rmSync(directory, { recursive: true, force: true });
+    throw error;
+  }
+}
+
+test('failed publication job reuses producer bytes after actual review POST and Discord failure', async () => {
+  const fs = require('node:fs'), path = require('node:path');
+  const f = kimiRetryFixture();
+  try {
+    const artifact = f.produce();
+    if (f.workflow.includes('\n  publish:\n')) await f.verify();
+    await assert.rejects(f.publish(), /Discord webhook failed: 500/);
+    assert.equal(f.counts.posts, 1, 'First native API fixture records POST before notification failure');
+    f.env.GITHUB_RUN_ATTEMPT = '2'; f.allowNotifications();
+    if (f.workflow.includes('\n  publish:\n')) {
+      assert.match(f.workflow, /publish:\n    needs: review/);
+      assert.match(f.workflow, /name: \$\{\{ needs.review.outputs.artifact-name \}\}/);
+      fs.writeFileSync(f.env.KIMI_REVIEW_FILE, artifact.review);
+      fs.writeFileSync(path.join(f.temp, 'kimi-provenance.json'), artifact.provenance);
+      await f.verify();
+    } else f.produce(2); // Published predecessor reruns the model in the failed combined job.
+    await f.publish();
+    console.log('[retry-after-post]', JSON.stringify({ ...f.counts, reviewIDs: f.records.map(r => r.id), producerAttempt: JSON.parse(fs.readFileSync(path.join(f.temp, 'kimi-provenance.json'))).runAttempt }));
+    assert.equal(f.counts.model, 1, 'Failed publisher retry must not execute model production');
+    assert.equal(f.counts.posts, 1, 'Same immutable submission must reuse the original review and thread IDs');
+    assert.equal(f.counts.discord, 2, 'Failed webhook is retried; this does not assert exactly-once delivery');
+    assert.equal(fs.readFileSync(path.join(f.temp, 'kimi-provenance.json')).equals(artifact.provenance), true);
+  } finally { f.cleanup(); }
+});
+
+test('publisher accepts producer1/consumer2 and producer2/consumer2 without attempt relabeling', async () => {
+  const fs = require('node:fs'), path = require('node:path');
+  const f = kimiRetryFixture();
+  try {
+    for (const producer of [1, 2]) {
+      const artifact = f.produce(producer);
+      f.env.GITHUB_RUN_ATTEMPT = '2'; f.env.PRODUCER_ATTEMPT = String(producer);
+      f.env.PRODUCER_ARTIFACT = `kimi-native-14-${f.env.PR_HEAD_SHA}-${producer}`;
+      await f.verify();
+      assert.equal(fs.readFileSync(path.join(f.temp, 'kimi-provenance.json')).equals(artifact.provenance), true);
+    }
+  } finally { f.cleanup(); }
+});
+
+test('reused producer provenance refuses missing output, foreign identity, coverage and future attempt before POST', async () => {
+  const fs = require('node:fs'), path = require('node:path');
+  const f = kimiRetryFixture();
+  try {
+    const artifact = f.produce(); f.env.GITHUB_RUN_ATTEMPT = '2';
+    const goodEnv = { ...f.env }, good = JSON.parse(artifact.provenance);
+    await f.verify(); // Positive control makes refusal cases prove validation, not missing code.
+    const cases = [
+      ['missing artifact', null, { PRODUCER_ARTIFACT: '' }], ['missing attempt', null, { PRODUCER_ATTEMPT: '' }],
+      ['wrong artifact', null, { PRODUCER_ARTIFACT: 'foreign-name' }], ['future attempt', { runAttempt: 3 }, { PRODUCER_ATTEMPT: '3' }],
+      ...['repository', 'head', 'base', 'runtimeSha', 'runtimeBlobSha256', 'runID', 'workflowSha', 'workflowRef', 'archiveSha256', 'opencodeVersion', 'diffSha256'].map(key => [key, { [key]: 'foreign' }, {}]),
+      ['foreign requested model', { requestedModel: { providerID: 'foreign', modelID: 'kimi-for-coding' } }, {}],
+      ['foreign executed model', { executedModel: { providerID: 'foreign', modelID: 'kimi-for-coding' } }, {}],
+      ['missing ancestor proof', { runtimeBaseAncestorVerified: false }, {}], ['wrong files', { coveredFiles: [] }, {}],
+      ['foreign origin', { origin: 'local-fiction' }, {}], ['producer attempt relabeled', { runAttempt: 2 }, {}],
+    ];
+    for (const [label, change, override] of cases) {
+      Object.assign(f.env, goodEnv, override); fs.writeFileSync(path.join(f.temp, 'kimi-provenance.json'), JSON.stringify({ ...good, ...change }));
+      await assert.rejects(f.verify(), undefined, label); assert.equal(f.counts.posts, 0, label);
+    }
+    Object.assign(f.env, goodEnv); fs.writeFileSync(path.join(f.temp, 'kimi-provenance.json'), artifact.provenance);
+    const review = JSON.parse(artifact.review); review.diffSha256 = 'e'.repeat(64);
+    fs.writeFileSync(f.env.KIMI_REVIEW_FILE, JSON.stringify(review));
+    await assert.rejects(f.verify()); assert.equal(f.counts.posts, 0);
+  } finally { f.cleanup(); }
+});
+
+test('actual producer output and nonempty download guard preserve the successful upload identity', async () => {
+  const fs = require('node:fs'), path = require('node:path');
+  const { spawnSync } = require('node:child_process');
+  const f = kimiRetryFixture();
+  try {
+    const code = f.nodeStep('Bind successful producer artifact');
+    assert.ok(code, 'Artifact output must come from the successful producer');
+    f.env.GITHUB_OUTPUT = path.join(f.temp, 'outputs'); f.env.GITHUB_RUN_ATTEMPT = '2';
+    const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+    await new AsyncFunction('require', 'process', code)(require, { env: f.env });
+    assert.equal(fs.readFileSync(f.env.GITHUB_OUTPUT, 'utf8'), `artifact-name=kimi-native-14-${f.env.PR_HEAD_SHA}-2\nproducer-attempt=2\n`);
+    const beforeDownload = f.workflow.split('      - name: Require successful producer output\n')[1]?.split('      - uses: actions/download-artifact@')[0];
+    assert.ok(beforeDownload, 'Missing output must refuse before artifact download');
+    const guard = beforeDownload.split('        run: ')[1].trim();
+    for (const [value, expected] of [['', 1], [f.env.PRODUCER_ARTIFACT, 0]]) {
+      const run = spawnSync('bash', ['-c', guard], { env: { ...process.env, PRODUCER_ARTIFACT: value } });
+      assert.equal(run.status, expected);
+    }
+  } finally { f.cleanup(); }
+});
+
+
+for (const seam of ['coverage', 'mkdir']) {
+  test(`retry fixture construction failure at ${seam} restores cwd and removes its temporary Git workspace`, () => {
+    const fs = require('node:fs'), helper = require('./kimi-review.cjs');
+    const prior = process.cwd(), originalCoverage = helper.diffCoverage, originalMkdtemp = fs.mkdtempSync, originalMkdir = fs.mkdirSync;
+    const failure = new Error(`Synthetic constructor ${seam} failure`); let directory;
+    fs.mkdtempSync = (...args) => { directory = originalMkdtemp(...args); return directory; };
+    if (seam === 'coverage') helper.diffCoverage = () => { throw failure; };
+    else fs.mkdirSync = () => { throw failure; };
+    try {
+      assert.throws(() => kimiRetryFixture(), error => error === failure);
+      assert.equal(process.cwd(), prior, 'Constructor failure must restore its caller cwd before rethrow');
+      assert.ok(directory); assert.equal(fs.existsSync(directory), false, 'Constructor failure must remove its workspace');
+    } finally {
+      helper.diffCoverage = originalCoverage; fs.mkdtempSync = originalMkdtemp; fs.mkdirSync = originalMkdir;
+      process.chdir(prior); if (directory) fs.rmSync(directory, { recursive: true, force: true });
+    }
+  });
+}
+
+for (const preparation of ['Prepare immutable review runtime', 'Prepare immutable publisher runtime']) {
+  for (const scenario of ['advertised-behind-base', 'ordinary-fast-forward', 'retained-unadvertised-base',
+    'deleted-base-branch', 'pruned-base', 'malformed-base', 'blob-base', 'annotated-tag-base', 'runtime-not-base-ancestor']) {
+    test(`${preparation}: exact captured base ${scenario}`, t => {
+      const fs = require('node:fs'), os = require('node:os'), path = require('node:path');
+      const { execFileSync, spawnSync } = require('node:child_process');
+      const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'kimi-captured-base-'));
+      const origin = path.join(directory, 'origin.git'), client = path.join(directory, 'client');
+      const env = { PATH: `${path.dirname(process.execPath)}${path.delimiter}${process.env.PATH}`,
+        LANG: 'C.UTF-8', GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: '/dev/null', GIT_TERMINAL_PROMPT: '0',
+        GIT_AUTHOR_NAME: 'fixture', GIT_AUTHOR_EMAIL: 'fixture@example.invalid',
+        GIT_COMMITTER_NAME: 'fixture', GIT_COMMITTER_EMAIL: 'fixture@example.invalid',
+        GIT_AUTHOR_DATE: '2026-10-05T00:00:00Z', GIT_COMMITTER_DATE: '2026-10-05T00:00:00Z' };
+      const git = (cwd, args, input) => execFileSync('git', args, { cwd, env, input,
+        encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
+      const objectPresent = (cwd, value) => spawnSync('git', ['cat-file', '-e', `${value}^{commit}`],
+        { cwd, env, stdio: 'ignore' }).status === 0;
+      try {
+        fs.mkdirSync(origin); fs.mkdirSync(client); git(origin, ['init', '--bare', '-q']);
+        const blob = text => git(origin, ['hash-object', '-w', '--stdin'], text);
+        const tree = entries => git(origin, ['mktree'], entries.join('\n') + '\n');
+        // Runtime is data only: even accidental execution would fail, while node --check is allowed.
+        const runtimeBytes = 'throw new Error("Fixture runtime must never execute");\n';
+        const scripts = tree([`100644 blob ${blob(runtimeBytes)}\tkimi-review.cjs`]);
+        const github = tree([`040000 tree ${scripts}\tscripts`]);
+        const commit = (label, parent) => {
+          const root = tree([`040000 tree ${github}\t.github`,
+            `100644 blob ${blob(`governing ${label}\n`)}\tAGENTS.md`,
+            `100644 blob ${blob(`(def fixture-value "${label}")\n`)}\tfixture-source.cljc`]);
+          return git(origin, ['commit-tree', root, ...(parent ? ['-p', parent] : [])], label + '\n');
+        };
+        const runtime = commit('runtime'), captured = commit('captured-base', runtime), head = commit('PR-head', runtime);
+        const forward = commit('forward-main', captured), replacement = commit('replacement-main', runtime);
+        git(origin, ['update-ref', 'refs/heads/main', captured]);
+        git(origin, ['update-ref', 'refs/heads/feature', head]);
+        let base = captured;
+        if (scenario === 'ordinary-fast-forward') git(origin, ['update-ref', 'refs/heads/main', forward, captured]);
+        if (['retained-unadvertised-base', 'pruned-base'].includes(scenario)) {
+          git(origin, ['update-ref', 'refs/heads/main', replacement, captured]);
+        }
+        if (scenario === 'deleted-base-branch') git(origin, ['update-ref', '-d', 'refs/heads/main', captured]);
+        if (scenario === 'pruned-base') {
+          git(origin, ['reflog', 'expire', '--expire=now', '--all']); git(origin, ['gc', '--prune=now']);
+          assert.equal(objectPresent(origin, captured), false, 'Pruned server really lacks captured base');
+        } else assert.equal(objectPresent(origin, captured), true, 'Retained server really has captured base');
+        if (scenario === 'malformed-base') base = 'main';
+        if (scenario === 'blob-base') base = blob('not a commit\n');
+        if (scenario === 'annotated-tag-base') {
+          base = git(origin, ['mktag'], `object ${captured}\ntype commit\ntag fixture-tag\ntagger fixture <fixture@example.invalid> 1791158400 +0000\n\nnot the native commit SHA\n`);
+          git(origin, ['update-ref', 'refs/tags/fixture-tag', base]);
+        }
+        git(client, ['init', '-q']);
+        git(client, ['remote', 'add', 'origin', require('node:url').pathToFileURL(origin).href]);
+        // Exact depth-zero heads/tags refspec observed in both pinned checkout job logs.
+        git(client, ['-c', 'protocol.version=2', 'fetch', '--no-tags', '--prune', '--no-recurse-submodules',
+          'origin', '+refs/heads/*:refs/remotes/origin/*', '+refs/tags/*:refs/tags/*']);
+        git(client, ['checkout', '--detach', '-q', head]);
+        assert.notEqual(spawnSync('git', ['merge-base', '--is-ancestor', captured, head],
+          { cwd: origin, env, stdio: 'ignore' }).status, 0, 'Base is genuinely outside PR-head ancestry');
+        const missing = ['retained-unadvertised-base', 'deleted-base-branch', 'pruned-base'].includes(scenario);
+        assert.equal(objectPresent(client, captured), !missing, 'Fetch genuinely includes or omits captured base');
+        const workflow = fs.readFileSync(path.join(__dirname, '../workflows/opencode-code-review.yml'), 'utf8');
+        const block = workflow.split(`      - name: ${preparation}\n`)[1].split('\n      - ')[0];
+        assert.match(block, /PR_BASE_SHA: \$\{\{ github.event.pull_request.base.sha \}\}/);
+        const script = block.split('        run: |\n')[1].split('\n').map(line => line.replace(/^          /, '')).join('\n');
+        const temporary = path.join(directory, 'runner-temp'), trace = path.join(directory, 'preparation.trace');
+        fs.mkdirSync(temporary);
+        const refs = git(client, ['for-each-ref', '--format=%(refname) %(objectname)']);
+        const result = spawnSync('bash', ['-c', script], { cwd: client, encoding: 'utf8',
+          env: { ...env, RUNNER_TEMP: temporary, PR_BASE_SHA: base,
+            KIMI_RUNTIME_SHA: scenario === 'runtime-not-base-ancestor' ? head : runtime, GIT_TRACE: trace } });
+        const prepared = path.join(temporary, 'kimi-review.cjs');
+        const traceBytes = fs.existsSync(trace) ? fs.readFileSync(trace, 'utf8') : '';
+        const fetched = [...traceBytes.matchAll(/trace: built-in: git fetch .* origin ([0-9a-f]{40})(?:\n|$)/g)].map(match => match[1]);
+        t.diagnostic(JSON.stringify({ preparation, scenario, captured, head, suppliedBase: base,
+          capturedPresentAfterCheckout: !missing, prepareExit: result.status, fetched, runtimeWritten: fs.existsSync(prepared) }));
+        assert.equal(git(client, ['rev-parse', 'HEAD']), head, 'Preparation preserves immutable head');
+        assert.equal(git(client, ['for-each-ref', '--format=%(refname) %(objectname)']), refs, 'Recovery does not replace advertised refs');
+        const succeeds = ['advertised-behind-base', 'ordinary-fast-forward', 'retained-unadvertised-base', 'deleted-base-branch'].includes(scenario);
+        if (!succeeds) {
+          assert.notEqual(result.status, 0, 'Invalid or unavailable native base/runtime must deny');
+          assert.equal(fs.existsSync(prepared), false, 'Denied preparation never extracts an executable runtime');
+          if (scenario === 'malformed-base') assert.deepEqual(fetched, [], 'Format denial occurs before fetch');
+          return;
+        }
+        assert.equal(result.status, 0, 'Retained exact captured base must prepare without substituting live main');
+        assert.deepEqual(fetched, missing ? [captured] : [], 'Fetch only the exact missing captured base');
+        assert.equal(git(client, ['rev-parse', `${base}^{commit}`]), captured);
+        assert.equal(fs.readFileSync(prepared, 'utf8'), runtimeBytes, 'Extract exactly the base-ancestor runtime bytes');
+        const prior = process.cwd();
+        try {
+          process.chdir(client);
+          const helper = require('./kimi-review.cjs'), snapshot = path.join(directory, 'snapshot'); fs.mkdirSync(snapshot);
+          const coverage = helper.diffCoverage(base, head);
+          assert.ok(coverage.coveredFiles.includes('fixture-source.cljc')); assert.match(coverage.diff, /PR-head/);
+          helper.sourceSnapshot(head, snapshot, base);
+          assert.equal(fs.readFileSync(path.join(snapshot, 'AGENTS.md'), 'utf8'), 'governing captured-base\n');
+          assert.equal(fs.readFileSync(path.join(snapshot, 'fixture-source.cljc'), 'utf8'), '(def fixture-value "PR-head")\n');
+        } finally { process.chdir(prior); }
+      } finally { fs.rmSync(directory, { recursive: true, force: true }); }
+    });
+  }
+}

@@ -71,6 +71,53 @@ A successful native POST and complete transport qualification are separate obser
 2026-10-04T21:48:02.914Z — Unknown remote outcome is not absence; p-efficiency0.94,p-friction0.12,p-skill-candidate0.58; no spore/promotion.
 
 Append correction to historical checkpoint event5c257de8-877a-411d-b438-43fd61e29923: initial not-published overstated remote absence when POST throws or returns no positive ID. A synthetic API that creates the comment before losing its response proves the distinction through actual main/live/publish/filesystem. Sealed prior candidate RED45/1139/12fail0error becomes GREEN45/1139/zero by only renaming initial state and matching preflight marker to publication-unconfirmed/not-established. No invented native ID or readback; preserve an existing known-ID checkpoint on ambiguous retry. Positive-ID verified stages and all native freshness/coverage/App/classification guards remain unchanged. The old receipt, whole73118/13936 prefixes and original92-file packet remain immutable. This is local source preparation, not actual provider/native review evidence; parent owns publication and fresh required gates.
+- ts: 2026-10-02T22:10:42.850214740Z
+  session: /home/err/spaces/review-repair/uxx
+  task: Restore Kimi review provider and trigger
+  p-efficiency: 0.8
+  p-friction: 0.3
+  p-skill-candidate: 0.1
+  spore: none
+  receipt-refs: none
+  note: Manual trigger with PR-only condition silently skipped review.
+- ts: 2026-10-02T22:46:13.620313676Z
+  session: /home/err/spaces/review-repair/uxx
+  task: Exact-head Kimi runner and isolated bounded publication
+  p-efficiency: 0.75
+  p-friction: 0.65
+  p-skill-candidate: 0.4
+  spore: none
+  receipt-refs: open-hax/uxx#14
+  note: Verified runner movement and notification overflow require guarded publication. Existing pr-flow guidance applies; no new spore.
+- ts: 2026-10-03T08:25:27.028846551Z
+  session: /home/err/spaces/review-repair/uxx
+  task: Structured Kimi qualification and trusted-base bootstrap
+  p-efficiency: 0.6
+  p-friction: 0.65
+  p-skill-candidate: 0.3
+  spore: none
+  receipt-refs: Uxx15,Proxx446
+  note: A real source snapshot exposed default inventory buffers and tracked analyzer caches. Keep bounded limits and reject excluded changed paths. Do not equate mocked structured responses or quota acknowledgements with live review success.
+
+2026-10-04T22:23:59.891Z — p-efficiency0.9,p-friction0.2,p-skill-candidate0.4; no spore or promotion.
+
+An ordinary integration preserves two divergent ledger histories through exact raw rows and actual Git parents, while retaining the entire merged MAIN prefix. The child ledger had already interleaved ten byte-identical merge-base rows, so a false contiguous-prefix assumption was rejected before edits; a row-position proof reconstructs all original25844 bytes. The complete14991 MAIN reflection and1196 child reflection survive. Local45/1139 scoped contract and19 runner tests pass, with no actual model or App effect. Prerequisite18 was genuinely protected merged at411 with current reviewed855 tree; its approval does not transfer to the new14 head. Fresh full native qualification and actual independent assessment remain required.
+
+- ts: "2026-10-04T23:24:45.696841Z"
+  origin: review-restoration/kimi-publisher-failed-job-retry
+  p-efficiency: 0.89
+  p-friction: 0.26
+  p-skill-candidate: 0.35
+  spore: none
+  note: A successful review POST followed by failed Discord delivery must retry the saved producer artifact in a separate publisher job. Preserve original attempt/source provenance and native review ID; deliberate full production reruns and webhook delivery remain separately bounded. Verify identical predecessor tests in the correct Git context before attributing every failure to the repair. Functional tests do not establish hosted retry execution or generic Bot enrollment.
+
+- ts: "2026-10-04T23:44:02.480Z"
+  origin: review-restoration/test-fixture-constructor-cleanup
+  p-efficiency: 0.9
+  p-friction: 0.23
+  p-skill-candidate: 0.3
+  spore: none
+  note: Constructors that allocate temporary resources must guard every subsequent operation, including faults before process cwd changes. Verify both early and late construction errors restore caller state while retaining the original error. Native generic Bot findings remain actionable without granting that Bot reviewer-quorum identity.
 
 2026-10-05T01:19:15.427Z — Bind authoritative native actor fields; p-efficiency0.91,p-friction0.20,p-skill-candidate0.45; no spore/promotion.
 
@@ -101,6 +148,13 @@ Append correction to typed event5cd2f054-b83f-48b4-b3d0-9488c69b8077: CLJS integ
 - Append-only cardinality correction 33919c11-9b37-4954-9412-f1635ddb4ba0: exact b8 tree has11316 tracked entries, current4 owned paths leave11312 unowned. The earlier three-path fixture correction counted11313 including the adapter now explicitly owned; no tracked entry is omitted. Initial count assertion refused before freeze, diagnostic preserved, no runtime/source changes beyond the already authorized repair.
 
 
+## 2026-10-05T04:17:08.372Z — Qualified native actor and inventory membership integration
+
+- Actual19 merge verified exact tree/two parents. Original14 inherits only two reviewed source files plus byte-exact historical ledger tails; original workflow/runner/root receipts stay exact. Local51/1435 and25/25 pass. The first local setup missed pinned flow.edn and was corrected without source changes.
+- Preserve the published child's entire prefix and append the other parent's exact tail; both originals remain actual Git parents. State which full physical prefix survives rather than claiming impossible simultaneous distinct prefixes.
+- Fresh successor full reviews/CI and real independent native assessment remain required; no approval transfer or hosted-cause inference. p-efficiency=0.9, p-friction=0.27, p-skill-candidate=0.35; no new spore or promotion.
+
+
 ## 2026-10-05T06:59:07.089Z — Preserve a safe failure boundary rather than guessing the provider cause
 
 - Actual intake progressed after reviewed19; model73second failure lost already-sanitized helper phase. Surface only known phase/deadline constants and retain admitted public input after failure, with denial and all native source guards intact.
@@ -122,6 +176,20 @@ Append correction to typed event5cd2f054-b83f-48b4-b3d0-9488c69b8077: CLJS integ
 - Friction2/5: wrong local environment labels retained as harness diagnostic; use the actual runtime/policy names. Local tests do not establish hosted retention or recover the original hidden exception. No new spore or promotion.
 
 
+## 2026-10-05T09:48:55.579Z — Qualified diagnostics and exact captured-base recovery
+
+- Actual protected source20 merge c526 was qualified before integration. New43 real Git/runner tests pass; identical predecessor tests expose four retained-object recovery failures and two tag-versus-exact-commit failures, while all25 inherited tests pass. Original head-only checkout premise remains false. GitHub unadvertised-object serving and any actual ref race remain unobserved.
+- Preserve the child's entire published ledger prefix and append only the new other-parent tail. A Git merge-base need not be the physical prefix after a prior union merge; verify reconstruction from the actual older shared prefix and imported tails. The initial overstrict assertion stopped before writes.
+- Fresh current-head full reviews, mandatory checks and genuine independent actionability classification remain required. p-efficiency=0.86; p-friction=0.25; p-skill-candidate=0.49. Existing discipline covers the lesson; no new spore or promotion.
+
+
+## 2026-10-05T10:29:09.588Z — Match publication permissions to actual API use
+
+- Full current CodeRabbit review found one unused Issues write grant. Remove the single permission line and keep the actual Pull Requests publication interface and every existing regression definition unchanged;43/43 and actionlint pass.
+- A complete generic Kimi transport proof remains distinct from admitted approving identity. Successor commits require fresh qualification even when the source fix removes only a permission.
+- p-efficiency=0.94; p-friction=0.08; p-skill-candidate=0.19. Existing least-privilege and exact-head discipline covers the change; no new spore or promotion.
+
+
 ## 2026-10-06T01:12:52.015Z — Consume the actual reviewed canonical API
 
 - Pin the complete consumer policy and its source hashes coherently to the actual reviewed protected source. Keep captured historical protocol identities literal.
@@ -139,3 +207,32 @@ Append correction to typed event5cd2f054-b83f-48b4-b3d0-9488c69b8077: CLJS integ
 
 - Correct native4191004567 by binding the repeatable-test example to reviewed Agents-b67; retain all other document bytes and runtime boundaries.
 - p-efficiency=0.91; p-friction=0.12; p-skill-candidate=0.29. No spore or promotion. Fresh successor qualification remains required.
+
+
+- ts: "2026-10-06T14:39:16.398Z"
+  origin: ordinary qualified Uxx21 integration
+  p-efficiency: 0.83
+  p-friction: 0.29
+  p-skill-candidate: 0.51
+  spore: none
+  receipt-refs: uxx14-after-qualified21-integration-20261006T1429Z/new-source-receipt.edn
+  note: Preserve the whole original child ledger and append exact new MAIN tails relative the actual common Git ancestor; both original streams remain recoverable from the merge parents. Locally tested integration does not transfer old native judgments. Fresh source and actual qualification remain required. No spore or promotion.
+
+
+- ts: "2026-10-06T17:05:55.062Z"
+  origin: actual protected-merged functional review caller advancement
+  p-efficiency: 0.83
+  p-friction: 0.29
+  p-skill-candidate: 0.51
+  spore: none
+  receipt-refs: uxx14-qualified-eta342-functional-caller-source-20261006T1705Z/new-source-receipt.edn
+  note: Advance only the functional caller after actual full native qualification and exact protected merge verification. Fresh consumer-head review and original author assessment remain required; preserve every historical byte and judgment. No spore or promotion.
+
+- ts: "2026-10-07T19:25:36.019Z"
+  origin: Qualified Eta345 and Muse20 paired caller consumption
+  p-efficiency: 0.83
+  p-friction: 0.29
+  p-skill-candidate: 0.51
+  spore: none
+  receipt-refs: uxx14-qualified-eta345-caller-parent-publication-20261007T1920Z/child-source-record.edn
+  note: Review the consumer boundary as a pair: the new Eta workflow invokes a Muse build target absent in the old revision. Two immutable pins advance together while original source and historical ledgers remain intact. The separate author-assessment failures stay unknown and receive no inferred repair or predecessor credit. Fresh native qualification remains required; no spore or promotion.
