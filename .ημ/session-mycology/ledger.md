@@ -227,3 +227,12 @@ Append correction to typed event5cd2f054-b83f-48b4-b3d0-9488c69b8077: CLJS integ
   spore: none
   receipt-refs: uxx14-qualified-eta342-functional-caller-source-20261006T1705Z/new-source-receipt.edn
   note: Advance only the functional caller after actual full native qualification and exact protected merge verification. Fresh consumer-head review and original author assessment remain required; preserve every historical byte and judgment. No spore or promotion.
+
+- ts: "2026-10-07T19:25:36.019Z"
+  origin: Qualified Eta345 and Muse20 paired caller consumption
+  p-efficiency: 0.83
+  p-friction: 0.29
+  p-skill-candidate: 0.51
+  spore: none
+  receipt-refs: uxx14-qualified-eta345-caller-parent-publication-20261007T1920Z/child-source-record.edn
+  note: Review the consumer boundary as a pair: the new Eta workflow invokes a Muse build target absent in the old revision. Two immutable pins advance together while original source and historical ledgers remain intact. The separate author-assessment failures stay unknown and receive no inferred repair or predecessor credit. Fresh native qualification remains required; no spore or promotion.
