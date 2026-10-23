@@ -236,3 +236,13 @@ Append correction to typed event5cd2f054-b83f-48b4-b3d0-9488c69b8077: CLJS integ
   spore: none
   receipt-refs: uxx14-qualified-eta345-caller-parent-publication-20261007T1920Z/child-source-record.edn
   note: Review the consumer boundary as a pair: the new Eta workflow invokes a Muse build target absent in the old revision. Two immutable pins advance together while original source and historical ledgers remain intact. The separate author-assessment failures stay unknown and receive no inferred repair or predecessor credit. Fresh native qualification remains required; no spore or promotion.
+
+- ts: "2026-10-23T06:58:32.752Z"
+  session: "/home/err/.local/share/foresight-worktrees/antigravity-members-20261023/uxx"
+  task: "Prepare incoming pinned Antigravity reviewer adoption provenance"
+  p-efficiency: 0.9
+  p-friction: 0.2
+  p-skill-candidate: 0
+  spore: none
+  receipt-refs: ".ημ/receipts.edn#sha256:47bbc54ff583f5cb0bbce39b683d9470f5b5015362d4c2ab3d28df7224e4e36e"
+  note: "Use the child canonical card and receipt locations; preserve every old ledger byte and keep generated caller syntax distinct from hosted worker/model qualification. Runtime ownership stays in eta-mu; existing checks and approval policy remain authoritative. No new spore or promotion."
