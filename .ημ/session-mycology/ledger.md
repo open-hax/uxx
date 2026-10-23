@@ -266,3 +266,13 @@ Append correction to typed event5cd2f054-b83f-48b4-b3d0-9488c69b8077: CLJS integ
   spore: none
   receipt-refs: c869e976198aa7e6c20c53c23d6d1294b1f39826a7d37d601db60a06d1c9cd72
   note: "Bound changes to the exact runtime pin and required accountability; preserve prior bytes, incoming state and branch policy. Native service proof does not qualify a later member head."
+
+- ts: 2026-10-23T10:20:16.700364Z
+  session: codex/foresight-antigravity-rollout
+  task: Publish uxx R6 reviewer runtime pin
+  p-efficiency: 0.95
+  p-friction: 0.05
+  p-skill-candidate: 0.0
+  spore: none
+  receipt-refs: f835d8a8dd56baf11ca7a58ed6afbe2c460cb264eaa68deac8f8f77a0571f3f5
+  note: "Bound changes to the exact runtime pin and required accountability; preserve prior bytes, incoming state and branch policy. Native service proof does not qualify a later member head."
