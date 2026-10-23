@@ -246,3 +246,13 @@ Append correction to typed event5cd2f054-b83f-48b4-b3d0-9488c69b8077: CLJS integ
   spore: none
   receipt-refs: ".ημ/receipts.edn#sha256:47bbc54ff583f5cb0bbce39b683d9470f5b5015362d4c2ab3d28df7224e4e36e"
   note: "Use the child canonical card and receipt locations; preserve every old ledger byte and keep generated caller syntax distinct from hosted worker/model qualification. Runtime ownership stays in eta-mu; existing checks and approval policy remain authoritative. No new spore or promotion."
+
+- ts: 2026-10-23T08:40:10.563568Z
+  session: codex/foresight-antigravity-rollout
+  task: Publish uxx R4 caller and incoming planning clarification
+  p-efficiency: 0.95
+  p-friction: 0.05
+  p-skill-candidate: 0.0
+  spore: none
+  receipt-refs: 0561ef4f512d187fac1d0207382a9fbc83b27c7bca5a32edd20f6935575361b1
+  note: "Keep runtime pins in generated callers; preserve incoming frontmatter and append-only accountability. Shared service proof and member exact-head hosted proof remain distinct."
