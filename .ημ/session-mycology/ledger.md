@@ -256,3 +256,13 @@ Append correction to typed event5cd2f054-b83f-48b4-b3d0-9488c69b8077: CLJS integ
   spore: none
   receipt-refs: 0561ef4f512d187fac1d0207382a9fbc83b27c7bca5a32edd20f6935575361b1
   note: "Keep runtime pins in generated callers; preserve incoming frontmatter and append-only accountability. Shared service proof and member exact-head hosted proof remain distinct."
+
+- ts: 2026-10-23T09:41:23.653722Z
+  session: codex/foresight-antigravity-rollout
+  task: Publish uxx R5 reviewer runtime pin
+  p-efficiency: 0.95
+  p-friction: 0.05
+  p-skill-candidate: 0.0
+  spore: none
+  receipt-refs: c869e976198aa7e6c20c53c23d6d1294b1f39826a7d37d601db60a06d1c9cd72
+  note: "Bound changes to the exact runtime pin and required accountability; preserve prior bytes, incoming state and branch policy. Native service proof does not qualify a later member head."
