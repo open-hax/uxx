@@ -276,3 +276,12 @@ Append correction to typed event5cd2f054-b83f-48b4-b3d0-9488c69b8077: CLJS integ
   spore: none
   receipt-refs: f835d8a8dd56baf11ca7a58ed6afbe2c460cb264eaa68deac8f8f77a0571f3f5
   note: "Bound changes to the exact runtime pin and required accountability; preserve prior bytes, incoming state and branch policy. Native service proof does not qualify a later member head."
+
+
+## 2026-10-25T09:13:44.170425Z — Antigravity member code-review repair
+
+Friction2/5; reuse4/5; no spore. Shared admission defects needed a renderer fix
+and bounded propagation, while local documentation needed repository-specific
+corrections. Preserve earlier receipt bytes and independent ownership. Native
+qualification and default adoption remain pending. Receipt: .ημ/receipts.edn newest
+record, origin antigravity-caller-review-repairs.
