@@ -1,0 +1,64 @@
+{:snapshot/id "20261104T134003Z-checkout-preservation"
+ :base-head "97e67a7a758c080450a200e8e6e1ada614eabc6d"
+ :branch "device/stealth"
+ :tag "Π/checkout/20261104T134003Z"
+ :publication :planned
+ :files [
+  {:path ".ημ/session-mycology/ledger.md" :bytes 2311 :sha256 "af9a9da5fe42287345271668020ab269998492be900eaf9a5c7a7c6613588c6e"}
+  {:path ".ημ/session-mycology/spores/20261101-190500-toolset-discovery-capability-routing.md" :bytes 4490 :sha256 "5ab678d2064c14be0815c772c2198d555c0b67ee73635e8938a078037325d9a1"}
+  {:path "firefox/assets/icon-48.png" :bytes 358 :sha256 "73cd306a42a16a092e71c61daf4004d5bf84cec6a7b166adb8d93ea99790694b"}
+  {:path "firefox/assets/icon-96.png" :bytes 678 :sha256 "31f1f986016acef2a7db6bb1df35a9c14ddd5c6c66ea88d78132359cc9959fe0"}
+  {:path "firefox/docs/design.md" :bytes 60187 :sha256 "6d2e71de9bdc8de8ede7ea12799a6312ee064ebcba50c0593bc6b729840173e3"}
+  {:path "firefox/docs/research/firefox-mv3-webextension.md" :bytes 29009 :sha256 "d35553aaddf13dff10ba7aa81717c482d8fb4f34755546fd4ded76b70578684b"}
+  {:path "firefox/docs/research/page-recoloring-architecture.md" :bytes 51222 :sha256 "456e02eae161afa07b16da1d743e12746cb8006e54ab7af4762202c58df6be71"}
+  {:path "firefox/docs/spec.md" :bytes 73684 :sha256 "9e87eb5adde882ae864f3b86410916686263e3b4b77cacba631df903af1b9b1d"}
+  {:path "firefox/manifest.json" :bytes 879 :sha256 "0f85beb1ece49027f99bc67a0f39ded5c6706059b9c9051cef04949410895556"}
+  {:path "firefox/package.json" :bytes 472 :sha256 "26ad6a6d2cab998bba22d785027674a33eb94b77b9c1287aa59cc0b8431ea843"}
+  {:path "firefox/scripts/generate-icons.mjs" :bytes 5893 :sha256 "48a937e6ead2931a584e4ab212418fbf746efa6dbd3116ffc505724da3973422"}
+  {:path "firefox/scripts/generate-theme.mjs" :bytes 1559 :sha256 "81cef0c442db549d3c6e19c117826ac970e9c7cd1b6506c52ab3f9b17d1378c0"}
+  {:path "firefox/src/background.js" :bytes 8501 :sha256 "c748b705c1fb5b13c42948a2b6385b5fa3903f2ec2ecad52a8c46964ff81f07a"}
+  {:path "firefox/src/content/apply.js" :bytes 8176 :sha256 "d1bbf9598fe36623d0d7c1f93b8337b51f87746faffd777e084b6dbd8c985f61"}
+  {:path "firefox/src/content/cache.js" :bytes 18509 :sha256 "d03da1ad38faa60cf2f80043ddfd8a433d279e00682ad5fe2625053c70362bc1"}
+  {:path "firefox/src/content/main.js" :bytes 30571 :sha256 "4da0b8221d3ce1bed7ed8018279b607d182614a01cd81f6792332d9fe3e8a374"}
+  {:path "firefox/src/content/probe.js" :bytes 13257 :sha256 "3603f414f549cd333021ceb2a9092da6b2e2dc2887a6b4ece98be37aaa09ee3f"}
+  {:path "firefox/src/lib/classify.js" :bytes 9993 :sha256 "c4d42cc0eee1bdd8509281344259f73c8a56de16c5e26289a80d968b64578f56"}
+  {:path "firefox/src/lib/color.js" :bytes 14882 :sha256 "d8c509d9e5208b9314d91f7fa2dd93b873a6377a1e2d15a5165af4e8b9b4050a"}
+  {:path "firefox/src/lib/map.js" :bytes 10757 :sha256 "e43b873c60b375640f640d805e43377798b07edede9166e6fbba21f5d539ebeb"}
+  {:path "firefox/src/lib/palette.js" :bytes 4161 :sha256 "c3e1e295b5d6b26f09e72a850b17e885760e9ffb6c6fafe4d5c2cab9b4dcea10"}
+  {:path "firefox/src/theme/chrome-theme.js" :bytes 3797 :sha256 "63bc23d2e843d2af31856c7824d7ee024022a14d8b14d7449a7ea3e1276a8c4c"}
+  {:path "firefox/src/theme/roles.js" :bytes 6400 :sha256 "18515bcba8010e98cdd09fb884994771201c37efd236adc78f3d9dd27bdfb13a"}
+  {:path "firefox/src/theme/tokens.js" :bytes 19946 :sha256 "3c83d2ec1f2db0f6099fb079adca950c942417db62fa5d6128d0c4e28563d5a8"}
+  {:path "firefox/tests/apply.test.js" :bytes 10717 :sha256 "fb63090963dd1547d2f894e82c5173013b90887f1fc4dec1a8960f28545ceeac"}
+  {:path "firefox/tests/background.test.js" :bytes 17626 :sha256 "fceacf6befecb37dfe38cfe0c1c4f0a7093a67d2f7f153416e6fce1b34fc61c0"}
+  {:path "firefox/tests/cache.test.js" :bytes 30355 :sha256 "02ea5ce886a7e9a1474558df6acb1039dd991805681baa74e4ba15cf910c4016"}
+  {:path "firefox/tests/chrome-theme.test.js" :bytes 4222 :sha256 "e4df5b1828a19a999ec27e1017b55bc465308fa7e37889117c94183b6bc0959f"}
+  {:path "firefox/tests/classify.test.js" :bytes 20961 :sha256 "44b3246c7de5b18cc07490d8940d4ec2668643272beaf481f41efe27e05a4cf2"}
+  {:path "firefox/tests/color.test.js" :bytes 16566 :sha256 "0fffed9053de8f67f5a515449505f44e2431d0fddb3551ef72afdd2f06df7416"}
+  {:path "firefox/tests/fixtures/01-transparent-bg.html" :bytes 1564 :sha256 "66ea400197f2924e73a2c88e6d6ef3a1da6b21e6ceb7fe861bcb9a9676f9d440"}
+  {:path "firefox/tests/fixtures/02-gradient.html" :bytes 1775 :sha256 "66c6208b75444568f5d01b3069e6c74df296218205a61a62f38306c09573eb03"}
+  {:path "firefox/tests/fixtures/03-css-var-palette.html" :bytes 1845 :sha256 "247ee54559d70856e850e7d9cd0a5f0818152d986dfc49c166d6dba2af96f29f"}
+  {:path "firefox/tests/fixtures/04-shadow-dom.html" :bytes 2541 :sha256 "1c73f3444f2ae125ad030a2c62852903d63d652e4c5538a7b57569d0d1097527"}
+  {:path "firefox/tests/fixtures/05-inline-important.html" :bytes 1997 :sha256 "b245e0a031d969c08a41f5e404650b1fd3e3649fbdde016e4849b19a849f9c86"}
+  {:path "firefox/tests/fixtures/06-iframes.html" :bytes 2261 :sha256 "806c3121bf0453211fe822a01750319e371285d899558a4c7f28bc3ebece6adb"}
+  {:path "firefox/tests/fixtures/07-currentcolor.html" :bytes 2233 :sha256 "1303698f6538293266b5a9f80a6f75dd37461fe0d8ca1b757f88b811012e7252"}
+  {:path "firefox/tests/fixtures/08-mix-blend-mode.html" :bytes 2267 :sha256 "b2dfbc79aef7034f00aedfc0f6f30301bd955af5722f73fd5fd537c5b26722e5"}
+  {:path "firefox/tests/fixtures/09-spa-append.html" :bytes 2433 :sha256 "cc02689c4a326674b9e5c36f179c7db7f5f52590b5cafb9e13aa0e81d525a5f0"}
+  {:path "firefox/tests/fixtures/10-forced-colors.html" :bytes 1905 :sha256 "09f1220ca99ddb8c4dcafd8aeb01f31a4f7681fa79d9e13c50b95f548414797d"}
+  {:path "firefox/tests/fixtures/11-about-blank-iframe.html" :bytes 2082 :sha256 "23bbb394aa49df685e0d096617c3f5dae8275734eabb4b82225dc58cab4fcfe5"}
+  {:path "firefox/tests/fixtures/12-icon-font.html" :bytes 2379 :sha256 "982996d245d72b02c3651251e1f4754ab92e714432698c172e2d9e2e746eaa7a"}
+  {:path "firefox/tests/generate.test.js" :bytes 2826 :sha256 "bc1e2b113c3f532f2f09e224dd283b3e97d3ed6b2a34ab92b5ae889ee36a11b0"}
+  {:path "firefox/tests/main.test.js" :bytes 13724 :sha256 "60c72546c1af3263e39282dd3da9ff24c9949239c1d37666a1c1005aef7d4bde"}
+  {:path "firefox/tests/map.test.js" :bytes 28590 :sha256 "95e67a2ed959f3f47cf83477afb9ed0a9acccaad040b1cc0924245a4dcfbbae0"}
+  {:path "firefox/tests/palette.test.js" :bytes 8013 :sha256 "d57487675489560c1f5bdfea9d5af970f62c704aa99983fecbd2b530e5db1b87"}
+  {:path "firefox/tests/probe.test.js" :bytes 17065 :sha256 "ca46b6bb0398db8ae29777175357da3961a4227e680cb7475cee99dfda0eda56"}
+  {:path "firefox/tests/roles.test.js" :bytes 6337 :sha256 "0b5728a4ac047f817b8b45dad347e83bfac0963e4c894b56746e219976fe873e"}
+  {:path "firefox/tests/setup.js" :bytes 240 :sha256 "b86598d11cb2c8bdc9c221158af09ba7ca2040739f9949de8a4cc6099d6993ac"}
+  {:path "firefox/vite.config.background.js" :bytes 489 :sha256 "508e651d3224e7935cf46a3e60f89758c4576433e522ed0fb65ca76b1d2e7835"}
+  {:path "firefox/vite.config.content.js" :bytes 517 :sha256 "0f7d54aedbe8c5575945eb2221abdfc3420ed92e9fdbc746d3ed7ad25c063abf"}
+  {:path "firefox/vitest.config.js" :bytes 193 :sha256 "cf2435dc8cc0a3d2262e05f32248dc0a71e7c001b55e8d9d68f4edb4fbb7fff5"}
+  {:path "firefox/web-ext-artifacts/uxx_monokai-0.1.0.zip" :bytes 191533 :sha256 "573ef869a7cdfdd925fe8df4e8b4976024e35643439b2c271cb3d1d459de2359"}
+  {:path "package.json" :bytes 3498 :sha256 "a9f542135b387fbe5eb86d1aa1f4c2aad421c6bcf7118bcddbd7ba1aad87c504"}
+  {:path "pnpm-lock.yaml" :bytes 222295 :sha256 "ca2be82fc837af3207c69f3acf55710e84852c3c548e0f002920be612f09c14e"}
+  {:path "pnpm-workspace.yaml" :bytes 71 :sha256 "4210c720fdf50ece8097a39e4960af48ffaba52aac7b6e6e41e639cab7ea4e7f"}
+  {:path "receipts.edn" :bytes 11091 :sha256 "9bf8207fc1e54eedf78e62a8a24f58b72a02b4f5d85531be962e487aeb40db54"}
+ ]}

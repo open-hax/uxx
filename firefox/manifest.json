@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "Uxx Monokai",
+  "version": "0.1.0",
+  "description": "Monokai for every page: detects each page's palette, classifies elements, and maps meanings to @open-hax/uxx Monokai tokens.",
+  "permissions": ["theme", "storage"],
+  "host_permissions": ["<all_urls>"],
+  "background": { "scripts": ["dist/background.js"], "type": "module" },
+  "action": { "default_title": "Uxx Monokai (click to toggle)" },
+  "content_scripts": [{
+    "matches": ["<all_urls>"],
+    "js": ["dist/content.js"],
+    "run_at": "document_start",
+    "all_frames": true,
+    "match_about_blank": true
+  }],
+  "icons": { "48": "assets/icon-48.png", "96": "assets/icon-96.png" },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "uxx-monokai@open-hax",
+      "strict_min_version": "128.0",
+      "data_collection_permissions": { "required": ["none"] }
+    }
+  }
+}

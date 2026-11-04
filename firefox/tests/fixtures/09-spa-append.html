@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<!--
+  SPDX-License-Identifier: GPL-3.0-or-later
+  Fixture 09/12 — SPA append / mutation-driven re-scan (design §5 steady
+  state; spec §9.3 step 8: MutationObserver, rAF batching, RESCAN_THRESHOLD).
+
+  Scenario: a button appends new light-mode elements on click (a list item
+  and a whole new section); another button swaps innerHTML; a third sets
+  styles on an existing element.
+
+  Expected outcomes (manual E2E):
+  - Elements appended AFTER the initial pass get themed within a frame or
+    two (rAF-batched incremental re-scan) — no manual reload needed.
+  - innerHTML-swapped content is themed the same way.
+  - Attribute (style/class) changes on existing elements are re-evaluated:
+    changing a paragraph's inline color re-themes it.
+  - Our own data-uxx* attribute writes do NOT retrigger the observer
+    (self-ignore — no infinite loop, no visible flicker/strobe).
+  - Clicking fast (>50 mutations/10s) trips the circuit breaker → 2s
+    backoff → everything converges afterwards (no permanent stall).
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>09 spa append</title>
+<style>
+  body { margin: 0; padding: 2rem; background: #ffffff; color: #222; font-family: sans-serif; }
+  button { padding: .5rem 1rem; background: #2563eb; color: #fff; border: 0; }
+  #list { list-style: none; padding: 0; }
+  #list li { padding: .5rem; border-bottom: 1px solid #e5e7eb; }
+  .section { background: #f4f4f4; padding: 1rem; margin-top: 1rem; }
+</style>
+</head>
+<body>
+  <h1>SPA append fixture</h1>
+  <p id="target">Existing paragraph — control.</p>
+  <button type="button" id="add">Append list item</button>
+  <button type="button" id="swap">Swap section</button>
+  <button type="button" id="restyle">Recolor control</button>
+  <ul id="list"><li>Initial item</li></ul>
+  <div class="section" id="section"><p>Initial section.</p></div>
+<script>
+  let n = 0;
+  document.getElementById('add').onclick = () => {
+    n++;
+    const li = document.createElement('li');
+    li.textContent = 'Dynamically appended item ' + n;
+    document.getElementById('list').appendChild(li);
+  };
+  document.getElementById('swap').onclick = () => {
+    document.getElementById('section').innerHTML =
+      '<p>Swapped section content at ' + Date.now() + '</p>';
+  };
+  document.getElementById('restyle').onclick = () => {
+    document.getElementById('target').style.color = '#dc2626';
+  };
+</script>
+</body>
+</html>

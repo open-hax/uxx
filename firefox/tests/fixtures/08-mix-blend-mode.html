@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<!--
+  SPDX-License-Identifier: GPL-3.0-or-later
+  Fixture 08/12 — mix-blend-mode / filter subtrees (design §6:
+  mix-blend-mode≠normal, backdrop-filter≠none, ancestor filter → skip whole
+  subtree WITHOUT descending into style reads; research B §5.7b).
+
+  Scenario: a photo-like gradient block with `mix-blend-mode: multiply`
+  containing text and a card; a sibling with `backdrop-filter: blur()`;
+  a wrapper with `filter: hue-rotate(...)` around themed-looking content.
+
+  Expected outcomes (manual E2E):
+  - The blend-mode subtree is NOT themed: no markers on the subtree
+    root or ANY descendant (probe returns null at the subtree root and
+    does not read descendants' styles).
+  - The backdrop-filter element and its contents are skipped the same way.
+  - The filter-wrapper subtree is skipped.
+  - Everything OUTSIDE the skipped subtrees is themed normally — the skip
+    is per-subtree, not per-page.
+  - No crash; blend/filter effects render exactly as the page authored
+    them (we never touch filter/blend properties).
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>08 mix-blend-mode</title>
+<style>
+  body { margin: 0; padding: 2rem; background: #ffffff; color: #222; font-family: sans-serif; }
+  .blend { mix-blend-mode: multiply; background: linear-gradient(90deg, #fbbf24, #f87171); padding: 1rem; }
+  .blend p { color: #7c2d12; }
+  .backdrop { backdrop-filter: blur(6px); background: rgba(255, 255, 255, 0.55); padding: 1rem; margin-top: 1rem; }
+  .filtered { filter: hue-rotate(90deg); padding: 1rem; margin-top: 1rem; border: 1px solid #ccc; }
+  .normal { padding: 1rem; margin-top: 1rem; background: #f4f4f4; }
+</style>
+</head>
+<body>
+  <h1>Blend / filter skip subtrees</h1>
+  <div class="blend">
+    <p>mix-blend-mode: multiply — this whole subtree stays untouched.</p>
+    <div style="background:#fff;padding:.5rem;"><span>Nested inside the blend subtree — also untouched.</span></div>
+  </div>
+  <div class="backdrop">
+    <p>backdrop-filter: blur — this subtree stays untouched.</p>
+  </div>
+  <div class="filtered">
+    <p>filter: hue-rotate ancestor — this subtree stays untouched.</p>
+  </div>
+  <div class="normal">
+    <p>Normal sibling — themed normally.</p>
+  </div>
+</body>
+</html>

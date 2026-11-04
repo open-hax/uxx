@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<!--
+  SPDX-License-Identifier: GPL-3.0-or-later
+  Fixture 05/12 — inline !important styles (design §6 "inline !important":
+  cascade-correct redirect; spec §8 redirectInline protocol).
+
+  Scenario: elements with inline `style="color: … !important"` (both plain
+  and background-color) — the case where a stylesheet-level !important
+  cannot win, so the declaration is captured, removed, and redirected.
+
+  Expected outcomes (manual E2E):
+  - The red inline-important text ends up Monokai: the original declaration
+    is captured into a per-element WeakMap, removed from the inline style,
+    the mapped token is written to --uxx-inline-color, and
+    data-uxx-inline-color lets the redirect sheet apply it !important.
+  - The inline-important background element gets the same treatment via
+    --uxx-inline-background-color.
+  - The plain (non-important) inline color is beaten by our role sheet's
+    !important rules with NO redirect (no data-uxx-inline-* attributes on it).
+  - Toggling the extension OFF restores the ORIGINAL values AND their
+    !important priority (style attribute round-trips:
+    `color: rgb(220, 38, 38) !important` comes back verbatim in effect).
+  - Re-enabling converges to the same state (no oscillation, no residue
+    of --uxx-* custom properties after teardown).
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>05 inline important</title>
+<style>
+  body { margin: 0; padding: 2rem; background: #ffffff; color: #111; font-family: sans-serif; }
+</style>
+</head>
+<body>
+  <h1>Inline !important redirect</h1>
+  <p style="color: rgb(220, 38, 38) !important;">Inline color !important — redirected through --uxx-inline-color.</p>
+  <p style="background-color: #fef3c7 !important; padding: 1rem;">Inline background !important — redirected through --uxx-inline-background-color.</p>
+  <p style="color: #16a34a;">Plain inline color — beaten by the role sheet, no redirect.</p>
+  <p>Normal paragraph — control.</p>
+</body>
+</html>

@@ -52,7 +52,7 @@
     "./cljs": "./dist/tokens.cljs"
   },
   "scripts": {
-    "build": "rm -rf dist && tsc -p tsconfig.json && node scripts/generate-css.mjs && node scripts/generate-cljs.mjs && node scripts/generate-eta-mu-themes.mjs",
+    "build": "rm -rf dist && tsc -p tsconfig.json && node scripts/generate-css.mjs && node scripts/generate-cljs.mjs && node scripts/generate-eta-mu-themes.mjs && node firefox/scripts/generate-theme.mjs",
     "prepack": "npm run build",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run --config react/vitest.config.ts",

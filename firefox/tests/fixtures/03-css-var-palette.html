@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<!--
+  SPDX-License-Identifier: GPL-3.0-or-later
+  Fixture 03/12 — CSS-variable palette (design §5(d), spec §7 collectCssVars).
+
+  Scenario: the whole page is authored through --* custom properties on
+  :root (a common design-system pattern); one var is even defined on a
+  nested selector.
+
+  Expected outcomes (manual E2E):
+  - Every element using var(--...) is themed through its COMPUTED color
+    (computed styles resolve the vars before the probe reads them) — the
+  rendered result is fully Monokai, regardless of the var indirection.
+  - The collected --* custom properties are recorded by collectCssVars
+    (including the non-:root one) but are UNCONSUMED in v1 (spec §7:
+    PagePalette.cssVars is for tests/debug only) — no var rewriting, no
+    --uxx- name wrapping.
+  - The var-authored accent text may map to a semantic/accent role by hue
+    (teal → semantic-info bucket), with contrast repair as usual.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>03 css var palette</title>
+<style>
+  :root {
+    --page-bg: #ffffff;
+    --surface-bg: #eef1f5;
+    --text-main: #1f2430;
+    --text-dim: #5a6272;
+    --accent: #0e7490; /* teal */
+    --border: #c9d2df;
+  }
+  .panel { --surface-bg: #e3e9f2; background: var(--surface-bg); }
+  body { margin: 0; padding: 2rem; background: var(--page-bg); color: var(--text-main); font-family: sans-serif; }
+  .panel { padding: 1.5rem; border: 1px solid var(--border); margin-top: 1rem; }
+  .dim { color: var(--text-dim); }
+  .accent { color: var(--accent); }
+</style>
+</head>
+<body>
+  <h1>CSS-variable palette</h1>
+  <p>Body text via <code>var(--text-main)</code>.</p>
+  <div class="panel">
+    <p class="dim">Dim text via <code>var(--text-dim)</code>.</p>
+    <p class="accent">Teal accent text via <code>var(--accent)</code>.</p>
+  </div>
+</body>
+</html>

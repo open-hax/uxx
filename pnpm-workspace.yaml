@@ -4,3 +4,4 @@ packages:
   - react
   - helix
   - reagent
+  - firefox

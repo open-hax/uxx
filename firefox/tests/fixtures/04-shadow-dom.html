@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<!--
+  SPDX-License-Identifier: GPL-3.0-or-later
+  Fixture 04/12 — shadow DOM (design §6 "shadow DOM": open roots traversed,
+  closed roots untouched — documented limitation).
+
+  Scenario: one component in an OPEN shadow root (light surface + text +
+  a button), one in a CLOSED shadow root (same structure).
+
+  Expected outcomes (manual E2E):
+  - The OPEN shadow root's elements are themed: surface marker on the
+    component root, text tokens on the paragraphs, button role on the
+    button. The recursive traversal descends into open roots (spec §9.3 step 5).
+  - The CLOSED shadow root's contents are NOT themed (we cannot reach them
+    — documented v1 limitation, research B §5.7): the closed component
+    keeps its original white surface and dark text.
+  - The closed component's unthemed colors do NOT leak into the palette
+    harvest as page-dominant colors (it is rendered inside the dark page,
+    so its white surface stays an island).
+  - No crash, no console errors.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>04 shadow dom</title>
+<style>
+  body { margin: 0; padding: 2rem; background: #f7f7f7; color: #222; font-family: sans-serif; }
+  .slot { display: block; margin-top: 1rem; }
+</style>
+</head>
+<body>
+  <h1>Shadow DOM fixture</h1>
+  <open-card class="slot"></open-card>
+  <closed-card class="slot"></closed-card>
+<script>
+  class OpenCard extends HTMLElement {
+    connectedCallback() {
+      const root = this.attachShadow({ mode: 'open' });
+      root.innerHTML = `
+        <style>
+          .card { background: #ffffff; color: #333; border: 1px solid #ddd; padding: 1rem; font-family: sans-serif; }
+          button { background: #2563eb; color: #fff; border: 0; padding: .5rem 1rem; }
+        </style>
+        <div class="card">
+          <p>Open shadow root content — this gets themed.</p>
+          <button>Open button</button>
+        </div>`;
+    }
+  }
+  class ClosedCard extends HTMLElement {
+    connectedCallback() {
+      const root = this.attachShadow({ mode: 'closed' });
+      this._root = root; // keep a handle so the demo content renders at all
+      root.innerHTML = `
+        <style>
+          .card { background: #ffffff; color: #333; border: 1px solid #ddd; padding: 1rem; font-family: sans-serif; }
+        </style>
+        <div class="card"><p>Closed shadow root content — stays unthemed (limitation).</p></div>`;
+    }
+  }
+  customElements.define('open-card', OpenCard);
+  customElements.define('closed-card', ClosedCard);
+</script>
+</body>
+</html>

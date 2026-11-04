@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<!--
+  SPDX-License-Identifier: GPL-3.0-or-later
+  Fixture 06/12 — iframes (design §6 "iframes": all_frames, child frames
+  skip the page-background root override; spec §9.3 step 7).
+
+  Scenario: a same-origin <iframe> with srcdoc (light content), plus a
+  nested iframe two levels deep.
+
+  Expected outcomes (manual E2E):
+  - Both the top page and the srcdoc iframe are themed — the content
+    script runs with all_frames: true in every addressed frame.
+  - The iframe's root (html/body) does NOT receive the page-background
+    root override: the child frame starts its resolved-background chain at
+    transparent, so a transparent iframe body inherits the parent's themed
+    background instead of getting a second opaque #272822 layer.
+  - The nested (two-level) iframe is also themed independently.
+  - Text inside frames participates in its OWN frame's pipeline (each
+    frame runs independently — no cross-frame palette bleed).
+  - No crash when the iframe is removed dynamically (observer teardown).
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>06 iframes</title>
+<style>
+  body { margin: 0; padding: 2rem; background: #fafafa; color: #222; font-family: sans-serif; }
+  iframe { display: block; width: 90%; height: 7rem; border: 1px solid #bbb; margin-top: 1rem; background: #fff; }
+</style>
+</head>
+<body>
+  <h1>Top-level page</h1>
+  <p>Themed top frame.</p>
+  <iframe title="level1" srcdoc="
+    <!DOCTYPE html><html><head><style>
+      body { margin: 0; padding: 1rem; background: #ffffff; color: #333; font-family: sans-serif; }
+    </style></head><body>
+      <p>Level-1 iframe content — themed in its own frame, transparent root
+      inherits the parent's themed background.</p>
+      <iframe title=&quot;level2&quot; style=&quot;width:90%;height:3rem;border:1px solid #ccc;&quot; srcdoc=&quot;
+        &lt;!DOCTYPE html&gt;&lt;html&gt;&lt;body style='background:#fff;color:#333;font-family:sans-serif;margin:0;padding:.5rem'&gt;
+        &lt;p&gt;Level-2 nested iframe — themed independently.&lt;/p&gt;
+      &lt;/body&gt;&lt;/html&gt;
+      &quot;></iframe>
+    </body></html>
+  "></iframe>
+  <button type="button" onclick="this.previousElementSibling.remove()">Remove iframe</button>
+</body>
+</html>

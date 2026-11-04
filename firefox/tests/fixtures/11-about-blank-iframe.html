@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<!--
+  SPDX-License-Identifier: GPL-3.0-or-later
+  Fixture 11/12 — about:blank iframe (DOCUMENTED LIMITATION — design §6,
+  research A §4; review F21): content lands at document_end, not
+  document_start, in about:blank frames — the boot sheet lands late there.
+
+  Scenario: the parent creates an iframe with src="about:blank" and writes
+  light-mode content into it immediately at load.
+
+  Expected outcomes (manual E2E):
+  - The about:blank frame IS themed (match_about_blank: true in the
+    manifest) but only from document_end: there is a brief moment where
+    the frame shows its native colors before the pipeline runs — the
+    "themed-from-late" accepted behavior. No flash on the TOP page.
+  - No crash from the late start; the frame's pipeline completes
+    normally afterwards (boot → state handshake → detect → apply).
+  - Since the boot lands late, the root-background flash inside THIS frame
+    only is the accepted limitation — assert it is bounded (no
+    white-before-dark on the top page itself).
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>11 about:blank iframe</title>
+<style>
+  body { margin: 0; padding: 2rem; background: #ffffff; color: #222; font-family: sans-serif; }
+  iframe { display: block; width: 90%; height: 7rem; border: 1px solid #bbb; margin-top: 1rem; background: #fff; }
+</style>
+</head>
+<body>
+  <h1>about:blank iframe (documented limitation)</h1>
+  <p>Top page themed at document_start as usual.</p>
+  <iframe id="blank" title="about:blank"></iframe>
+<script>
+  // The classic about:blank case: the parent writes content into a frame
+  // whose initial URL is about:blank — content scripts there run at
+  // document_end (research A §4).
+  const doc = document.getElementById('blank').contentDocument;
+  doc.open();
+  doc.write('<!DOCTYPE html><html><head><style>' +
+    'body{margin:0;padding:1rem;background:#ffffff;color:#333;font-family:sans-serif;}' +
+    '</style></head><body><p>about:blank content — themed-from-late.</p></body></html>');
+  doc.close();
+</script>
+</body>
+</html>

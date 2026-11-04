@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<!--
+  SPDX-License-Identifier: GPL-3.0-or-later
+  Fixture 12/12 — icon-font text run (DOCUMENTED LIMITATION — design §6,
+  research B §2.3; review F21): icon fonts are treated as TEXT (may tint);
+  Dark Reader solves this with per-site fix lists we do not have.
+
+  Scenario: an icon font renders glyph codepoints (private-use-area) inside
+  normal text flow — the classic "button with a font-icon label" pattern.
+
+  How to test (manual E2E): open in the browser with the extension enabled.
+  (Offline note: the @font-face below falls back gracefully when the font
+  file is absent — the PUA codepoints still render as tofu/fallback glyphs,
+  which exercises the same classification path.)
+
+  Expected outcomes (ACCEPTED BEHAVIOR, not a bug):
+  - The icon run is classified as text: its color maps through the text
+    pipeline and may be recolored to a Monokai text token — the glyph color
+    can change from the author's intent. This is the accepted limitation.
+  - The glyph SHAPES are never recolored per-pixel (icons are font glyphs,
+    not raster pixels — no raster recoloring exists at all).
+  - No crash, no layout shift; surrounding text themes normally.
+  - If a glyph ends up low-contrast against the themed surface, that is
+    the documented outcome — the per-site fix-list escape hatch is an
+    extension point (design §11), not v1.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>12 icon font</title>
+<style>
+  @font-face {
+    font-family: 'FixtureIcons';
+    src: local('FixtureIcons'); /* offline: falls back to system font */
+    unicode-range: U+E000-U+F8FF;
+  }
+  body { margin: 0; padding: 2rem; background: #ffffff; color: #222; font-family: sans-serif; }
+  .icon { font-family: 'FixtureIcons', 'Segoe UI Symbol', sans-serif; color: #2563eb; }
+  .btn { display: inline-flex; align-items: center; gap: .5rem; padding: .5rem 1rem;
+         background: #2563eb; color: #fff; border: 0; font-size: 1rem; }
+</style>
+</head>
+<body>
+  <h1>Icon-font text run (accepted limitation)</h1>
+  <p>Inline icon run: <span class="icon">&#xE801; &#xE802; &#xE803;</span> next to normal text.</p>
+  <button type="button" class="btn"><span class="icon">&#xE810;</span> Button with icon glyph</button>
+  <p>Expected: the icon glyphs are treated as text and MAY tint — accepted
+     v1 behavior, not a defect.</p>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<!--
+  SPDX-License-Identifier: GPL-3.0-or-later
+  Fixture 01/12 — transparent page background (design §6 "transparent bg";
+  probe skip-list: fully transparent backgrounds are left alone).
+
+  Scenario: html and body declare `background: transparent` over the default
+  canvas (which Firefox renders white in light mode).
+
+  Expected outcomes (manual E2E, `npx web-ext run`):
+  - No white flash at document_start: boot sheet paints :root with the
+    page-background token (#272822) !important.
+  - The transparent html/body elements themselves receive NO background
+    marker (transparent bg is a skip-list row) — they inherit the dark
+    canvas through the boot sheet.
+  - All text on the page is themed (ranked text tokens), readable, and the
+    paragraph in the div is classified as text on the dark canvas.
+  - The dark-bordered box keeps its border role; no marker on the img-like
+    elements (none here).
+  - After teardown (toggle the extension off), the page returns to the
+    original white canvas with black text — no residue.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>01 transparent bg</title>
+<style>
+  html, body { background: transparent; color: #000; margin: 0; padding: 2rem; font-family: sans-serif; }
+  .box { border: 1px solid #999; padding: 1rem; margin-top: 1rem; background: transparent; }
+</style>
+</head>
+<body>
+  <h1>Transparent background page</h1>
+  <p>Black text on a transparent canvas (renders white in light mode).</p>
+  <div class="box">A bordered transparent box.</div>
+</body>
+</html>

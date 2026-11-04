@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<!--
+  SPDX-License-Identifier: GPL-3.0-or-later
+  Fixture 02/12 — gradient background (design §6 "background-image,
+  gradients": skip background recolor for that element, keep text/border).
+
+  Scenario: a full-bleed hero uses a CSS linear-gradient; a card uses a
+  radial-gradient. Both have text inside.
+
+  Expected outcomes (manual E2E):
+  - The hero and card backgrounds are NOT recolored (gradients are never
+    touched — research B §5.5; a recolored gradient over an unrecolored
+    image would look worse).
+  - The hero/card elements carry NO background marker (skip-list row).
+  - The <h1>/<p> text inside the gradient areas IS themed to Monokai text
+    tokens; contrast is checked against the *original* gradient composite.
+  - The plain section below the hero IS themed normally (page-background /
+    surface) — proving the skip is per-element, not per-page.
+  - No crash, no flash of foreign colors.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>02 gradient</title>
+<style>
+  body { margin: 0; font-family: sans-serif; background: #fff; color: #222; }
+  .hero { padding: 4rem 2rem; background: linear-gradient(135deg, #4a90d9, #7fc3e8); color: #fff; }
+  .card { margin: 2rem; padding: 2rem; border-radius: 8px; background: radial-gradient(circle at 30% 30%, #f5d76e, #d9822b); color: #3a2a00; }
+  .plain { padding: 2rem; background: #f4f4f4; }
+</style>
+</head>
+<body>
+  <div class="hero">
+    <h1>Gradient hero (bg untouched)</h1>
+    <p>White text on a blue gradient — text is themed, gradient is not.</p>
+  </div>
+  <div class="card">
+    <p>Radial-gradient card — background untouched, text themed.</p>
+  </div>
+  <div class="plain">
+    <p>Plain section — this one IS themed normally.</p>
+  </div>
+</body>
+</html>
