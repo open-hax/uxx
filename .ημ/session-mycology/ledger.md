@@ -236,3 +236,8 @@ Append correction to typed event5cd2f054-b83f-48b4-b3d0-9488c69b8077: CLJS integ
   spore: none
   receipt-refs: uxx14-qualified-eta345-caller-parent-publication-20261007T1920Z/child-source-record.edn
   note: Review the consumer boundary as a pair: the new Eta workflow invokes a Muse build target absent in the old revision. Two immutable pins advance together while original source and historical ledgers remain intact. The separate author-assessment failures stay unknown and receive no inferred repair or predecessor credit. Fresh native qualification remains required; no spore or promotion.
+
+## MiMo consumer retirement 2026-11-17
+- Scoped pin-only migration to merged eta-mu#388. Gate/auth bytes preserved.
+- Friction: source inventory can drift; compare fresh default, not cached caller content.
+- Local actionlint and exact-delta checks passed; hosted verification pending. No spore promoted.
