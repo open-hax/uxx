@@ -3,7 +3,7 @@
   "name": "Uxx Monokai",
   "version": "0.1.0",
   "description": "Monokai for every page: detects each page's palette, classifies elements, and maps meanings to @open-hax/uxx Monokai tokens.",
-  "permissions": ["theme", "storage"],
+  "permissions": ["theme", "storage", "scripting"],
   "host_permissions": ["<all_urls>"],
   "background": { "scripts": ["dist/background.js"], "type": "module" },
   "action": { "default_title": "Uxx Monokai (click to toggle)" },

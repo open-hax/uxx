@@ -346,7 +346,7 @@ Fact = {
   blendMode: string, filter: string, backdropFilter: string,
   isSvg: boolean, svgBBox: { w, h } | null,   // for fill/stroke geometry rule
   hasOurs: boolean,             // carries a data-uxx* attribute (contamination guard)
-  visible: boolean,             // display≠none, visibility≠hidden, w>0, h>0
+  visible: boolean,             // display≠none, visibility≠hidden, w>0, h>0 — INFORMATIONAL ONLY: classify never consults it (2026-11-10, see §4.3 note)
   isPlaceholder: boolean,       // ::placeholder source (special-cased, §6)
   hasOutlineFocus: boolean,     // outlineStyle≠none && outlineWidth>0 (focus rings)
   isFocused: boolean,           // element is document.activeElement (or inside it)
@@ -399,7 +399,7 @@ background rule 4b) consults the already-computed color assignment.
 
 **background:**
 
-1. Skip: `!fact.visible`; `fact.background.color == null`; `isTransparent`;
+1. Skip: `fact.background.color == null`; `isTransparent`;  (`!fact.visible` is **not** a skip condition — see note below)
    `hasImage || isGradient` (design §6 — skip bg recolor, keep text/border);
    `fact.tag ∈ {img, canvas, video, iframe, frame, object, embed, input[type=image]}` (no marker at all);
    `fact.hasOurs` (contamination guard).
@@ -448,9 +448,21 @@ both channels agree; fires when `tag==='button'` or
 | `s < 0.10` && opaque && `contrast(fg,bg) ≥ 3` | `button-primary` |
 | otherwise | no bg assignment (leave page's button bg alone — never worse) |
 
+> **Amendment 2026-11-10 — visibility is not a classification gate.** Earlier
+> revisions skipped `!fact.visible` elements for the background and color
+> channels. SPAs (observed: LinkedIn's messaging overlay, dropdown shells,
+> lazily hydrated feed posts) insert panels collapsed or hidden and reveal them
+> later by toggling a class on a *wrapper*; the steady-state observer re-checks
+> only that target, so anything skipped as invisible at insert time was never
+> themed. Hidden elements still have fully resolved computed colours, so they
+> are classified like visible ones. `Fact.visible` remains recorded for
+> diagnostics only. Pinned by `tests/classify.test.js` ("non-visible facts are
+> classified exactly like visible ones") and `tests/incremental.test.js`
+> ("content inserted hidden is themed before it is revealed").
+
 **color (text):**
 
-1. Skip: alpha 0; `hasOurs`; non-visible (`isPlaceholder` handled at 2).
+1. Skip: alpha 0; `hasOurs` (`isPlaceholder` handled at 2; visibility is **not** a skip condition — see note below).
 2. `fact.isPlaceholder` → `text-muted` (design §6 — forced role, excluded from
    rank competition, token `colors.text.soft` by §7).
 3. Button-ish element (`detectButton(fact, ctx) !== null` — the same pure
@@ -877,6 +889,25 @@ plus `STATE_RULES` rows, plus the `::selection` rule — all inside
 `@media screen and (forced-colors: none)`. `selection` pseudo rule also
 duplicated here (boot has it; harmless, both important).
 
+> **Amendment 2026-11-10 — all three sheets live in ONE cascade layer, declared
+> first.** Our rules are `!important` but have low selector specificity
+> (`[data-uxx-role~="x"]`, 0,1,0). Sites whose own CSS uses `!important` with a
+> stronger selector — or `!important` inside a page `@layer` — won the cascade,
+> leaving elements *marked* yet painted in their native colours (observed on
+> LinkedIn: the Messaging widget, computed `rgb(255,255,255)` instead of the pack
+> surface; reproduced in Firefox on a test page with both a `.a.a.a.a.a`
+> `!important` rule and a layered `!important` rule). For `!important`
+> declarations the cascade is *reversed* across layers: an earlier layer beats
+> later layers **and unlayered CSS regardless of specificity**. The boot sheet is
+> injected at `document_start`, before any page stylesheet parses, so it opens
+> with the statement `@layer uxx-monokai;` (first layer in the document) and
+> every rule of the boot, role and inline-redirect sheets is wrapped in
+> `@layer uxx-monokai { … }`. A rule outside the layer would be unlayered and
+> lose to layered page CSS, so `tests/apply.test.js` ("cascade layer") pins that
+> nothing escapes. Inline `!important` is still handled by the redirect protocol.
+> Verified before/after in a real Firefox: old build → white/black; new build →
+> pack surface/text.
+
 **Inline-redirect protocol** (design §6, corrected version):
 
 1. `redirectInline(el, 'color', mapped)`:
@@ -1033,11 +1064,32 @@ if (typeof document !== 'undefined' && !globalThis.__UXX_TEST__) start();
      or `FRAME_BUDGET_MS`, remainder queued to next frame.
    - `records.length > RESCAN_THRESHOLD` → schedule whole-root rescan.
    - circuit breaker: `BREAKER_MUTATIONS` within `BREAKER_WINDOW_MS` →
-     suspend for `BREAKER_BACKOFF_MS`.
+     suspend **processing** for `BREAKER_BACKOFF_MS`.
+     **Amendment 2026-11-10 — the breaker delays, it never discards.** Records
+     arriving while it is tripped (or in backoff, or while `document.hidden`)
+     are still enqueued (`pending` retains every target); only the *rAF
+     processing* is held back, and a single timer resumes it when the backoff
+     ends. A trip never re-extends an active backoff (no starvation under a
+     sustained storm). The earlier "return before enqueuing" behaviour lost every
+     insertion made during a storm — observed on LinkedIn (page +1,566 elements,
+     themed +3): a list render is hundreds of records, and a video-js player
+     toggles classes continuously. Pinned by `tests/incremental.test.js`
+     ("the circuit breaker defers work, it never discards it").
    - teardown-loop guard: if teardowns attributable to our attribute writes
      hit `TEARDOWN_LIMIT` within 10s for a container → stop writing to that
      container (keep a `WeakSet` of suspended containers).
-   - `document.hidden` → defer all work until `visibilitychange`.
+   - **Error containment (amended 2026-11-10).** `processFrame` clears `pending`
+     before looping, so an unguarded throw used to discard every *remaining*
+     target of the frame, and a throw inside a deep walk dropped the rest of the
+     subtree. Each target and each walked node is now guarded: a failure costs
+     exactly that node, is counted (`errorCount`) and logged — the first
+     `MAX_RECORDED_ERRORS` only, so a storm cannot flood the console or grow
+     memory. Pipeline state is observable via `sessionStats()`.
+   - `document.hidden` → defer all **processing** until `visibilitychange`
+     (records are retained, see the circuit-breaker amendment above).
+   - Whole-document rescan is a *budgeted deep walk* from `documentElement`
+     (`SUBTREE_BUDGET_MS`, remainder parked on `pending`), and elements that
+     already carry a `data-uxx*` marker are passed over **without a style read**.
 9. **Teardown on disable message:** full `teardown()`, disconnect observer.
 
 ### 9.4 Messaging (design §9.3 — exact shapes)
@@ -1207,6 +1259,30 @@ No Chromium target, no raster recoloring, no stylesheet-CSSOM rewriting, no
 `adoptedStyleSheets`, no per-site UI beyond the disable list, no print
 styling, no closed-shadow-root traversal (design §2, §11).
 
+> **Amendment 2026-11-10 — open shadow roots ARE themed.** Earlier revisions
+> wrote `data-uxx-role` markers onto elements inside open shadow roots but kept
+> every stylesheet in the DOCUMENT. Document styles never cross a shadow
+> boundary, so those markers had no CSS to act on and the elements kept their
+> native colours. Confirmed by a read-only console probe on LinkedIn: the
+> Messaging widget lives in an open shadow root hosted by `DIV#interop-outlet`
+> (`shadow: true`, `uxxSheetInRoot: false`, computed `rgb(255,255,255)`). Also,
+> a `MutationObserver` on the document does not observe changes inside shadow
+> trees, so content rendered there later was never re-themed either. The fix:
+> `apply.ensureShadowSheet(root)` inserts the same layered role/state/inline
+> rules as the root's FIRST child (also making it the first cascade layer in
+> that tree scope); `buildSession` adopts every open shadow root it finds
+> (including nested ones), observes it with the same options, queues its content,
+> and sweeps for roots attached later — every `SHADOW_SWEEP_MS` (2s) for the
+> first 15 runs, then every `SHADOW_SWEEP_SLOW_MS` (15s), never while the tab is
+> hidden, stopped by `stopSession`. `ancestorChainOf` crosses the host boundary
+> so contrast is checked against the surface that really paints. Re-injects the
+> sheet if a framework wipes the root. `teardown` removes the shadow sheets too.
+> Pinned by `tests/apply.test.js` ("shadow roots") and `tests/incremental.test.js`
+> ("open shadow roots are themed"); verified before/after in a real Firefox on a
+> page whose open shadow root carries its own `!important` site CSS and receives
+> new content 3.5s after load — old build: white, late content unmarked; new
+> build: pack surface/text on both.
+
 ---
 
 ## 14. `src/content/cache.js` — style cache (design §15, spec-extension)
@@ -1219,7 +1295,7 @@ the background context and content scripts").
 ### 14.1 Constants (all named, design §15.1/§15.5)
 
 ```js
-export const CACHE_SCHEMA = 'uxx-sc-v1';
+export const CACHE_SCHEMA = 'uxx-sc-v2'; // bumped 2026-11-10: bump on ANY change that alters classification/effects (the manifest version did NOT change between builds, so v1 entries from an older build were replayed by newer code)
 export const CACHE_KEY_PREFIX = 'sc:';
 export const CACHE_BUDGET_BYTES = 8 * 1024 * 1024;   // under the 10 MB default quota
 export const CACHE_MAX_ENTRIES = 100;

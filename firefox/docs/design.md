@@ -603,8 +603,10 @@ color the URL-bar dropdown `[S8]` — those keys still cover arrow panels.
   (c) observer ignores `data-uxx*` attribute mutations and `--uxx-*` custom
   property writes; (d) our own sheets are disabled during sampling (§9.1).
 - **Mutation handling:** rAF-batched; >1000 records → whole-root rescan;
-  circuit breaker 50 mutations/10s → 2s backoff; teardown-loop guard 10/10s →
-  per-container suspension (§6); deferred entirely while `document.hidden`.
+  circuit breaker 50 mutations/10s → 2s backoff of *processing* (records are
+  kept, never dropped — amended 2026-11-10, see spec §9.3 step 8);
+  teardown-loop guard 10/10s → per-container suspension (§6); processing
+  deferred (not discarded) while `document.hidden`.
 - **Bail-outs:** unparsable colors → skip; `filter`/blend subtrees skipped
   without descending (no style reads inside).
 
@@ -730,7 +732,7 @@ lookupKey = CACHE_SCHEMA | version | url | vwBucket | vhBucket
 
 | Component | Source | Why |
 |---|---|---|
-| `CACHE_SCHEMA` | `src/content/cache.js` constant `'uxx-sc-v1'` | Bump on any format change → global invalidation |
+| `CACHE_SCHEMA` | `src/content/cache.js` constant `'uxx-sc-v2'` | Bump on any format change **or any change to classification/effects** → global invalidation (the manifest version was not bumped between builds, so v1 entries written by an older build were being replayed by newer code — amended 2026-11-10) |
 | `version` | `api.runtime.getManifest().version` | Pack/role/classify changes must not replay |
 | `url` | `location.origin + location.pathname`, length-prefixed (`${len}:${url}`) | Per-page identity; query + hash stripped (they rarely change theming); length prefix removes field-boundary ambiguity |
 | `vwBucket`, `vhBucket` | `Math.round(innerWidth / 256)`, `Math.round(innerHeight / 256)` | Grid sampling + classify size heuristics are viewport-dependent; 256 px buckets keep hits across ordinary resizes |
@@ -836,7 +838,7 @@ JSON-ifiable, stored under `storage.local` key `sc:<lookupKey>`:
 
 ```js
 {
-  s: 'uxx-sc-v1',        // CACHE_SCHEMA (validated on read; also rejects degraded:true)
+  s: 'uxx-sc-v2',        // CACHE_SCHEMA (validated on read; also rejects degraded:true)
   v: '0.1.0',            // extension version (also in lookupKey)
   k: '<lookupKey>',      // echo, for validation
   t: 1730500000000,      // lastUsed — the ONLY LRU ordering field (no index key, §15.5)

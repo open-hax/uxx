@@ -17,6 +17,12 @@
 
 import { pack } from './theme/tokens.js';
 import { buildChromeTheme } from './theme/chrome-theme.js';
+import { wireDiagnose } from './background-diag.js';
+
+// Diagnostic build only: vite substitutes a literal `false` for production, so
+// the diagnostic module is tree-shaken out of the shipped bundle (gate: no
+// `uxx-diagnose` string in dist/background.js). `vitest.config.js` also pins it
+// to false so tests never see an undefined global.
 
 export const DEFAULT_ENABLED = true;
 export const DEFAULT_THEME_ID = 'monokai';
@@ -41,6 +47,53 @@ export function themeSignature(theme) {
 
 function reportError(err) {
   console.error('[uxx-monokai] background error:', err);
+}
+
+// ── User-origin stylesheet (scripting.cssOrigin:'user') ────────────────────
+// Our content-level rules are !important but low-specificity; some sites (e.g.
+// LinkedIn's forced-light `.theme--light` cards) ship !important in a cascade
+// layer registered before ours, which beats even inline author !important. A
+// USER stylesheet's !important outranks ALL author !important, layered or not.
+// Registered with runAt:'document_start' so it is present before page CSS, and
+// kept in sync with the global enable flag. Content-level sheets still handle
+// open shadow roots (user/author document styles do not pierce those either).
+export const USER_CSS_ID = 'uxx-user-css';
+
+export async function registerUserCss(api = getApi()) {
+  if (!api.scripting || typeof api.scripting.registerContentScripts !== 'function') {
+    console.warn('[uxx-monokai] scripting API unavailable — author-level CSS only');
+    return false;
+  }
+  try {
+    await api.scripting.registerContentScripts([{
+      id: USER_CSS_ID,
+      css: ['dist/uxx-user.css'],
+      matches: ['<all_urls>'],
+      runAt: 'document_start',
+      cssOrigin: 'user',
+      allFrames: true,
+      persistAcrossSessions: true,
+    }]);
+    return true;
+  } catch (err) {
+    reportError(err);
+    return false;
+  }
+}
+
+export async function unregisterUserCss(api = getApi()) {
+  if (!api.scripting || typeof api.scripting.unregisterContentScripts !== 'function') return false;
+  try {
+    await api.scripting.unregisterContentScripts({ ids: [USER_CSS_ID] });
+    return true;
+  } catch {
+    return false; // already unregistered / never registered
+  }
+}
+
+export async function syncUserCss(api = getApi()) {
+  const { enabled } = await getSyncState(api);
+  return enabled ? registerUserCss(api) : unregisterUserCss(api);
 }
 
 export async function getSyncState(api = getApi()) {
@@ -152,6 +205,7 @@ export async function toggleEnabled(api = getApi()) {
   await updateBadge(api, next);
   if (next) await applyThemeIfEnabled(api);
   else await restoreThemes(api);
+  await syncUserCss(api);
   const tabs = await api.tabs.query({});
   await Promise.allSettled(tabs.map((tab) =>
     api.tabs.sendMessage(tab.id, { type: 'state', enabled: next, siteDisabled: false })
@@ -184,8 +238,9 @@ export async function handleThemeUpdated(event, api = getApi()) {
  */
 export function start(api = getApi()) {
   if (!api) return false; // fail open: no extension API, nothing to do
+  if (__UXX_DIAG__) wireDiagnose(api);
   api.runtime.onStartup?.addListener(() => {
-    applyThemeIfEnabled(api).then(() => refreshBadge(api)).catch(reportError);
+    applyThemeIfEnabled(api).then(() => refreshBadge(api)).then(() => syncUserCss(api)).catch(reportError);
   });
   api.action.onClicked?.addListener(() => {
     toggleEnabled(api).catch(reportError);
@@ -201,7 +256,7 @@ export function start(api = getApi()) {
   // Restart-loss policy: apply on every wake (idempotent), then reflect the
   // state in the badge (spec-extension beyond §10.2: the badge would otherwise
   // be blank after an event-page restart while enabled).
-  applyThemeIfEnabled(api).then(() => refreshBadge(api)).catch(reportError);
+  applyThemeIfEnabled(api).then(() => refreshBadge(api)).then(() => syncUserCss(api)).catch(reportError);
   return true;
 }
 

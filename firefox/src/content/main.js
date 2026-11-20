@@ -20,12 +20,25 @@ import { aggregate } from '../lib/palette.js';
 import { createMapper } from '../lib/map.js';
 import { luminance, composite, parseColor, toHsl, hueBucket } from '../lib/color.js';
 import * as cache from './cache.js';
+import { registerDiagnose } from './diagnose.js';
 
 // ── Constants (design §10 — all named) ────────────────────────────────────
 export const MAX_ELEMENTS = 15000;
 export const TIME_TRIP_MS = 3000;
 export const FRAME_MAX_ELEMENTS = 500;
 export const FRAME_BUDGET_MS = 5;
+// Per-element-subtree budget for the incremental path. Deliberately larger
+// than FRAME_BUDGET_MS: a subtree walk reads computed styles for every node,
+// and the remainder is parked on `session.pending` for the next frame.
+export const SUBTREE_BUDGET_MS = 12;
+// A MutationObserver on the document does not see inside shadow trees, and a
+// shadow root attached to an existing host fires no document mutation at all.
+// So shadow roots are DISCOVERED by a cheap sweep: every SHADOW_SWEEP_MS for the
+// first SHADOW_SWEEP_FAST_RUNS runs (the page is still booting), then every
+// SHADOW_SWEEP_SLOW_MS. Skipped while the tab is hidden; stops with the session.
+export const SHADOW_SWEEP_MS = 2000;
+export const SHADOW_SWEEP_SLOW_MS = 15000;
+export const SHADOW_SWEEP_FAST_RUNS = 15;
 export const RESCAN_THRESHOLD = 1000;
 export const BREAKER_MUTATIONS = 50;
 export const BREAKER_WINDOW_MS = 10000;
@@ -173,6 +186,87 @@ function cacheVersion(api) {
   return 'dev'; // jsdom / no manifest — stable across runs, so tests still hit
 }
 
+// True if `el` carries any attribute of ours (data-uxx*). Attribute loop only —
+// no style read — so it is safe to call on every node of a big re-walk.
+function carriesMarker(el) {
+  const attrs = el.attributes;
+  if (!attrs) return false;
+  for (let i = 0; i < attrs.length; i += 1) {
+    if (attrs[i].name.startsWith('data-uxx')) return true;
+  }
+  return false;
+}
+
+// Mapped background of `el`, recovered from its own data-uxx-role marker (no
+// style reads). Null when the element carries no background-bearing role.
+function markedBackground(el) {
+  const attr = el && typeof el.getAttribute === 'function' ? el.getAttribute('data-uxx-role') : null;
+  if (!attr) return null;
+  let found = null;
+  for (const role of attr.split(/\s+/)) {
+    const row = rolesModule.ROLE_RULES[role];
+    if (row && row.background) {
+      const color = parseColor(resolveToken(row.background));
+      if (color) found = { role, color, opaque: color.a === 1 };
+    }
+  }
+  return found;
+}
+
+// Parent that crosses a shadow boundary: an element directly under a shadow
+// root has no `parentElement`, but its HOST is the next ancestor that paints.
+function parentOf(node) {
+  if (node.parentElement) return node.parentElement;
+  const root = typeof node.getRootNode === 'function' ? node.getRootNode() : null;
+  return root && root.host ? root.host : null;
+}
+
+// Every open shadow root under `root` (document or shadow root), nested ones
+// included. `el.shadowRoot` is null for closed roots, which cannot be reached.
+function collectShadowRoots(root, out = new Set()) {
+  const all = root && typeof root.querySelectorAll === 'function' ? root.querySelectorAll('*') : [];
+  for (const el of all) {
+    const shadow = el.shadowRoot;
+    if (shadow && !out.has(shadow)) {
+      out.add(shadow);
+      collectShadowRoots(shadow, out);
+    }
+  }
+  return out;
+}
+
+// Mapped ancestor-background chain for `el` (outermost first), derived from
+// markers already written by earlier passes. `depth` is el's own depth.
+export function ancestorChainOf(el) {
+  const ancestors = [];
+  for (let n = parentOf(el); n; n = parentOf(n)) ancestors.push(n);
+  ancestors.reverse();
+  const chain = [];
+  ancestors.forEach((node, depth) => {
+    const bg = markedBackground(node);
+    if (bg) chain.push({ depth, ...bg });
+  });
+  return { chain, depth: ancestors.length };
+}
+
+// Pre-order walk rooted at `root` (inclusive), with open shadow roots.
+// `visit(el, depth)` returns false to prune that subtree.
+function forEachElementFrom(root, depth, visit) {
+  if (visit(root, depth) === false) return;
+  const down = (node, d) => {
+    let child = node.firstElementChild;
+    while (child) {
+      if (visit(child, d) !== false) {
+        down(child, d + 1);
+        if (child.shadowRoot) down(child.shadowRoot, d + 1);
+      }
+      child = child.nextElementSibling;
+    }
+  };
+  down(root, depth + 1);
+  if (root.shadowRoot) down(root.shadowRoot, depth + 1);
+}
+
 function sortAssignments(assignments) {
   return [...assignments].sort(
     (a, b) => (PROPERTY_ORDER[a.property] ?? 99) - (PROPERTY_ORDER[b.property] ?? 99),
@@ -183,8 +277,16 @@ function sortAssignments(assignments) {
 export function isIgnoredMutation(record) {
   const attr = record.attributeName || null;
   if (attr && attr.startsWith('data-uxx')) return true;
+  // Which nodes could carry OUR write? For an attribute record: the target.
+  // For a childList record: only the ADDED nodes (our own <style data-uxx>
+  // sheets). `record.target` of a childList record is the PARENT that was
+  // inserted into — and nearly every container on a real page is themed
+  // (carries data-uxx-role), so treating the parent as "ours" silently
+  // dropped every node a SPA inserted into a themed container.
   const targets = [];
-  if (record.target && record.target.nodeType === 1) targets.push(record.target);
+  if (record.type !== 'childList' && record.target && record.target.nodeType === 1) {
+    targets.push(record.target);
+  }
   for (const node of Array.from(record.addedNodes || [])) {
     if (node && node.nodeType === 1) targets.push(node);
   }
@@ -227,30 +329,76 @@ function noteTeardown(session, container) {
   if (recent.length >= TEARDOWN_LIMIT) session.suspended.add(container);
 }
 
+// ── Error containment + observability ────────────────────────────────────
+// One node that makes the pipeline throw must cost exactly one node. Failures
+// are COUNTED, the first few are kept (messages only, from OUR code) and logged
+// — never silent — but logging is bounded so a failure storm can neither grow
+// memory nor flood the page console.
+const MAX_RECORDED_ERRORS = 5;
+
+function recordError(session, where, error) {
+  const message = String((error && error.message) || error).slice(0, 160);
+  session.errorCount = (session.errorCount || 0) + 1;
+  if (!session.errors) session.errors = [];
+  if (session.errors.length < MAX_RECORDED_ERRORS) {
+    session.errors.push(`${where}: ${message}`);
+    console.error('[uxx] node skipped after error:', where, message);
+  }
+}
+
+// Pipeline state for diagnosis (numbers + our own error messages only).
+export function sessionStats(session) {
+  if (!session) return null;
+  return {
+    pending: session.pending ? session.pending.size : 0,
+    queue: session.queue ? session.queue.length : 0,
+    idle: !session.frameScheduled && (!session.pending || session.pending.size === 0),
+    backoffMs: Math.max(0, (session.backoffUntil || 0) - Date.now()),
+    breakerTrips: session.breakerTrips || 0,
+    frames: session.frames || 0,
+    errors: session.errorCount || 0,
+    firstErrors: session.errors ? session.errors.slice() : [],
+    fromCache: Boolean(session.fromCache),
+    degraded: Boolean(session.degraded),
+  };
+}
+
+// INVARIANT: this function RECORDS EVERYTHING that changed (cheap: Set inserts,
+// no style reads) and only ever DELAYS processing. The circuit breaker and the
+// hidden-tab gate used to `return` before enqueuing, which silently discarded
+// every insertion made while they were active — on a busy SPA (a list render is
+// hundreds of records; a video-js player toggles classes forever) that meant
+// most of the page was never themed (observed on LinkedIn: +1,566 elements,
+// +3 themed). The breaker limits processing RATE; it never loses work.
 export function handleMutations(records, session) {
   const now = Date.now();
   session.burst = (session.burst || []).filter((t) => now - t < BREAKER_WINDOW_MS);
-  if (session.burst.length >= BREAKER_MUTATIONS) {
+  const inBackoff = Boolean(session.backoffUntil && now < session.backoffUntil);
+  let breaker = false;
+  // Trip only when not already backing off: re-tripping inside a backoff would
+  // keep extending it and starve processing under a sustained storm.
+  if (!inBackoff && session.burst.length >= BREAKER_MUTATIONS) {
     session.backoffUntil = now + BREAKER_BACKOFF_MS;
     session.burst = [];
-    return { accepted: 0, rescan: false, breaker: true };
-  }
-  if (session.backoffUntil && now < session.backoffUntil) {
-    return { accepted: 0, rescan: false, backoff: true };
-  }
-  if (session.doc.hidden) {
-    deferUntilVisible(session);
-    return { accepted: 0, rescan: false, deferred: true };
+    session.breakerTrips = (session.breakerTrips || 0) + 1;
+    breaker = true;
   }
   let accepted = 0;
   for (const record of records) {
     if (isIgnoredMutation(record)) continue;
     accepted += 1;
     session.burst.push(now); // BREAKER_MUTATIONS counts records, not batches
-    session.queue.push(record);
+    // Bounded: once past RESCAN_THRESHOLD the exact records no longer matter
+    // (the whole document is re-walked), so stop growing the array.
+    if (session.queue.length <= RESCAN_THRESHOLD) session.queue.push(record);
     if (record.type === 'childList') {
       for (const node of Array.from(record.addedNodes || [])) {
-        if (node.nodeType === 1) session.pending.add(node);
+        if (node.nodeType === 1) {
+          session.pending.add(node);
+          // Inserted subtrees are themed whole (see session.applyElement).
+          if (!session.deepTargets) session.deepTargets = new WeakSet();
+          session.deepTargets.add(node);
+        }
       }
       for (const node of Array.from(record.removedNodes || [])) {
         if (
@@ -266,8 +414,12 @@ export function handleMutations(records, session) {
     }
   }
   const rescan = session.queue.length > RESCAN_THRESHOLD;
-  scheduleFrame(session);
-  return { accepted, rescan };
+  scheduleFrame(session); // honours backoff + hidden-tab: delays, never drops
+  const result = { accepted, rescan };
+  if (breaker) result.breaker = true;
+  else if (inBackoff) result.backoff = true;
+  if (session.doc && session.doc.hidden) result.deferred = true;
+  return result;
 }
 
 function deferUntilVisible(session) {
@@ -283,8 +435,28 @@ function deferUntilVisible(session) {
   session.doc.addEventListener('visibilitychange', onVisible);
 }
 
+// One timer that resumes processing when a breaker backoff ends. It re-checks
+// on firing (scheduleFrame), so a backoff that was extended meanwhile simply
+// re-arms it. Nothing is lost while it waits: `pending` retains every target.
+function armBackoffTimer(session) {
+  if (session.backoffTimer) return;
+  const wait = Math.max(0, session.backoffUntil - Date.now()) + 1;
+  session.backoffTimer = setTimeout(() => {
+    session.backoffTimer = null;
+    if (!session.tornDown) scheduleFrame(session);
+  }, wait);
+}
+
 function scheduleFrame(session) {
   if (session.frameScheduled || session.pending.size === 0) return;
+  if (session.backoffUntil && Date.now() < session.backoffUntil) {
+    armBackoffTimer(session);
+    return;
+  }
+  if (session.doc && session.doc.hidden) {
+    deferUntilVisible(session); // pending is retained; resumes on visibilitychange
+    return;
+  }
   session.frameScheduled = true;
   const win = session.win;
   const schedule =
@@ -301,6 +473,17 @@ function scheduleFrame(session) {
 // remainder queued to the next frame.
 export function processFrame(session) {
   const started = Date.now();
+  // A frame queued BEFORE the breaker tripped / the tab was hidden must still
+  // honour that state. Nothing is dropped: `pending` is untouched and the
+  // backoff timer / visibilitychange hook resumes it.
+  if (session.backoffUntil && started < session.backoffUntil) {
+    armBackoffTimer(session);
+    return { processed: 0, rescan: false, backoff: true };
+  }
+  if (session.doc && session.doc.hidden) {
+    deferUntilVisible(session);
+    return { processed: 0, rescan: false, deferred: true };
+  }
   if (session.queue.length > RESCAN_THRESHOLD) {
     session.queue.length = 0;
     session.pending.clear();
@@ -308,6 +491,7 @@ export function processFrame(session) {
     return { processed: 0, rescan: true };
   }
   session.queue.length = 0;
+  session.frames = (session.frames || 0) + 1;
   const targets = Array.from(session.pending);
   session.pending.clear();
   let processed = 0;
@@ -317,7 +501,18 @@ export function processFrame(session) {
       continue;
     }
     if (session.suspended.has(target)) continue;
-    if (typeof session.applyElement === 'function') session.applyElement(target);
+    if (typeof session.applyElement === 'function') {
+      const deep = Boolean(session.deepTargets && session.deepTargets.has(target));
+      // One-shot: later attribute churn on this node is a shallow re-apply.
+      if (deep) session.deepTargets.delete(target);
+      try {
+        session.applyElement(target, deep);
+      } catch (error) {
+        // `pending` was already cleared for this frame, so an unguarded throw
+        // here used to discard every REMAINING target as well.
+        recordError(session, 'applyElement', error);
+      }
+    }
     processed += 1;
   }
   if (session.pending.size > 0) scheduleFrame(session);
@@ -328,6 +523,14 @@ export function stopSession(session) {
   if (session.observer) {
     session.observer.disconnect();
     session.observer = null;
+  }
+  if (session.backoffTimer) {
+    clearTimeout(session.backoffTimer);
+    session.backoffTimer = null;
+  }
+  if (session.sweepTimer) {
+    clearTimeout(session.sweepTimer);
+    session.sweepTimer = null;
   }
   session.pending.clear();
   session.queue.length = 0;
@@ -386,44 +589,180 @@ export function buildSession({
   // Incremental re-apply (v1 approximation: single-element pass reusing the
   // page-level mapper + rank table; the full chain is recomputed only by a
   // whole-root rescan).
-  session.applyElement = (el) => {
-    if (!el || el.nodeType !== 1 || session.suspended.has(el)) return;
-    const fact = probe.readFact(el);
-    if (!fact) return;
-    const sizeClass = probe.measureSizeClass(fact);
-    const assignments = classify(fact, {
-      pageLuminance,
-      viewport,
-      prefersMore,
-      onAccentSurface: false,
-    }).map((a) => ({ ...a, sizeClass }));
-    for (const assignment of sortAssignments(assignments)) {
-      const mapped = mapper.map(assignment, {
-        resolvedBgColor: pageBg,
-        ancestorChain: [],
-        rankTable,
-        prefersMore,
-      });
-      if (mapped.role) apply.mark(el, mapped.role);
-      if (mapped.exception) apply.setException(el);
+  //
+  // `deep` (set for nodes a mutation INSERTED) themes the whole inserted
+  // subtree: SPAs render nearly everything after the first pass as subtrees,
+  // so themeing only the root left descendants with native colours on a
+  // re-themed ancestor (unreadable text, no link/button/semantic colours).
+  // The ancestor chain comes from existing markers, so contrast is checked
+  // against the real painted surface rather than the page background. The
+  // walk is time-bounded; the unvisited remainder is parked on `pending`.
+  const isTopFrame = (() => {
+    try {
+      return win.top === win;
+    } catch {
+      return false;
     }
+  })();
+  const baseColor = isTopFrame ? pageBg : { r: 0, g: 0, b: 0, a: 0 };
+  session.deepTargets = new WeakSet();
+
+  session.applyElement = (el, deep = false) => {
+    if (!el || el.nodeType !== 1 || session.suspended.has(el)) return;
+    // A node removed before its turn (the page re-rendered) is not worth a
+    // style read, and theming a detached node is wasted work.
+    if (el.isConnected === false) return;
+    const { chain: ancestorChain, depth: rootDepth } = ancestorChainOf(el);
+    const chain = ancestorChain.slice();
+    const started = Date.now();
+
+    const processNode = (node, depth) => {
+      if (deep && node !== el && Date.now() - started >= SUBTREE_BUDGET_MS) {
+        session.pending.add(node); // resume next frame, still deep
+        session.deepTargets.add(node);
+        return false;
+      }
+      if (node !== el && session.suspended.has(node)) return false;
+
+      // A shadow host: give its root our sheet, observe it, queue its content.
+      // Done BEFORE the marker early-return below — a host that was themed long
+      // ago may only now have grown a shadow root.
+      if (node.shadowRoot && typeof session.adoptShadow === 'function') session.adoptShadow(node.shadowRoot);
+
+      // Already themed (carries one of our markers): keep its mapped surface in
+      // the chain and move on WITHOUT a style read — this is what makes a deep
+      // re-walk or a whole-document rescan cheap on a mostly-themed page.
+      if (carriesMarker(node)) {
+        while (chain.length && chain[chain.length - 1].depth >= depth) chain.pop();
+        const bg = markedBackground(node);
+        if (bg) chain.push({ depth, ...bg });
+        return deep;
+      }
+
+      const fact = probe.readFact(node);
+      if (!fact) return false; // skip-list subtree: untouched
+      while (chain.length && chain[chain.length - 1].depth >= depth) chain.pop();
+      if (!isTopFrame && fact.isRoot) fact.isRoot = false;
+
+      const resolvedAncestorBg = chain.reduce((acc, e) => composite(e.color, acc), baseColor);
+      const onAccentSurface = isOnAccentSurface(chain, resolvedAncestorBg);
+      const sizeClass = probe.measureSizeClass(fact);
+      const assignments = classify(fact, {
+        pageLuminance,
+        viewport,
+        prefersMore,
+        onAccentSurface,
+      }).map((a) => ({ ...a, sizeClass }));
+
+      let resolvedBg = resolvedAncestorBg;
+      for (const assignment of sortAssignments(assignments)) {
+        const mapped = mapper.map(assignment, {
+          resolvedBgColor: resolvedBg,
+          ancestorChain: chain.map((e) => ({ role: e.role, color: e.color, opaque: e.opaque })),
+          rankTable,
+          prefersMore,
+        });
+        if (mapped.role) apply.mark(node, mapped.role);
+        if (mapped.exception) apply.setException(node);
+        const inlineProperty =
+          assignment.property === 'background'
+            ? 'background-color'
+            : assignment.property === 'color'
+              ? 'color'
+              : null;
+        if (
+          inlineProperty &&
+          mapped.color &&
+          Array.isArray(fact.inlineImportant) &&
+          fact.inlineImportant.includes(inlineProperty)
+        ) {
+          apply.redirectInline(node, inlineProperty, mapped.color);
+        }
+        if (assignment.property === 'background' && mapped.color) {
+          const mappedBg = parseColor(mapped.color);
+          if (mappedBg) {
+            chain.push({
+              depth,
+              role: mapped.role || assignment.role,
+              color: mappedBg,
+              opaque: mappedBg.a === 1,
+            });
+            resolvedBg = composite(mappedBg, resolvedBg);
+          }
+        }
+      }
+      return deep; // shallow callers (attribute changes) stop at the target
+    };
+
+    // A failure on one node prunes ONLY that node's subtree; its siblings (and
+    // everything after it) are still themed.
+    const visit = (node, depth) => {
+      try {
+        return processNode(node, depth);
+      } catch (error) {
+        recordError(session, 'visit', error);
+        return false;
+      }
+    };
+
+    forEachElementFrom(el, rootDepth, visit);
   };
+  // Whole-document rescan: queue the root as a DEEP target. The walk is
+  // time-budgeted (SUBTREE_BUDGET_MS) and parks the remainder on `pending`, so
+  // a huge page is covered across frames instead of freezing one.
   session.rescanAll = () => {
-    forEachElement(doc, (el) => {
-      session.applyElement(el);
-      return true;
-    });
+    const root = doc.documentElement;
+    if (!root) return;
+    session.pending.add(root);
+    session.deepTargets.add(root);
+    scheduleFrame(session);
   };
 
+  const OBSERVE_OPTIONS = { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class'] };
   session.observer = new win.MutationObserver((records) => handleMutations(records, session));
-  session.observe = () =>
-    session.observer.observe(doc.documentElement, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ['style', 'class'],
-    });
+  session.observe = () => session.observer.observe(doc.documentElement, OBSERVE_OPTIONS);
   session.observe();
+
+  // ── Open shadow roots ────────────────────────────────────────────────────
+  // Document-level stylesheets and the document-level observer both stop at a
+  // shadow boundary. Each root therefore needs (a) its own copy of our sheet,
+  // (b) its own observer registration, (c) its content queued once.
+  session.shadowObserved = new WeakSet();
+  session.adoptShadow = (root) => {
+    if (!root) return;
+    apply.ensureShadowSheet(root); // idempotent; re-injects if the page wiped the root
+    if (session.shadowObserved.has(root) || !session.observer) return;
+    session.shadowObserved.add(root);
+    session.observer.observe(root, OBSERVE_OPTIONS);
+    for (let child = root.firstElementChild; child; child = child.nextElementSibling) {
+      session.pending.add(child);
+      session.deepTargets.add(child);
+    }
+    scheduleFrame(session);
+  };
+  session.sweepShadows = () => {
+    for (const root of collectShadowRoots(doc)) session.adoptShadow(root);
+  };
+  session.sweepShadows();
+
+  let sweepRuns = 0;
+  const armSweep = () => {
+    if (!session.observer) return; // stopped
+    const delay = sweepRuns < SHADOW_SWEEP_FAST_RUNS ? SHADOW_SWEEP_MS : SHADOW_SWEEP_SLOW_MS;
+    session.sweepTimer = setTimeout(() => {
+      session.sweepTimer = null;
+      sweepRuns += 1;
+      if (!doc.hidden) {
+        try {
+          session.sweepShadows();
+        } catch (error) {
+          recordError(session, 'sweepShadows', error);
+        }
+      }
+      armSweep();
+    }, delay);
+  };
+  armSweep();
   return session;
 }
 
@@ -440,6 +779,7 @@ export function buildSession({
 export function applyCached(entry, { doc, win, api, apply, probe, walk, lookupKey, prefersMore, viewport }) {
   apply.ensureRoleSheet();
   apply.ensureInlineSheet();
+  for (const shadow of collectShadowRoots(doc)) apply.ensureShadowSheet(shadow);
 
   for (const rec of cache.decodeEffects(entry)) {
     const el = walk.elements[rec.idx];
@@ -478,6 +818,7 @@ export function applyCached(entry, { doc, win, api, apply, probe, walk, lookupKe
 
   // Touch `t` so LRU keeps hot pages (entry-only write; no index to race).
   cache.touch(api, lookupKey, entry);
+  session.fromCache = true; // diagnosis: this page was themed from a REPLAY, not a full pass
   return session;
 }
 
@@ -684,6 +1025,8 @@ export async function runPipeline({ doc, win, api = null, apply = null, probe = 
   // themed element has an index).
   activeApply.ensureRoleSheet();
   activeApply.ensureInlineSheet();
+  // Open shadow roots (document styles don't pierce them): same sheet, same moment.
+  for (const shadow of collectShadowRoots(doc)) activeApply.ensureShadowSheet(shadow);
   const effectByEl = new Map();
   const recordEffect = (el, mutate) => {
     let rec = effectByEl.get(el);
@@ -797,6 +1140,9 @@ export async function runPipeline({ doc, win, api = null, apply = null, probe = 
  * start({ doc?, win?, api? }) — full entry: boot sheet, state handshake
  * (2000ms, fail open), pipeline, toggle-broadcast teardown.
  */
+// The live session of THIS content script (diagnostic hooks read it lazily).
+let activeSession = null;
+
 export async function start({ doc = globalThis.document, win = globalThis.window, api = getApi() } = {}) {
   if (!doc || !win) return { status: 'no-dom' };
   const apply = createApply({ doc, tokens: tokensModule, roles: rolesModule });
@@ -807,6 +1153,24 @@ export async function start({ doc = globalThis.document, win = globalThis.window
     // never leave a foreign color scheme on a page).
     apply.teardown();
     return { status: 'fail-open' };
+  }
+
+  // Diagnostic build only (`__UXX_DIAG__` is a literal false in production, so
+  // this and diagnose.js are tree-shaken out). Registered BEFORE the handshake
+  // so a report is available even when theming is disabled on the page. The
+  // hooks expose pipeline state and let the report run ONE full rescan, to tell
+  // "the incremental path missed it" from "a full pass cannot theme it either".
+  if (__UXX_DIAG__) {
+    registerDiagnose(api, {
+      doc,
+      win,
+      version: cacheVersion(api),
+      stats: () => sessionStats(activeSession),
+      rescan: () => {
+        if (activeSession && typeof activeSession.rescanAll === 'function') activeSession.rescanAll();
+      },
+      idle: () => !activeSession || sessionStats(activeSession).idle,
+    });
   }
 
   let state;
@@ -829,6 +1193,7 @@ export async function start({ doc = globalThis.document, win = globalThis.window
   }
 
   const session = await runPipeline({ doc, win, api, apply });
+  activeSession = session;
 
   // Broadcast toggle (design §9.3): disable → full teardown + observer
   // disconnect; re-enable on the same page → theme again.

@@ -28,7 +28,12 @@
 import { ROLE_RULES } from '../theme/roles.js';
 
 // ── Constants (spec §14.1, design §15.1/§15.5) ─────────────────────────────
-export const CACHE_SCHEMA = 'uxx-sc-v1';
+// v2 (2026-11-10): every classify/apply fix since v1 (hidden-element theming,
+// breaker, cascade layer) changes what a replay should produce, but the manifest
+// version did not change between builds, so v1 entries written by an OLDER build
+// were being replayed by newer code for the same page. Bump on ANY change that
+// alters classification/effects, not only on manifest version bumps.
+export const CACHE_SCHEMA = 'uxx-sc-v2';
 export const CACHE_KEY_PREFIX = 'sc:';
 export const CACHE_BUDGET_BYTES = 8 * 1024 * 1024; // under the 10 MB default quota
 export const CACHE_MAX_ENTRIES = 100;

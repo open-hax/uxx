@@ -272,3 +272,138 @@ describe('sheets getter', () => {
     expect(apply.sheets).toEqual([boot, role]);
   });
 });
+
+// REGRESSION (LinkedIn Messaging widget): elements were MARKED with role
+// `surface` yet painted `rgb(255,255,255)` — our `!important` rule was losing
+// the cascade to the site's own CSS (cross-origin, so the rule could not even
+// be read). For !important declarations the cascade is REVERSED across layers:
+// an `!important` rule in an EARLIER cascade layer beats `!important` rules in
+// later layers AND in unlayered CSS, whatever their selector specificity. So
+// all three of our sheets live in one layer, declared FIRST (the boot sheet
+// is injected at document_start, before any page stylesheet parses).
+describe('cascade layer: our !important rules must beat the site’s', () => {
+  const LAYER = 'uxx-monokai';
+
+  // Split a stylesheet into its top-level blocks/statements (brace-depth aware).
+  function topLevel(css) {
+    const parts = [];
+    let depth = 0;
+    let start = 0;
+    for (let i = 0; i < css.length; i += 1) {
+      const ch = css[i];
+      if (ch === '{') depth += 1;
+      else if (ch === '}') {
+        depth -= 1;
+        if (depth === 0) {
+          parts.push(css.slice(start, i + 1).trim());
+          start = i + 1;
+        }
+      } else if (ch === ';' && depth === 0) {
+        parts.push(css.slice(start, i + 1).trim());
+        start = i + 1;
+      }
+    }
+    const rest = css.slice(start).trim();
+    if (rest) parts.push(rest);
+    return parts;
+  }
+
+  it('boot sheet DECLARES the layer first, then puts every rule inside it', () => {
+    const parts = topLevel(makeApply().injectBoot().textContent);
+    expect(parts[0]).toBe(`@layer ${LAYER};`); // first thing in the sheet → first layer
+    const blocks = parts.slice(1);
+    expect(blocks).toHaveLength(1); // nothing unlayered (it would lose to layered page CSS)
+    expect(blocks[0].startsWith(`@layer ${LAYER} {`)).toBe(true);
+    expect(blocks[0]).toContain('@media screen and (forced-colors: none)');
+  });
+
+  it('role sheet is a single block inside the layer — no unlayered rule escapes', () => {
+    const apply = makeApply();
+    const parts = topLevel(apply.ensureRoleSheet().textContent);
+    expect(parts).toHaveLength(1);
+    expect(parts[0].startsWith(`@layer ${LAYER} {`)).toBe(true);
+    // Every rule still carries !important and the forced-colors guard.
+    expect(parts[0]).toContain('@media screen and (forced-colors: none)');
+    expect(parts[0]).toContain('[data-uxx-role~="surface"]');
+  });
+
+  it('inline-redirect sheet is a single block inside the layer', () => {
+    const parts = topLevel(makeApply().ensureInlineSheet().textContent);
+    expect(parts).toHaveLength(1);
+    expect(parts[0].startsWith(`@layer ${LAYER} {`)).toBe(true);
+    expect(parts[0]).toContain('[data-uxx-inline-color]');
+  });
+
+  it('no sheet contains a rule outside the layer (counts braces, not substrings)', () => {
+    const apply = makeApply();
+    for (const css of [apply.injectBoot().textContent, apply.ensureRoleSheet().textContent, apply.ensureInlineSheet().textContent]) {
+      const unlayeredBlocks = topLevel(css).filter((p) => p.includes('{') && !p.startsWith('@layer'));
+      expect(unlayeredBlocks).toEqual([]);
+    }
+  });
+});
+
+// REGRESSION (LinkedIn Messaging widget, confirmed in the live console probe):
+// the widget lives in an OPEN SHADOW ROOT (host DIV#interop-outlet). Our markers
+// were written onto its elements, but our stylesheets only existed in the
+// DOCUMENT — document styles never cross a shadow boundary — so the marked
+// elements kept their native colours (probe: shadow:true, uxxSheetInRoot:false,
+// computed background rgb(255,255,255)). Every open shadow root needs its own
+// copy of the sheet, placed FIRST so it is also the first cascade layer there.
+describe('shadow roots: document-level styles do not pierce them', () => {
+  const shadowHost = () => {
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    return { host, root: host.attachShadow({ mode: 'open' }) };
+  };
+
+  it('ensureShadowSheet puts our layered role + inline rules as the FIRST child of the root', () => {
+    const apply = makeApply();
+    const { root } = shadowHost();
+    const site = document.createElement('style');
+    site.textContent = '.card { background-color: white !important; }';
+    root.appendChild(site); // the site's own sheet is already there
+
+    expect(apply.ensureShadowSheet(root)).toBe(true);
+    const ours = root.firstElementChild;
+    expect(ours.tagName).toBe('STYLE');
+    expect(ours.getAttribute('data-uxx')).toBe('shadow');
+    expect(root.children[1]).toBe(site); // we are BEFORE the site's CSS
+    const css = ours.textContent;
+    expect(css.startsWith(`@layer ${'uxx-monokai'};`)).toBe(true);
+    expect(css).toContain('@layer uxx-monokai {');
+    expect(css).toContain('[data-uxx-role~="surface"]');
+    expect(css).toContain('[data-uxx-inline-color]');
+    expect(css).toContain('!important');
+  });
+
+  it('is idempotent, and re-injects after the page wipes the shadow root', () => {
+    const apply = makeApply();
+    const { root } = shadowHost();
+    expect(apply.ensureShadowSheet(root)).toBe(true);
+    expect(apply.ensureShadowSheet(root)).toBe(false); // still there: no duplicate
+    expect(root.querySelectorAll('style[data-uxx="shadow"]')).toHaveLength(1);
+
+    root.replaceChildren(); // a framework re-render clears the root
+    expect(apply.ensureShadowSheet(root)).toBe(true);
+    expect(root.querySelectorAll('style[data-uxx="shadow"]')).toHaveLength(1);
+  });
+
+  it('teardown removes the shadow sheets too (page is left exactly as found)', () => {
+    const apply = makeApply();
+    const { root } = shadowHost();
+    apply.ensureShadowSheet(root);
+    const child = document.createElement('p');
+    child.setAttribute('data-uxx-role', 'surface');
+    root.appendChild(child);
+    apply.teardown();
+    expect(root.querySelector('style[data-uxx="shadow"]')).toBeNull();
+    expect(child.hasAttribute('data-uxx-role')).toBe(false);
+  });
+
+  it('ignores things that are not shadow roots', () => {
+    const apply = makeApply();
+    expect(apply.ensureShadowSheet(null)).toBe(false);
+    expect(apply.ensureShadowSheet({})).toBe(false);
+  });
+});

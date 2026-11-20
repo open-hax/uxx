@@ -396,13 +396,17 @@ describe('classify — skip list (design §6)', () => {
     expect(classify(f, ctx())).toEqual([]);
   });
 
-  it('non-visible facts contribute nothing (placeholder excepted)', () => {
-    const f = fact({
-      visible: false,
+  it('non-visible facts are classified exactly like visible ones (revealed later by class toggles)', () => {
+    // Regression (LinkedIn): collapsed/hidden panels were skipped at insert
+    // time and, once a wrapper's class revealed them, never re-visited.
+    const base = {
       color: C('#ffffff'),
       background: { color: C('#ffffff'), hasImage: false, isGradient: false },
-    });
-    expect(classify(f, ctx())).toEqual([]);
+    };
+    const hidden = classify(fact({ ...base, visible: false }), ctx());
+    const shown = classify(fact({ ...base, visible: true }), ctx());
+    expect(hidden.length).toBeGreaterThan(0);
+    expect(rolesOf(hidden)).toEqual(rolesOf(shown));
     const ph = fact({ visible: false, isPlaceholder: true, color: C('#ffffff') });
     expect(rolesOf(classify(ph, ctx()))).toEqual(['color:text-muted']);
   });

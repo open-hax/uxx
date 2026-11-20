@@ -13,13 +13,12 @@
 // (bg, color, border, outline) fire simultaneously — no dominant-role
 // arbitration exists.
 
-// role-sheet property key → CSS property name.
-const PROPERTY_CSS = {
-  background: 'background-color',
-  color: 'color',
-  border: 'border-color',
-  outline: 'outline-color',
-};
+// CSS is generated in ONE place (src/theme/sheet-css.js) and shared with the
+// user-origin stylesheet the background registers through browser.scripting.
+// The cascade-layer rationale lives there too: for `!important`, an earlier
+// layer beats later layers AND unlayered CSS regardless of specificity.
+import { LAYER, layered, roleRuleLines, roleSheetCss, inlineSheetCss, userCss } from '../theme/sheet-css.js';
+export { LAYER } from '../theme/sheet-css.js';
 
 // Never marked (design §6: raster targets are never touched).
 const MARK_SKIP_TAGS = new Set(['img', 'canvas', 'video']);
@@ -34,7 +33,6 @@ const SHOW_ELEMENT = 1; // NodeFilter.SHOW_ELEMENT
  */
 export function createApply({ doc, tokens, roles }) {
   const { resolveToken } = tokens;
-  const { ROLE_RULES, STATE_RULES } = roles;
 
   const sheets = [];
   // Redirect registry: el → { cssProperty: { value, priority } }. A WeakMap
@@ -59,12 +57,13 @@ export function createApply({ doc, tokens, roles }) {
     const fg = resolveToken(['colors', 'text', 'default']);
     const selection = resolveToken(['colors', 'selection', 'default']);
     const placeholder = resolveToken(['colors', 'text', 'soft']);
-    const css = `@media screen and (forced-colors: none) {
+    const css = `@layer ${LAYER};
+${layered(`@media screen and (forced-colors: none) {
   :root { color-scheme: dark !important;
           background-color: ${bg} !important; color: ${fg} !important; }
   ::selection { background-color: ${selection} !important; }
   ::placeholder { color: ${placeholder} !important; }
-}`;
+}`)}`;
     return makeStyle('boot', css);
   }
 
@@ -74,30 +73,36 @@ export function createApply({ doc, tokens, roles }) {
   // `::selection` rule), plus STATE_RULES rows, plus the `::selection` rule
   // duplicated from the boot sheet (harmless, both important).
   function ensureRoleSheet() {
-    const lines = [];
-    for (const [role, properties] of Object.entries(ROLE_RULES)) {
-      if (role === 'selection') continue;
-      for (const [property, path] of Object.entries(properties)) {
-        const cssProperty = PROPERTY_CSS[property];
-        lines.push(`[data-uxx-role~="${role}"]{${cssProperty}:${resolveToken(path)}!important}`);
-      }
-    }
-    for (const [selector, property, path] of STATE_RULES) {
-      lines.push(`${selector}{${property}:${resolveToken(path)}!important}`);
-    }
-    lines.push(`::selection{background-color:${resolveToken(ROLE_RULES.selection.background)}!important}`);
-    const css = `@media screen and (forced-colors: none) {\n${lines.join('\n')}\n}`;
-    return makeStyle('role', css);
+    return makeStyle('role', roleSheetCss(roles, resolveToken));
   }
 
   // Inline-redirect sheet (design §9.1 channel 3): `screen` included, same
   // as the other two channels (design §6 print row; review F12).
   function ensureInlineSheet() {
-    const css = `@media screen and (forced-colors: none) {
-[data-uxx-inline-color]{color:var(--uxx-inline-color)!important}
-[data-uxx-inline-background-color]{background-color:var(--uxx-inline-background-color)!important}
-}`;
-    return makeStyle('inline', css);
+    return makeStyle('inline', inlineSheetCss());
+  }
+
+  // Shadow roots (observed: LinkedIn's Messaging widget lives in an open shadow
+  // root hosted by DIV#interop-outlet). Our markers were written onto those
+  // elements but our sheets only existed in the DOCUMENT, so nothing styled
+  // them. Each open shadow root gets its own copy — role + state + inline-redirect
+  // rules in the same layer — as its FIRST child, so it is also the first cascade
+  // layer in that tree scope and precedes the site's own <style> elements.
+  // Idempotent; re-injects if the page cleared the root. Returns true when it
+  // (re)inserted a sheet. Torn down with every other sheet (they share `sheets`).
+  const shadowSheets = new Map();
+  function ensureShadowSheet(root) {
+    if (!root || typeof root.insertBefore !== 'function' || root.nodeType !== 11) return false;
+    const existing = shadowSheets.get(root);
+    if (existing && existing.parentNode === root) return false;
+    const css = userCss(roles, resolveToken);
+    const el = doc.createElement('style');
+    el.setAttribute('data-uxx', 'shadow');
+    el.textContent = css;
+    root.insertBefore(el, root.firstChild);
+    shadowSheets.set(root, el);
+    sheets.push(el);
+    return true;
   }
 
   // MULTI-ROLE marker (round-3 B1): one space-separated data-uxx-role attr —
@@ -191,6 +196,7 @@ export function createApply({ doc, tokens, roles }) {
     }
     redirected.clear();
     redirectedEls.clear();
+    shadowSheets.clear();
     purgeAttributes(doc.documentElement || doc);
   }
 
@@ -198,6 +204,7 @@ export function createApply({ doc, tokens, roles }) {
     injectBoot,
     ensureRoleSheet,
     ensureInlineSheet,
+    ensureShadowSheet,
     mark,
     redirectInline,
     setException,

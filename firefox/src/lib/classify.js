@@ -79,7 +79,11 @@ function classifyColor(fact, ctx, buttonRole) {
   const fg = fact.color;
   if (!fg || isTransparent(fg)) return null; // alpha 0
   if (fact.hasOurs) return null;
-  if (!fact.visible && !fact.isPlaceholder) return null;
+  // `fact.visible` is deliberately NOT consulted. SPAs insert panels, menus and
+  // lazily-hydrated posts collapsed or hidden and reveal them later by toggling
+  // a class on a wrapper; the observer re-checks only that wrapper, so anything
+  // skipped here as "invisible" stayed unthemed forever. Hidden elements still
+  // have fully resolved computed colours, so theming them up front is free.
   if (fact.isPlaceholder) return { role: 'text-muted', confidence: 1.0 }; // forced
   if (buttonRole) return { role: buttonRole, confidence: 0.8 };
   if (ctx.onAccentSurface) return { role: 'text-inverse', confidence: 0.9 };
@@ -134,7 +138,7 @@ function bucketOf(h, s) {
 // assignment (badge cross-rule 4b).
 function classifyBackground(fact, ctx, colorA, buttonRole) {
   const bg = fact.background && fact.background.color;
-  if (!fact.visible) return null;
+  // No `fact.visible` gate — see classifyColor.
   if (!bg || isTransparent(bg)) return null;
   if (fact.background.hasImage || fact.background.isGradient) return null;
   if (fact.hasOurs) return null;

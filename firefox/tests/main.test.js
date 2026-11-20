@@ -258,6 +258,36 @@ describe('observer self-ignore (spec §9.3 step 8, review F9)', () => {
     ).toBe(false);
   });
 
+  it('a node inserted INTO a themed container is not a self-write (LinkedIn regression)', () => {
+    // Nearly every container on a real page carries data-uxx-role. The record's
+    // `target` for a childList mutation is that PARENT; it must not make the
+    // record "ours" — only an added node carrying our markers may.
+    const themedParent = document.createElement('div');
+    themedParent.setAttribute('data-uxx-role', 'surface');
+    const inserted = document.createElement('p');
+    themedParent.appendChild(inserted);
+    expect(
+      isIgnoredMutation({
+        type: 'childList',
+        target: themedParent,
+        addedNodes: [inserted],
+        removedNodes: [],
+      }),
+    ).toBe(false);
+
+    // Our own injected sheet (an added node with data-uxx) is still ignored.
+    const sheet = document.createElement('style');
+    sheet.setAttribute('data-uxx', 'role');
+    expect(
+      isIgnoredMutation({
+        type: 'childList',
+        target: themedParent,
+        addedNodes: [sheet],
+        removedNodes: [],
+      }),
+    ).toBe(true);
+  });
+
   it('handleMutations filters self-writes and accepts page mutations', () => {
     const rafQueue = [];
     const session = {
@@ -313,7 +343,18 @@ describe('observer self-ignore (spec §9.3 step 8, review F9)', () => {
     const first = handleMutations(records, session);
     expect(first.accepted).toBe(BREAKER_MUTATIONS);
     const second = handleMutations(records, session);
-    expect(second).toEqual({ accepted: 0, rescan: false, breaker: true });
+    // The breaker TRIPS (backoff starts) but the records are still ACCEPTED:
+    // it limits processing rate, it never discards what changed. (The old
+    // contract was `accepted: 0`, which lost every insertion made during a
+    // storm — see tests/incremental.test.js "circuit breaker defers work".)
+    expect(second).toEqual({ accepted: BREAKER_MUTATIONS, rescan: false, breaker: true });
+    expect(session.backoffUntil).toBeGreaterThan(Date.now());
+    expect(session.pending.has(target)).toBe(true);
+    // Inside the backoff a further batch is accepted too, flagged as such.
+    const third = handleMutations(records, session);
+    expect(third.accepted).toBe(BREAKER_MUTATIONS);
+    expect(third.backoff).toBe(true);
+    expect(third.breaker).toBeUndefined();
   });
 });
 
